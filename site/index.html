@@ -86,6 +86,23 @@
     margin: 0;
   }
   code { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .try .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; margin: 0.75rem 0 0; }
+  .try .choices button {
+    text-align: left; font: inherit; cursor: pointer; padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink);
+    display: flex; flex-direction: column; gap: 0.2rem;
+  }
+  .try .choices button:hover { border-color: var(--accent); }
+  .try .choices button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .try .choices button[disabled] { opacity: 0.55; cursor: not-allowed; }
+  .try .choices strong { font-size: 0.95rem; font-weight: 600; }
+  .try .choices span { color: var(--muted); font-size: 0.85rem; line-height: 1.45; }
+  .try-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.9rem; margin-top: 1rem; }
+  .try-go .go {
+    display: inline-block; padding: 0.55rem 1.2rem; border-radius: 8px; font-weight: 500;
+    background: var(--accent); color: var(--bg); text-decoration: none;
+  }
+  .try-go .alt { font-size: 0.9rem; }
   .snippet { position: relative; }
   .snippet .copy-btn {
     position: absolute; top: 0.5rem; right: 0.6rem;
@@ -122,13 +139,34 @@
       inside the kit; you write one <code>await</code>.
     </p>
     <p class="lede">
-      It implements <a href="/spec/">SMART Health Check-in 1.0</a>. You can
-      <a href="./demo/">try the whole flow in your browser right now</a> (no
-      phone or wallet app required), or head to the
-      <a href="/docs/">docs</a> to install it.
+      It implements <a href="/spec/">SMART Health Check-in 1.0</a>. Try the
+      whole flow below, or head to the <a href="/docs/">docs</a> to install it.
     </p>
   </header>
 
+
+  <section class="try">
+    <h2>Try it now</h2>
+    <p class="muted">Who should answer the check-in request?</p>
+    <div class="choices" id="choices">
+      <button type="button" data-wallet="app" aria-pressed="true">
+        <strong>Demo wallet app</strong>
+        <span>A wallet opens in a tab with a real consent screen. Works in any browser.</span>
+      </button>
+      <button type="button" data-wallet="platform">
+        <strong>Your device's wallet</strong>
+        <span id="platform-note">The real Digital Credentials API — checking this browser…</span>
+      </button>
+      <button type="button" data-wallet="auto">
+        <strong>Automatic mock</strong>
+        <span>Answers instantly with fabricated data and no consent screen.</span>
+      </button>
+    </div>
+    <p class="try-go">
+      <a class="go" id="go" href="./demo/#wallet=app">Open the check-in demo →</a>
+      <a class="alt" id="go-autofill" href="./demo/autofill.html#wallet=app">or the allergy autofill example</a>
+    </p>
+  </section>
 
   <section>
     <h2>How a check-in runs</h2>
@@ -304,6 +342,35 @@ location.assign("/checkin/payment");</code></pre>
     </nav>
   </div>
 </footer>
+<script type="module">
+  // Dogfooding: the landing page asks the published module whether this
+  // browser can reach a real wallet.
+  import { detectDcApiSupport } from "./lib/checkin.js";
+
+  const support = detectDcApiSupport();
+  const platformButton = document.querySelector('[data-wallet="platform"]');
+  const note = document.getElementById("platform-note");
+  if (support.state === "supported") {
+    note.textContent = "The real Digital Credentials API — your browser supports it.";
+  } else {
+    note.textContent = `Not available in this browser (${support.reason.replace(/\s*\(.*\)/, "")}).`;
+    platformButton.disabled = true;
+  }
+
+  const go = document.getElementById("go");
+  const goAutofill = document.getElementById("go-autofill");
+  for (const button of document.querySelectorAll("#choices button")) {
+    button.addEventListener("click", () => {
+      for (const other of document.querySelectorAll("#choices button")) {
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+      const wallet = button.dataset.wallet;
+      go.href = `./demo/#wallet=${wallet}`;
+      goAutofill.href = `./demo/autofill.html#wallet=${wallet}`;
+    });
+  }
+</script>
+
 <script>
   for (const span of document.querySelectorAll(".computed-url")) {
     span.textContent = new URL(span.dataset.file, location.href).href;
