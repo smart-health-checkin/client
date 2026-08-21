@@ -281,7 +281,7 @@ function render(): void {
   };
   if (s.wallet === "app") {
     statusNote.textContent =
-      "Demo wallet app: a wallet window opens where you choose what to share. Real CBOR/COSE/HPKE over fabricated records — no phone needed.";
+      "Demo wallet app: opens in a new tab where you choose what to share. Real CBOR/COSE/HPKE over fabricated records — no phone needed.";
     updateStart();
   } else if (s.wallet === "auto") {
     statusNote.textContent =

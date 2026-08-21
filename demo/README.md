@@ -36,7 +36,7 @@ holding real patient data.
 ## Example URLs
 
 ```text
-…/demo/#wallet=app                       consent screen in a wallet window
+…/demo/#wallet=app                       consent screen in a wallet tab
 …/demo/#wallet=auto&post=transaction     instant mock, then post to the FHIR base
 …/demo/#scenario=new-patient             real wallet via the DC API (Chrome/Android)
 …/demo/autofill.html#wallet=app          form prefilled from the patient's app

@@ -90,14 +90,14 @@ function init(): void {
   const note = el("status-note");
   const button = el("prefill") as HTMLButtonElement;
   if (wallet === "app") {
-    note.textContent = "Demo wallet app: a wallet window opens where you choose what to share.";
+    note.textContent = "Demo wallet app: opens in a new tab where you choose what to share.";
   } else if (wallet === "auto") {
     note.textContent = "Automatic mock wallet — fabricated demo allergies, no consent screen.";
   } else if (support.state === "supported") {
     note.textContent =
-      "Your browser supports the Digital Credentials API. (No wallet here? Add #wallet=app for the demo wallet window.)";
+      "Your browser supports the Digital Credentials API. (No wallet here? Add #wallet=app for the demo wallet tab.)";
   } else {
-    note.textContent = `Digital Credentials API not available here (${support.reason}). Add #wallet=app to run with the demo wallet window.`;
+    note.textContent = `Digital Credentials API not available here (${support.reason}). Add #wallet=app to run with the demo wallet tab.`;
     button.disabled = true;
   }
   button.onclick = () => void prefill();
@@ -174,32 +174,55 @@ function render(): void {
 
     const head = document.createElement("div");
     head.className = "line";
+
     const name = document.createElement("span");
     name.className = "name";
     name.textContent = row.name;
+
     const said = document.createElement("span");
     said.className = "said";
     said.textContent = row.reportedReactions.length
       ? row.reportedReactions.join(", ")
       : "allergen only";
-    head.append(name, said);
+
+    // Right-hand group stays together when the line wraps.
+    const actions = document.createElement("span");
+    actions.className = "row-actions";
 
     const state = document.createElement("span");
     state.className = "state";
+    const patientSupplied = summaryOf(row);
     if (row.removed) state.textContent = "removed";
     else if (needsDetail(row)) state.textContent = "needs you";
-    else state.textContent = summaryOf(row) || (row.criticality ?? "");
-    head.append(state);
+    else if (patientSupplied) state.textContent = `you: ${patientSupplied}`;
+    else if (row.criticality && row.criticality !== "unable-to-assess") {
+      state.textContent = `${row.criticality} risk`;
+    } else state.textContent = "";
+    actions.append(state);
+
+    if (!row.removed && !needsDetail(row) && (row.symptoms.size || row.severity)) {
+      const change = document.createElement("button");
+      change.className = "linkish";
+      change.type = "button";
+      change.textContent = row.expanded ? "done" : "change";
+      change.onclick = () => {
+        rows[index]!.expanded = !rows[index]!.expanded;
+        render();
+      };
+      actions.append(change);
+    }
 
     const remove = document.createElement("button");
     remove.className = "linkish";
     remove.type = "button";
-    remove.textContent = row.removed ? "undo" : "not mine";
+    remove.textContent = row.removed ? "undo" : "remove";
     remove.onclick = () => {
       rows[index]!.removed = !rows[index]!.removed;
       render();
     };
-    head.append(remove);
+    actions.append(remove);
+
+    head.append(name, said, actions);
     li.append(head);
 
     // Controls appear only while a row needs input (or was reopened).
@@ -209,8 +232,8 @@ function render(): void {
       ask.textContent = row.gaps.reaction
         ? "Record doesn't say what happens — tap what you get, and how bad:"
         : "What happens, and how bad?";
-      const controls = document.createElement("div");
-      controls.className = "controls";
+      const chips = document.createElement("div");
+      chips.className = "chips";
 
       for (const tag of SYMPTOM_TAGS) {
         const chip = document.createElement("button");
@@ -225,9 +248,14 @@ function render(): void {
           else set.add(tag.label);
           render();
         };
-        controls.append(chip);
+        chips.append(chip);
       }
 
+      const sevLine = document.createElement("div");
+      sevLine.className = "sev-line";
+      const sevLabel = document.createElement("span");
+      sevLabel.className = "sev-label";
+      sevLabel.textContent = "How bad?";
       const sev = document.createElement("span");
       sev.className = "sev";
       for (const level of SEVERITIES) {
@@ -241,18 +269,8 @@ function render(): void {
         };
         sev.append(button);
       }
-      controls.append(sev);
-      li.append(ask, controls);
-    } else if (!row.removed && (row.symptoms.size || row.severity)) {
-      const change = document.createElement("button");
-      change.className = "linkish change";
-      change.type = "button";
-      change.textContent = "change";
-      change.onclick = () => {
-        rows[index]!.expanded = true;
-        render();
-      };
-      li.append(change);
+      sevLine.append(sevLabel, sev);
+      li.append(ask, chips, sevLine);
     }
 
     list.append(li);

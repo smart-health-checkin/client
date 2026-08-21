@@ -1,7 +1,8 @@
 /**
  * Web-wallet credential getter: a drop-in replacement for
  * `navigator.credentials.get` that hands the request to a wallet **web app**
- * in a popup window over postMessage, and waits for the sealed response.
+ * in another tab (or a popup) over postMessage, and waits for the sealed
+ * response.
  *
  * This exists so the whole flow — including a real consent screen where the
  * person chooses what to share — can be demonstrated on any browser, with no
@@ -26,7 +27,13 @@ export type WebWalletResponseMessage =
 export type WebWalletOptions = {
   /** URL of the wallet web app (same-origin or any origin you trust). */
   walletUrl: string;
-  /** Popup geometry. */
+  /**
+   * How to open the wallet. "tab" (default) opens a normal browser tab, which
+   * behaves better on mobile and in browsers that resist popups; "popup"
+   * opens a small window. Ignored if `features` is set.
+   */
+  target?: "tab" | "popup";
+  /** Explicit window.open features string; implies a popup. */
   features?: string;
   /** Give up after this many ms (default 5 minutes). */
   timeoutMs?: number;
@@ -42,14 +49,16 @@ export class WalletDeclinedError extends Error {
 
 export function createWebWalletCredentialGetter(options: WebWalletOptions) {
   const timeoutMs = options.timeoutMs ?? 5 * 60_000;
-  const features = options.features ?? "popup,width=460,height=720";
+  // An empty features string makes window.open use a tab.
+  const features =
+    options.features ?? (options.target === "popup" ? "popup,width=460,height=720" : "");
 
   return async (navigatorArgument: unknown): Promise<unknown> => {
     const walletUrl = new URL(options.walletUrl, location.href);
     const walletOrigin = walletUrl.origin;
     const popup = window.open(walletUrl.href, "smart-checkin-wallet", features);
     if (!popup) {
-      throw new Error("the wallet window was blocked — allow popups for this site and try again");
+      throw new Error("the wallet tab was blocked — allow pop-ups for this site and try again");
     }
 
     const requestId = crypto.randomUUID();
@@ -101,7 +110,7 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
         };
 
         const closedPoll = setInterval(() => {
-          if (popup.closed) finish(() => reject(new WalletDeclinedError("the wallet window was closed")));
+          if (popup.closed) finish(() => reject(new WalletDeclinedError("the wallet tab was closed")));
         }, 400);
 
         const timer = setTimeout(() => {
