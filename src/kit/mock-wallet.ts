@@ -9,6 +9,7 @@
  */
 
 import type {
+  SmartCheckinItemStatus,
   SmartCheckinRequest,
   SmartCheckinRequestItem,
   SmartCheckinResponse,
@@ -33,11 +34,106 @@ import {
   sha256,
 } from "../wire/index.js";
 
+/**
+ * What the mock wallet should return for one requested item.
+ *
+ * Tests usually want to pin exact data ("this allergy list, missing its
+ * reaction") or exercise a non-happy status, so both are first-class.
+ */
+export type MockItemSpec =
+  /** Return this FHIR resource or Bundle for the item. */
+  | { fhir: unknown; fhirVersion?: string }
+  /** Return a SMART Health Card artifact carrying these JWS strings. */
+  | { healthCard: readonly string[] }
+  /** Report a status with no artifact — declined, unavailable, error, … */
+  | { status: SmartCheckinItemStatus["status"]; message?: string };
+
 export type MockWalletOptions = {
   origin: string;
-  /** Override the fabricated SMART response entirely. */
+  /**
+   * Exactly what to return, per request item id. Anything not named here
+   * follows `fallback`.
+   *
+   * ```ts
+   * createMockWalletCredentialGetter({
+   *   origin: location.origin,
+   *   items: {
+   *     allergies: { fhir: myAllergyBundle },
+   *     coverage: { status: "declined" },
+   *   },
+   *   fallback: { status: "unavailable" },
+   * });
+   * ```
+   */
+  items?: Record<string, MockItemSpec>;
+  /**
+   * What to do with items `items` doesn't mention: "fabricate" (default)
+   * invents plausible demo data; a spec applies that spec to all of them.
+   */
+  fallback?: "fabricate" | MockItemSpec;
+  /** Full manual control: build the entire response yourself. */
   respond?: (request: SmartCheckinRequest) => SmartCheckinResponse;
 };
+
+/**
+ * Build a response from a per-item specification. Exported so tests can
+ * assert on the response without going through the wire layer at all.
+ */
+export function buildMockResponse(
+  request: SmartCheckinRequest,
+  options: Pick<MockWalletOptions, "items" | "fallback"> = {},
+): SmartCheckinResponse {
+  const artifacts: Record<string, unknown>[] = [];
+  const requestStatus: Record<string, unknown>[] = [];
+  const fallback = options.fallback ?? "fabricate";
+
+  for (const item of request.items) {
+    const spec = options.items?.[item.id] ?? (fallback === "fabricate" ? undefined : fallback);
+
+    if (spec === undefined) {
+      // Fabricate this one item, reusing the demo-data generator.
+      const fabricated = fabricateResponse({ ...request, items: [item] });
+      artifacts.push(...(fabricated.artifacts as unknown as Record<string, unknown>[]));
+      requestStatus.push(...(fabricated.requestStatus as unknown as Record<string, unknown>[]));
+      continue;
+    }
+
+    if ("status" in spec) {
+      requestStatus.push({
+        item: item.id,
+        status: spec.status,
+        ...(spec.message ? { message: spec.message } : {}),
+      });
+      continue;
+    }
+
+    if ("healthCard" in spec) {
+      artifacts.push({
+        id: `mock-${item.id}`,
+        mediaType: "application/smart-health-card",
+        fulfills: [item.id],
+        value: { verifiableCredential: [...spec.healthCard] },
+      });
+    } else {
+      artifacts.push({
+        id: `mock-${item.id}`,
+        mediaType: "application/fhir+json",
+        fhirVersion: spec.fhirVersion ?? request.fhirVersions?.[0] ?? "4.0.1",
+        fulfills: [item.id],
+        value: spec.fhir,
+      });
+    }
+    requestStatus.push({ item: item.id, status: "fulfilled" });
+  }
+
+  return {
+    type: "smart-health-checkin-response",
+    version: "1",
+    requestId: request.id,
+    artifacts,
+    requestStatus,
+  } as unknown as SmartCheckinResponse;
+}
 
 /**
  * A drop-in `getCredential` hook for runCheckin: parses the navigator
@@ -48,7 +144,11 @@ export function createMockWalletCredentialGetter(options: MockWalletOptions) {
   return async (navigatorArgument: unknown): Promise<unknown> => {
     const parsed = parseWalletRequest(navigatorArgument);
     const smartResponse =
-      options.respond?.(parsed.smartRequest) ?? fabricateResponse(parsed.smartRequest);
+      options.respond?.(parsed.smartRequest) ??
+      buildMockResponse(parsed.smartRequest, {
+        items: options.items,
+        fallback: options.fallback,
+      });
     return sealWalletResponse({
       smartResponse,
       encryptionInfoBytes: parsed.encryptionInfoBytes,

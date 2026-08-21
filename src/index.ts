@@ -66,10 +66,12 @@ export {
 
 // Wallet-side helpers: the demo wallet app and phone-free testing.
 export {
+  buildMockResponse,
   createMockWalletCredentialGetter,
   fabricateResponse,
   parseWalletRequest,
   sealWalletResponse,
+  type MockItemSpec,
   type MockWalletOptions,
   type ParsedWalletRequest,
 } from "./kit/mock-wallet.js";

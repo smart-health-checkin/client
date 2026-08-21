@@ -1,10 +1,14 @@
 # Security notes
 
-- **Browser-local keys are demo-grade.** The default verifier authority
-  generates the HPKE recipient keypair in page memory. That is appropriate
-  for demos and low-stakes flows; production deployments should use a
-  server-owned authority (keys never reach the page; the server opens and
-  logs responses) via the two-call HTTP contract in `src/browser`.
+- **Browser-local keys are the design.** The verifier's HPKE keypair is
+  generated in the page, used for one exchange, and thrown away. It protects
+  the hop from wallet to page — the response is encrypted to a key only this
+  page holds, bound to this request and origin — and the page is *meant* to
+  read the plaintext, because prefilling forms is the point. A server-owned
+  authority is available for deployments that specifically don't want the
+  page to hold the response, at the cost of in-page workflows and a service
+  to maintain in your own language. See
+  [Production checklist](production.md).
 - **What the kit verifies.** Every response is HPKE-opened with the
   SessionTranscript (origin-bound) as the `info`, so a response replayed to
   a different origin or session fails to open. The kit then verifies MSO

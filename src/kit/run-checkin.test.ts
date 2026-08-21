@@ -149,3 +149,88 @@ describe("runCheckin", () => {
     ).rejects.toThrow(/unknown scenario/);
   });
 });
+
+describe("mock wallet specification", () => {
+  const REQUEST = {
+    purpose: "Mock spec",
+    items: [
+      {
+        id: "allergies",
+        title: "Allergies",
+        content: { kind: "selection.fhir" as const },
+        accept: ["application/fhir+json"],
+      },
+      {
+        id: "coverage",
+        title: "Coverage",
+        content: { kind: "selection.fhir" as const },
+        accept: ["application/smart-health-card", "application/fhir+json"],
+      },
+      {
+        id: "intake",
+        title: "Intake",
+        content: { kind: "form.fhir" as const, questionnaireCanonical: "https://example.org/q" },
+        accept: ["application/fhir+json"],
+      },
+    ],
+  };
+
+  test("returns exactly the data a test pins, per item", async () => {
+    const { requestCheckin, buildRequest } = await import("./index.js");
+    const { createMockWalletCredentialGetter } = await import("./mock-wallet.js");
+    const request = buildRequest(REQUEST);
+    const myBundle = {
+      resourceType: "Bundle",
+      type: "collection",
+      entry: [{ resource: { resourceType: "AllergyIntolerance", code: { text: "Sesame" } } }],
+    };
+
+    const response = await requestCheckin(request, {
+      authority: localAuthority(),
+      getCredential: createMockWalletCredentialGetter({
+        origin: ORIGIN,
+        items: {
+          allergies: { fhir: myBundle },
+          coverage: { healthCard: ["eyJ.mock.jws"] },
+          intake: { status: "declined", message: "not now" },
+        },
+      }),
+    });
+
+    const allergy = response.artifacts.find((a) => a.fulfills.includes("allergies"))!;
+    expect((allergy as { value: typeof myBundle }).value).toEqual(myBundle);
+
+    const card = response.artifacts.find((a) => a.fulfills.includes("coverage"))!;
+    expect(card.mediaType).toBe("application/smart-health-card");
+    expect((card as { value: { verifiableCredential: string[] } }).value.verifiableCredential).toEqual([
+      "eyJ.mock.jws",
+    ]);
+
+    expect(response.artifacts.some((a) => a.fulfills.includes("intake"))).toBe(false);
+    const intakeStatus = response.requestStatus.find((s) => s.item === "intake")!;
+    expect(intakeStatus.status).toBe("declined");
+    expect(intakeStatus.message).toBe("not now");
+  });
+
+  test("fallback governs items the spec doesn't name", async () => {
+    const { buildRequest } = await import("./index.js");
+    const { buildMockResponse } = await import("./mock-wallet.js");
+    const request = buildRequest(REQUEST);
+
+    const declined = buildMockResponse(request, {
+      items: { allergies: { fhir: { resourceType: "Bundle", type: "collection", entry: [] } } },
+      fallback: { status: "unavailable" },
+    });
+    expect(declined.artifacts).toHaveLength(1);
+    expect(declined.requestStatus.map((s) => s.status)).toEqual([
+      "fulfilled",
+      "unavailable",
+      "unavailable",
+    ]);
+
+    // default fallback still invents plausible data for every item
+    const fabricated = buildMockResponse(request);
+    expect(fabricated.requestStatus).toHaveLength(3);
+    expect(fabricated.artifacts.length).toBeGreaterThan(0);
+  });
+});

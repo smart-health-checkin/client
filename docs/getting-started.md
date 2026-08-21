@@ -129,8 +129,9 @@ const response = await requestCheckin(myRequest, {
 ```
 
 That opens a wallet *web app* in a tab with a real consent screen. For tests
-that shouldn't stop for a human, use `createMockWalletCredentialGetter`,
-which answers instantly. Both are covered in
+that shouldn't stop for a human, `createMockWalletCredentialGetter` answers
+instantly — and takes a per-item specification, so a test can pin exactly
+what comes back, including declines and missing data. Both are covered in
 [Wallets and browser support](wallets.md).
 
 You can also just [try the demo](https://smart-health-checkin.org/demo/) —

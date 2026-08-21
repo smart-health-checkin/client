@@ -56,9 +56,15 @@ export type CredentialCompletion = {
 };
 
 /**
- * The key-custody seam: browser-local keeps HPKE private material in page
- * memory (demo-grade by design); a server-owned implementation keeps it
- * behind two HTTP calls and never exposes it to the page.
+ * The key-custody seam.
+ *
+ * browser-local — the default — generates an ephemeral, single-use HPKE key
+ * in the page. That is the intended arrangement: the page must be able to
+ * read the response for prefill workflows, and keeping the client
+ * browser-only means no per-language server SDK has to exist.
+ *
+ * A server-owned implementation keeps the key behind two HTTP calls for
+ * deployments that specifically don't want the page to hold the response.
  */
 export type VerifierAuthority = {
   kind: string;
@@ -72,6 +78,7 @@ type BrowserLocalSession = {
   origin: string;
 };
 
+/** Ephemeral, single-use verifier key held in the page. The default. */
 export function createBrowserLocalAuthority(options: { origin?: string } = {}): VerifierAuthority {
   const origin =
     options.origin ??

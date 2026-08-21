@@ -4,23 +4,38 @@ The demo is honest about being a demo. Here's what changes when real people
 and real charts are involved — most of it is deliberately *yours*, because
 these are deployment policy rather than protocol.
 
-## Key custody
+## Key custody: in the browser is the design, not a shortcut
 
-The default `browser-local` authority generates the ephemeral HPKE keypair in
-page memory. It's genuinely fine for demos and low-stakes flows, and it's the
-reason the demo needs no backend at all.
+The verifier's HPKE keypair is generated in the page, used for exactly one
+exchange, and discarded. That is the intended arrangement, not a stepping
+stone to something server-side.
 
-For production, move the key server-side: the browser gets public request
-material and an opaque handle, your server opens the response, and you get a
-natural place to log what happened.
+It has to be, for two reasons:
 
-```ts
-await requestCheckin(myRequest, { authority: { server: "/checkin-api" } });
-```
+- **The page is supposed to see the data.** Prefilling a form, showing the
+  patient what came back, asking only for what's missing — none of that
+  works if the response is opened on a server the page can't see into. The
+  autofill pattern *is* the product.
+- **One implementation, every stack.** A browser-only client means there is
+  no per-language server SDK to write and maintain — no Java, .NET, Python,
+  Ruby ports of CBOR/COSE/HPKE for each EHR's backend. The web platform is
+  the common denominator, and that's what makes this cheap to adopt.
 
-Implement two endpoints — `POST /credential-requests` returning
-`{ handle, navigatorArgument }`, and `POST /credential-requests/:handle/complete`
-returning the opened response — or supply your own `VerifierAuthority` object.
+What the key protects is the hop from the wallet to *this page*: the response
+is encrypted to a key only this page holds, bound to this request and this
+origin, so it can't be read in transit or replayed at another site. Keeping
+that key in page memory is appropriate — it is ephemeral, single-use, and
+guards a payload the page is entitled to read anyway.
+
+A `{ server }` authority exists for the narrow case where a deployment
+specifically does *not* want the page to hold the response — a kiosk you
+don't control, or a policy that says PHI may only be decrypted server-side.
+Understand the trade: you lose in-page prefill, and you take on a service to
+build and maintain in your own language. Most deployments should not.
+
+Whichever you choose, the ordinary browser rules still apply: serve over
+HTTPS, keep the page free of third-party scripts you don't trust, and treat
+XSS on a check-in page as what it is — a data breach.
 
 ## Trust policy is yours
 
@@ -80,7 +95,8 @@ sharing health data.
 
 ## Before you go live
 
-- [ ] Server-owned key custody, with an audit trail
+- [ ] Decided key custody deliberately (browser-local unless you have a
+      specific reason, and know what you give up if not)
 - [ ] A written trust policy for wallet certificates
 - [ ] Authenticated patient session bound to the page
 - [ ] Provenance preserved to the destination, with a review path

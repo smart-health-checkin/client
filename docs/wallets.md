@@ -34,6 +34,38 @@ plus [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/checkin-clie
 It parses the DeviceRequest, shows the requesting origin and a per-item
 consent screen, and signs and seals a DeviceResponse bound to that origin.
 
+## Pinning exactly what the mock returns
+
+Fabricated data is fine for a smoke test and useless for a real one. The mock
+wallet takes a specification per request item, so a test can state precisely
+what comes back — including the unhappy paths:
+
+```ts
+import { createMockWalletCredentialGetter } from "@smart-health-checkin/checkin-client";
+
+const getCredential = createMockWalletCredentialGetter({
+  origin: location.origin,
+  items: {
+    // exactly this data, so assertions are stable
+    allergies: { fhir: allergyBundleMissingItsReaction },
+    // a signed card, if that's the branch you're exercising
+    coverage: { healthCard: ["eyJ…"] },
+    // and the paths people forget to handle
+    intake: { status: "declined", message: "not right now" },
+  },
+  // anything not named above; "fabricate" (the default) invents demo data
+  fallback: { status: "unavailable" },
+});
+```
+
+That drives the whole real pipeline — CBOR, COSE signing, HPKE sealing, and
+verification on the way back in — so you're testing your integration, not a
+stub. When you only want the response object and none of the wire work,
+`buildMockResponse(request, spec)` returns it directly.
+
+For full control, `respond: (request) => SmartCheckinResponse` hands you the
+request and takes whatever you build.
+
 ## Checking support before you offer it
 
 ```ts
@@ -80,10 +112,13 @@ await requestCheckin(myRequest, { authority: "browser-local" });        // defau
 await requestCheckin(myRequest, { authority: { server: "/checkin-api" } });
 ```
 
-`browser-local` keeps the ephemeral HPKE key in page memory — fine for demos
-and low-stakes flows. A server-owned authority keeps it on your backend, which
-also gives you a natural audit point; implement the two-call contract
-(`prepareCredentialRequest` / `completeCredentialRequest`) or pass your own
-`VerifierAuthority`. See [Production](production.md).
+`browser-local` keeps the ephemeral, single-use HPKE key in page memory, and
+that's the intended arrangement: the response must be readable by the page
+for prefill to work, and a browser-only client means nobody has to port
+CBOR/COSE/HPKE to their backend language. A `{ server }` authority is there
+for deployments that deliberately don't want the page to hold the response —
+implement the two-call contract (`prepareCredentialRequest` /
+`completeCredentialRequest`) or pass your own `VerifierAuthority`. See
+[Production checklist](production.md).
 
 Next: [Writing FHIR](fhir.md) · [Production checklist](production.md)

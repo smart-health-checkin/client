@@ -6,7 +6,7 @@
 
 ### CheckinFlowError
 
-Defined in: [src/kit/index.ts:174](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L174)
+Defined in: [src/kit/index.ts:174](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L174)
 
 Thrown by `requestCheckin` when the flow does not complete.
 
@@ -22,7 +22,7 @@ Thrown by `requestCheckin` when the flow does not complete.
 new CheckinFlowError(outcome): CheckinFlowError;
 ```
 
-Defined in: [src/kit/index.ts:175](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L175)
+Defined in: [src/kit/index.ts:175](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L175)
 
 ###### Parameters
 
@@ -92,7 +92,7 @@ Error.name
 readonly outcome: CheckinOutcome;
 ```
 
-Defined in: [src/kit/index.ts:175](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L175)
+Defined in: [src/kit/index.ts:175](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L175)
 
 ##### stack?
 
@@ -293,7 +293,7 @@ Error.prepareStackTrace
 
 ### WalletDeclinedError
 
-Defined in: [src/kit/web-wallet.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L43)
+Defined in: [src/kit/web-wallet.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L43)
 
 Thrown when the person closes or declines in the wallet app.
 
@@ -309,7 +309,7 @@ Thrown when the person closes or declines in the wallet app.
 new WalletDeclinedError(message?): WalletDeclinedError;
 ```
 
-Defined in: [src/kit/web-wallet.ts:45](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L45)
+Defined in: [src/kit/web-wallet.ts:45](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L45)
 
 ###### Parameters
 
@@ -365,7 +365,7 @@ Error.message
 readonly name: "NotAllowedError" = "NotAllowedError";
 ```
 
-Defined in: [src/kit/web-wallet.ts:44](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L44)
+Defined in: [src/kit/web-wallet.ts:44](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L44)
 
 ###### Overrides
 
@@ -584,7 +584,7 @@ type CheckinOptions = {
 };
 ```
 
-Defined in: [src/kit/index.ts:42](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L42)
+Defined in: [src/kit/index.ts:42](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L42)
 
 Public barrel: the check-in protocol surface.
 
@@ -605,7 +605,7 @@ optional authority?:
   | VerifierAuthority;
 ```
 
-Defined in: [src/kit/index.ts:48](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L48)
+Defined in: [src/kit/index.ts:48](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L48)
 
 Where the verifier's private key material lives. Default "browser-local"
 (page memory — fine for demos); use a server-owned authority in
@@ -617,7 +617,7 @@ production.
 optional detectSupport?: typeof detectDcApiSupport;
 ```
 
-Defined in: [src/kit/index.ts:55](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L55)
+Defined in: [src/kit/index.ts:55](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L55)
 
 Test seam.
 
@@ -627,7 +627,7 @@ Test seam.
 optional getCredential?: (options) => Promise<unknown>;
 ```
 
-Defined in: [src/kit/index.ts:53](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L53)
+Defined in: [src/kit/index.ts:53](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L53)
 
 Override the mediator. Defaults to the platform Digital Credentials API;
 pass a web-wallet or mock getter to run without a platform wallet.
@@ -658,7 +658,7 @@ type CheckinOutcome = {
 };
 ```
 
-Defined in: [src/kit/index.ts:58](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L58)
+Defined in: [src/kit/index.ts:58](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L58)
 
 Public barrel: the check-in protocol surface.
 
@@ -677,7 +677,7 @@ optional error?: {
 };
 ```
 
-Defined in: [src/kit/index.ts:64](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L64)
+Defined in: [src/kit/index.ts:64](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L64)
 
 ###### message
 
@@ -697,7 +697,7 @@ stage: "prepare" | "credential" | "open" | "validate";
 request: SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/index.ts:61](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L61)
+Defined in: [src/kit/index.ts:61](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L61)
 
 The request as sent (scenario/init resolved).
 
@@ -707,7 +707,7 @@ The request as sent (scenario/init resolved).
 optional response?: SmartCheckinResponse;
 ```
 
-Defined in: [src/kit/index.ts:63](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L63)
+Defined in: [src/kit/index.ts:63](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L63)
 
 Present iff the flow completed; always validated against the request.
 
@@ -717,7 +717,7 @@ Present iff the flow completed; always validated against the request.
 status: "completed" | "declined" | "unsupported" | "error";
 ```
 
-Defined in: [src/kit/index.ts:59](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L59)
+Defined in: [src/kit/index.ts:59](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L59)
 
 ***
 
@@ -732,7 +732,7 @@ type CheckinRequestInit = {
 };
 ```
 
-Defined in: [src/kit/scenarios.ts:22](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L22)
+Defined in: [src/kit/scenarios.ts:22](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L22)
 
 Everything a request needs except the boilerplate the kit can fill in.
 
@@ -744,7 +744,7 @@ Everything a request needs except the boilerplate the kit can fill in.
 optional fhirVersions?: ReadonlyArray<string>;
 ```
 
-Defined in: [src/kit/scenarios.ts:25](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L25)
+Defined in: [src/kit/scenarios.ts:25](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L25)
 
 ##### id?
 
@@ -752,7 +752,7 @@ Defined in: [src/kit/scenarios.ts:25](https://github.com/smart-health-checkin/ch
 optional id?: string;
 ```
 
-Defined in: [src/kit/scenarios.ts:23](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L23)
+Defined in: [src/kit/scenarios.ts:23](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L23)
 
 ##### items
 
@@ -760,7 +760,7 @@ Defined in: [src/kit/scenarios.ts:23](https://github.com/smart-health-checkin/ch
 items: ReadonlyArray<SmartCheckinRequestItem>;
 ```
 
-Defined in: [src/kit/scenarios.ts:26](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L26)
+Defined in: [src/kit/scenarios.ts:26](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L26)
 
 ##### purpose?
 
@@ -768,7 +768,7 @@ Defined in: [src/kit/scenarios.ts:26](https://github.com/smart-health-checkin/ch
 optional purpose?: string;
 ```
 
-Defined in: [src/kit/scenarios.ts:24](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L24)
+Defined in: [src/kit/scenarios.ts:24](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L24)
 
 ***
 
@@ -783,7 +783,7 @@ type CheckinRequestInput =
 };
 ```
 
-Defined in: [src/kit/index.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L37)
+Defined in: [src/kit/index.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L37)
 
 What to ask for: an inline init, a complete request, or a registered name.
 
@@ -801,7 +801,7 @@ type CredentialCompletion = {
 };
 ```
 
-Defined in: [src/browser/index.ts:48](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L48)
+Defined in: [src/browser/index.ts:48](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L48)
 
 #### Properties
 
@@ -814,7 +814,7 @@ presentation: {
 };
 ```
 
-Defined in: [src/browser/index.ts:51](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L51)
+Defined in: [src/browser/index.ts:51](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L51)
 
 ###### deviceResponseHex
 
@@ -836,7 +836,7 @@ origin: string;
 smartResponse: SmartCheckinResponse;
 ```
 
-Defined in: [src/browser/index.ts:50](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L50)
+Defined in: [src/browser/index.ts:50](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L50)
 
 Opened, wire-verified SMART response (still needs §6.6 cross-validation upstream when no request was supplied at prepare time).
 
@@ -853,7 +853,7 @@ type DcapiMdocResponse = {
 };
 ```
 
-Defined in: [src/wire/response.ts:41](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/response.ts#L41)
+Defined in: [src/wire/response.ts:41](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/response.ts#L41)
 
 #### Properties
 
@@ -865,7 +865,7 @@ data: {
 };
 ```
 
-Defined in: [src/wire/response.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/response.ts#L43)
+Defined in: [src/wire/response.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/response.ts#L43)
 
 ###### response
 
@@ -879,7 +879,7 @@ response: string;
 protocol: typeof PROTOCOL_ID;
 ```
 
-Defined in: [src/wire/response.ts:42](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/response.ts#L42)
+Defined in: [src/wire/response.ts:42](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/response.ts#L42)
 
 ***
 
@@ -896,7 +896,7 @@ type DcApiSupport =
 };
 ```
 
-Defined in: [src/browser/index.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L16)
+Defined in: [src/browser/index.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L16)
 
 ***
 
@@ -906,7 +906,7 @@ Defined in: [src/browser/index.ts:16](https://github.com/smart-health-checkin/ch
 type FhirCanonical = string;
 ```
 
-Defined in: [src/model/types.ts:6](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L6)
+Defined in: [src/model/types.ts:6](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L6)
 
 Transport-neutral SMART Health Check-in clinical model (draft spec §§5–6).
 Ported from smart-health-checkin-mdoc rp-web/src/sdk/core.ts.
@@ -919,7 +919,7 @@ Ported from smart-health-checkin-mdoc rp-web/src/sdk/core.ts.
 type FhirProfileCollectionRef = FhirCanonical;
 ```
 
-Defined in: [src/model/types.ts:14](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L14)
+Defined in: [src/model/types.ts:14](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L14)
 
 ***
 
@@ -929,7 +929,7 @@ Defined in: [src/model/types.ts:14](https://github.com/smart-health-checkin/chec
 type FhirResourceType = string;
 ```
 
-Defined in: [src/model/types.ts:8](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L8)
+Defined in: [src/model/types.ts:8](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L8)
 
 ***
 
@@ -939,7 +939,71 @@ Defined in: [src/model/types.ts:8](https://github.com/smart-health-checkin/check
 type FhirVersion = string;
 ```
 
-Defined in: [src/model/types.ts:7](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L7)
+Defined in: [src/model/types.ts:7](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L7)
+
+***
+
+### MockItemSpec
+
+```ts
+type MockItemSpec = 
+  | {
+  fhir: unknown;
+  fhirVersion?: string;
+}
+  | {
+  healthCard: readonly string[];
+}
+  | {
+  message?: string;
+  status: SmartCheckinItemStatus["status"];
+};
+```
+
+Defined in: [src/kit/mock-wallet.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L43)
+
+What the mock wallet should return for one requested item.
+
+Tests usually want to pin exact data ("this allergy list, missing its
+reaction") or exercise a non-happy status, so both are first-class.
+
+#### Union Members
+
+##### Type Literal
+
+```ts
+{
+  fhir: unknown;
+  fhirVersion?: string;
+}
+```
+
+Return this FHIR resource or Bundle for the item.
+
+***
+
+##### Type Literal
+
+```ts
+{
+  healthCard: readonly string[];
+}
+```
+
+Return a SMART Health Card artifact carrying these JWS strings.
+
+***
+
+##### Type Literal
+
+```ts
+{
+  message?: string;
+  status: SmartCheckinItemStatus["status"];
+}
+```
+
+Report a status with no artifact — declined, unavailable, error, …
 
 ***
 
@@ -947,14 +1011,49 @@ Defined in: [src/model/types.ts:7](https://github.com/smart-health-checkin/check
 
 ```ts
 type MockWalletOptions = {
+  fallback?: "fabricate" | MockItemSpec;
+  items?: Record<string, MockItemSpec>;
   origin: string;
   respond?: (request) => SmartCheckinResponse;
 };
 ```
 
-Defined in: [src/kit/mock-wallet.ts:36](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L36)
+Defined in: [src/kit/mock-wallet.ts:51](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L51)
 
 #### Properties
+
+##### fallback?
+
+```ts
+optional fallback?: "fabricate" | MockItemSpec;
+```
+
+Defined in: [src/kit/mock-wallet.ts:73](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L73)
+
+What to do with items `items` doesn't mention: "fabricate" (default)
+invents plausible demo data; a spec applies that spec to all of them.
+
+##### items?
+
+```ts
+optional items?: Record<string, MockItemSpec>;
+```
+
+Defined in: [src/kit/mock-wallet.ts:68](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L68)
+
+Exactly what to return, per request item id. Anything not named here
+follows `fallback`.
+
+```ts
+createMockWalletCredentialGetter({
+  origin: location.origin,
+  items: {
+    allergies: { fhir: myAllergyBundle },
+    coverage: { status: "declined" },
+  },
+  fallback: { status: "unavailable" },
+});
+```
 
 ##### origin
 
@@ -962,7 +1061,7 @@ Defined in: [src/kit/mock-wallet.ts:36](https://github.com/smart-health-checkin/
 origin: string;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L37)
+Defined in: [src/kit/mock-wallet.ts:52](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L52)
 
 ##### respond?
 
@@ -970,9 +1069,9 @@ Defined in: [src/kit/mock-wallet.ts:37](https://github.com/smart-health-checkin/
 optional respond?: (request) => SmartCheckinResponse;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:39](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L39)
+Defined in: [src/kit/mock-wallet.ts:75](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L75)
 
-Override the fabricated SMART response entirely.
+Full manual control: build the entire response yourself.
 
 ###### Parameters
 
@@ -1003,7 +1102,7 @@ type OrgIsoMdocNavigatorArgument = {
 };
 ```
 
-Defined in: [src/wire/request.ts:31](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L31)
+Defined in: [src/wire/request.ts:31](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L31)
 
 #### Properties
 
@@ -1021,7 +1120,7 @@ digital: {
 };
 ```
 
-Defined in: [src/wire/request.ts:33](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L33)
+Defined in: [src/wire/request.ts:33](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L33)
 
 ###### requests
 
@@ -1041,7 +1140,7 @@ requests: [{
 mediation: "required";
 ```
 
-Defined in: [src/wire/request.ts:32](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L32)
+Defined in: [src/wire/request.ts:32](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L32)
 
 ***
 
@@ -1055,7 +1154,7 @@ type ParsedWalletRequest = {
 };
 ```
 
-Defined in: [src/kit/mock-wallet.ts:60](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L60)
+Defined in: [src/kit/mock-wallet.ts:160](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L160)
 
 #### Properties
 
@@ -1065,7 +1164,7 @@ Defined in: [src/kit/mock-wallet.ts:60](https://github.com/smart-health-checkin/
 deviceRequestBytes: Uint8Array;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:62](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L62)
+Defined in: [src/kit/mock-wallet.ts:162](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L162)
 
 ##### encryptionInfoBytes
 
@@ -1073,7 +1172,7 @@ Defined in: [src/kit/mock-wallet.ts:62](https://github.com/smart-health-checkin/
 encryptionInfoBytes: Uint8Array;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:63](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L63)
+Defined in: [src/kit/mock-wallet.ts:163](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L163)
 
 ##### smartRequest
 
@@ -1081,7 +1180,7 @@ Defined in: [src/kit/mock-wallet.ts:63](https://github.com/smart-health-checkin/
 smartRequest: SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:61](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L61)
+Defined in: [src/kit/mock-wallet.ts:161](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L161)
 
 ***
 
@@ -1094,7 +1193,7 @@ type PreparedCredentialRequest = {
 };
 ```
 
-Defined in: [src/browser/index.ts:41](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L41)
+Defined in: [src/browser/index.ts:41](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L41)
 
 #### Properties
 
@@ -1104,7 +1203,7 @@ Defined in: [src/browser/index.ts:41](https://github.com/smart-health-checkin/ch
 handle: string;
 ```
 
-Defined in: [src/browser/index.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L43)
+Defined in: [src/browser/index.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L43)
 
 Opaque handle for completing the request with the same authority.
 
@@ -1114,7 +1213,7 @@ Opaque handle for completing the request with the same authority.
 navigatorArgument: OrgIsoMdocNavigatorArgument;
 ```
 
-Defined in: [src/browser/index.ts:45](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L45)
+Defined in: [src/browser/index.ts:45](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L45)
 
 Pass to navigator.credentials.get(...).
 
@@ -1130,7 +1229,7 @@ type Scenario = {
 };
 ```
 
-Defined in: [src/kit/scenarios.ts:15](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L15)
+Defined in: [src/kit/scenarios.ts:15](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L15)
 
 Public barrel: the check-in protocol surface.
 
@@ -1146,7 +1245,7 @@ FHIR writing is a separate, optional module — import it from
 description: string;
 ```
 
-Defined in: [src/kit/scenarios.ts:17](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L17)
+Defined in: [src/kit/scenarios.ts:17](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L17)
 
 ##### label
 
@@ -1154,7 +1253,7 @@ Defined in: [src/kit/scenarios.ts:17](https://github.com/smart-health-checkin/ch
 label: string;
 ```
 
-Defined in: [src/kit/scenarios.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L16)
+Defined in: [src/kit/scenarios.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L16)
 
 ##### request
 
@@ -1162,7 +1261,7 @@ Defined in: [src/kit/scenarios.ts:16](https://github.com/smart-health-checkin/ch
 request: SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/scenarios.ts:18](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L18)
+Defined in: [src/kit/scenarios.ts:18](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L18)
 
 ***
 
@@ -1183,7 +1282,7 @@ type SmartArtifact =
 };
 ```
 
-Defined in: [src/model/types.ts:59](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L59)
+Defined in: [src/model/types.ts:59](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L59)
 
 ***
 
@@ -1197,7 +1296,7 @@ type SmartArtifactBase = {
 };
 ```
 
-Defined in: [src/model/types.ts:53](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L53)
+Defined in: [src/model/types.ts:53](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L53)
 
 #### Properties
 
@@ -1207,7 +1306,7 @@ Defined in: [src/model/types.ts:53](https://github.com/smart-health-checkin/chec
 fulfills: ReadonlyArray<string>;
 ```
 
-Defined in: [src/model/types.ts:56](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L56)
+Defined in: [src/model/types.ts:56](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L56)
 
 ##### id
 
@@ -1215,7 +1314,7 @@ Defined in: [src/model/types.ts:56](https://github.com/smart-health-checkin/chec
 id: string;
 ```
 
-Defined in: [src/model/types.ts:54](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L54)
+Defined in: [src/model/types.ts:54](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L54)
 
 ##### mediaType
 
@@ -1223,7 +1322,7 @@ Defined in: [src/model/types.ts:54](https://github.com/smart-health-checkin/chec
 mediaType: string;
 ```
 
-Defined in: [src/model/types.ts:55](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L55)
+Defined in: [src/model/types.ts:55](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L55)
 
 ***
 
@@ -1244,7 +1343,7 @@ type SmartCheckinContentSelector =
 };
 ```
 
-Defined in: [src/model/types.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L16)
+Defined in: [src/model/types.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L16)
 
 ***
 
@@ -1263,7 +1362,7 @@ type SmartCheckinItemStatus = {
 };
 ```
 
-Defined in: [src/model/types.ts:47](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L47)
+Defined in: [src/model/types.ts:47](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L47)
 
 #### Properties
 
@@ -1273,7 +1372,7 @@ Defined in: [src/model/types.ts:47](https://github.com/smart-health-checkin/chec
 item: string;
 ```
 
-Defined in: [src/model/types.ts:48](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L48)
+Defined in: [src/model/types.ts:48](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L48)
 
 ##### message?
 
@@ -1281,7 +1380,7 @@ Defined in: [src/model/types.ts:48](https://github.com/smart-health-checkin/chec
 optional message?: string;
 ```
 
-Defined in: [src/model/types.ts:50](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L50)
+Defined in: [src/model/types.ts:50](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L50)
 
 ##### status
 
@@ -1295,7 +1394,7 @@ status:
   | "error";
 ```
 
-Defined in: [src/model/types.ts:49](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L49)
+Defined in: [src/model/types.ts:49](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L49)
 
 ***
 
@@ -1312,7 +1411,7 @@ type SmartCheckinRequest = {
 };
 ```
 
-Defined in: [src/model/types.ts:38](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L38)
+Defined in: [src/model/types.ts:38](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L38)
 
 #### Properties
 
@@ -1322,7 +1421,7 @@ Defined in: [src/model/types.ts:38](https://github.com/smart-health-checkin/chec
 optional fhirVersions?: ReadonlyArray<FhirVersion>;
 ```
 
-Defined in: [src/model/types.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L43)
+Defined in: [src/model/types.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L43)
 
 ##### id
 
@@ -1330,7 +1429,7 @@ Defined in: [src/model/types.ts:43](https://github.com/smart-health-checkin/chec
 id: string;
 ```
 
-Defined in: [src/model/types.ts:41](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L41)
+Defined in: [src/model/types.ts:41](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L41)
 
 ##### items
 
@@ -1338,7 +1437,7 @@ Defined in: [src/model/types.ts:41](https://github.com/smart-health-checkin/chec
 items: ReadonlyArray<SmartCheckinRequestItem>;
 ```
 
-Defined in: [src/model/types.ts:44](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L44)
+Defined in: [src/model/types.ts:44](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L44)
 
 ##### purpose?
 
@@ -1346,7 +1445,7 @@ Defined in: [src/model/types.ts:44](https://github.com/smart-health-checkin/chec
 optional purpose?: string;
 ```
 
-Defined in: [src/model/types.ts:42](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L42)
+Defined in: [src/model/types.ts:42](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L42)
 
 ##### type
 
@@ -1354,7 +1453,7 @@ Defined in: [src/model/types.ts:42](https://github.com/smart-health-checkin/chec
 type: "smart-health-checkin-request";
 ```
 
-Defined in: [src/model/types.ts:39](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L39)
+Defined in: [src/model/types.ts:39](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L39)
 
 ##### version
 
@@ -1362,7 +1461,7 @@ Defined in: [src/model/types.ts:39](https://github.com/smart-health-checkin/chec
 version: "1";
 ```
 
-Defined in: [src/model/types.ts:40](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L40)
+Defined in: [src/model/types.ts:40](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L40)
 
 ***
 
@@ -1379,7 +1478,7 @@ type SmartCheckinRequestItem = {
 };
 ```
 
-Defined in: [src/model/types.ts:29](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L29)
+Defined in: [src/model/types.ts:29](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L29)
 
 #### Properties
 
@@ -1389,7 +1488,7 @@ Defined in: [src/model/types.ts:29](https://github.com/smart-health-checkin/chec
 accept: ReadonlyArray<SmartHealthCheckinAcceptedMediaType>;
 ```
 
-Defined in: [src/model/types.ts:35](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L35)
+Defined in: [src/model/types.ts:35](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L35)
 
 ##### content
 
@@ -1397,7 +1496,7 @@ Defined in: [src/model/types.ts:35](https://github.com/smart-health-checkin/chec
 content: SmartCheckinContentSelector;
 ```
 
-Defined in: [src/model/types.ts:34](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L34)
+Defined in: [src/model/types.ts:34](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L34)
 
 ##### id
 
@@ -1405,7 +1504,7 @@ Defined in: [src/model/types.ts:34](https://github.com/smart-health-checkin/chec
 id: string;
 ```
 
-Defined in: [src/model/types.ts:30](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L30)
+Defined in: [src/model/types.ts:30](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L30)
 
 ##### required?
 
@@ -1413,7 +1512,7 @@ Defined in: [src/model/types.ts:30](https://github.com/smart-health-checkin/chec
 optional required?: boolean;
 ```
 
-Defined in: [src/model/types.ts:33](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L33)
+Defined in: [src/model/types.ts:33](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L33)
 
 ##### summary?
 
@@ -1421,7 +1520,7 @@ Defined in: [src/model/types.ts:33](https://github.com/smart-health-checkin/chec
 optional summary?: string;
 ```
 
-Defined in: [src/model/types.ts:32](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L32)
+Defined in: [src/model/types.ts:32](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L32)
 
 ##### title
 
@@ -1429,7 +1528,7 @@ Defined in: [src/model/types.ts:32](https://github.com/smart-health-checkin/chec
 title: string;
 ```
 
-Defined in: [src/model/types.ts:31](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L31)
+Defined in: [src/model/types.ts:31](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L31)
 
 ***
 
@@ -1445,7 +1544,7 @@ type SmartCheckinResponse = {
 };
 ```
 
-Defined in: [src/model/types.ts:70](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L70)
+Defined in: [src/model/types.ts:70](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L70)
 
 #### Properties
 
@@ -1455,7 +1554,7 @@ Defined in: [src/model/types.ts:70](https://github.com/smart-health-checkin/chec
 artifacts: ReadonlyArray<SmartArtifact>;
 ```
 
-Defined in: [src/model/types.ts:74](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L74)
+Defined in: [src/model/types.ts:74](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L74)
 
 ##### requestId
 
@@ -1463,7 +1562,7 @@ Defined in: [src/model/types.ts:74](https://github.com/smart-health-checkin/chec
 requestId: string;
 ```
 
-Defined in: [src/model/types.ts:73](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L73)
+Defined in: [src/model/types.ts:73](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L73)
 
 ##### requestStatus
 
@@ -1471,7 +1570,7 @@ Defined in: [src/model/types.ts:73](https://github.com/smart-health-checkin/chec
 requestStatus: ReadonlyArray<SmartCheckinItemStatus>;
 ```
 
-Defined in: [src/model/types.ts:75](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L75)
+Defined in: [src/model/types.ts:75](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L75)
 
 ##### type
 
@@ -1479,7 +1578,7 @@ Defined in: [src/model/types.ts:75](https://github.com/smart-health-checkin/chec
 type: "smart-health-checkin-response";
 ```
 
-Defined in: [src/model/types.ts:71](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L71)
+Defined in: [src/model/types.ts:71](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L71)
 
 ##### version
 
@@ -1487,7 +1586,7 @@ Defined in: [src/model/types.ts:71](https://github.com/smart-health-checkin/chec
 version: "1";
 ```
 
-Defined in: [src/model/types.ts:72](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L72)
+Defined in: [src/model/types.ts:72](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L72)
 
 ***
 
@@ -1501,7 +1600,7 @@ type SmartHealthCheckinAcceptedMediaType =
 };
 ```
 
-Defined in: [src/model/types.ts:9](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L9)
+Defined in: [src/model/types.ts:9](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L9)
 
 ***
 
@@ -1519,7 +1618,7 @@ type ValidationResult<T> =
 };
 ```
 
-Defined in: [src/model/types.ts:78](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/types.ts#L78)
+Defined in: [src/model/types.ts:78](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/types.ts#L78)
 
 #### Type Parameters
 
@@ -1539,11 +1638,17 @@ type VerifierAuthority = {
 };
 ```
 
-Defined in: [src/browser/index.ts:63](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L63)
+Defined in: [src/browser/index.ts:69](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L69)
 
-The key-custody seam: browser-local keeps HPKE private material in page
-memory (demo-grade by design); a server-owned implementation keeps it
-behind two HTTP calls and never exposes it to the page.
+The key-custody seam.
+
+browser-local — the default — generates an ephemeral, single-use HPKE key
+in the page. That is the intended arrangement: the page must be able to
+read the response for prefill workflows, and keeping the client
+browser-only means no per-language server SDK has to exist.
+
+A server-owned implementation keeps the key behind two HTTP calls for
+deployments that specifically don't want the page to hold the response.
 
 #### Properties
 
@@ -1553,7 +1658,7 @@ behind two HTTP calls and never exposes it to the page.
 kind: string;
 ```
 
-Defined in: [src/browser/index.ts:64](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L64)
+Defined in: [src/browser/index.ts:70](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L70)
 
 #### Methods
 
@@ -1563,7 +1668,7 @@ Defined in: [src/browser/index.ts:64](https://github.com/smart-health-checkin/ch
 completeCredentialRequest(input): Promise<CredentialCompletion>;
 ```
 
-Defined in: [src/browser/index.ts:66](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L66)
+Defined in: [src/browser/index.ts:72](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L72)
 
 ###### Parameters
 
@@ -1583,7 +1688,7 @@ Defined in: [src/browser/index.ts:66](https://github.com/smart-health-checkin/ch
 prepareCredentialRequest(input): Promise<PreparedCredentialRequest>;
 ```
 
-Defined in: [src/browser/index.ts:65](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L65)
+Defined in: [src/browser/index.ts:71](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L71)
 
 ###### Parameters
 
@@ -1607,7 +1712,7 @@ type WebWalletCredential = {
 };
 ```
 
-Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L20)
+Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L20)
 
 #### Properties
 
@@ -1617,7 +1722,7 @@ Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/c
 data: object;
 ```
 
-Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L20)
+Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L20)
 
 ##### protocol
 
@@ -1625,7 +1730,7 @@ Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/c
 protocol: string;
 ```
 
-Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L20)
+Defined in: [src/kit/web-wallet.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L20)
 
 ***
 
@@ -1640,7 +1745,7 @@ type WebWalletOptions = {
 };
 ```
 
-Defined in: [src/kit/web-wallet.ts:27](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L27)
+Defined in: [src/kit/web-wallet.ts:27](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L27)
 
 #### Properties
 
@@ -1650,7 +1755,7 @@ Defined in: [src/kit/web-wallet.ts:27](https://github.com/smart-health-checkin/c
 optional features?: string;
 ```
 
-Defined in: [src/kit/web-wallet.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L37)
+Defined in: [src/kit/web-wallet.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L37)
 
 Explicit window.open features string; implies a popup.
 
@@ -1660,7 +1765,7 @@ Explicit window.open features string; implies a popup.
 optional target?: "tab" | "popup";
 ```
 
-Defined in: [src/kit/web-wallet.ts:35](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L35)
+Defined in: [src/kit/web-wallet.ts:35](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L35)
 
 How to open the wallet. "tab" (default) opens a normal browser tab, which
 behaves better on mobile and in browsers that resist popups; "popup"
@@ -1672,7 +1777,7 @@ opens a small window. Ignored if `features` is set.
 optional timeoutMs?: number;
 ```
 
-Defined in: [src/kit/web-wallet.ts:39](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L39)
+Defined in: [src/kit/web-wallet.ts:39](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L39)
 
 Give up after this many ms (default 5 minutes).
 
@@ -1682,7 +1787,7 @@ Give up after this many ms (default 5 minutes).
 walletUrl: string;
 ```
 
-Defined in: [src/kit/web-wallet.ts:29](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L29)
+Defined in: [src/kit/web-wallet.ts:29](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L29)
 
 URL of the wallet web app (same-origin or any origin you trust).
 
@@ -1711,7 +1816,7 @@ type WebWalletResponseMessage =
 };
 ```
 
-Defined in: [src/kit/web-wallet.ts:22](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L22)
+Defined in: [src/kit/web-wallet.ts:22](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L22)
 
 ## Variables
 
@@ -1721,7 +1826,7 @@ Defined in: [src/kit/web-wallet.ts:22](https://github.com/smart-health-checkin/c
 const MDOC_DOC_TYPE: "org.smarthealthit.checkin.1";
 ```
 
-Defined in: [src/wire/request.ts:25](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L25)
+Defined in: [src/wire/request.ts:25](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L25)
 
 ***
 
@@ -1731,7 +1836,7 @@ Defined in: [src/wire/request.ts:25](https://github.com/smart-health-checkin/che
 const MDOC_NAMESPACE: "org.smarthealthit.checkin";
 ```
 
-Defined in: [src/wire/request.ts:26](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L26)
+Defined in: [src/wire/request.ts:26](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L26)
 
 ***
 
@@ -1741,7 +1846,7 @@ Defined in: [src/wire/request.ts:26](https://github.com/smart-health-checkin/che
 const PROTOCOL_ID: "org-iso-mdoc";
 ```
 
-Defined in: [src/wire/request.ts:24](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L24)
+Defined in: [src/wire/request.ts:24](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L24)
 
 ***
 
@@ -1751,7 +1856,7 @@ Defined in: [src/wire/request.ts:24](https://github.com/smart-health-checkin/che
 const SCENARIOS: Record<string, Scenario>;
 ```
 
-Defined in: [src/kit/scenarios.ts:74](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L74)
+Defined in: [src/kit/scenarios.ts:74](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L74)
 
 Public barrel: the check-in protocol surface.
 
@@ -1767,7 +1872,7 @@ FHIR writing is a separate, optional module — import it from
 const SMART_REQUEST_INFO_KEY: "org.smarthealthit.checkin.request";
 ```
 
-Defined in: [src/wire/request.ts:27](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L27)
+Defined in: [src/wire/request.ts:27](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L27)
 
 ***
 
@@ -1777,7 +1882,7 @@ Defined in: [src/wire/request.ts:27](https://github.com/smart-health-checkin/che
 const SMART_RESPONSE_ELEMENT_ID: "smart_health_checkin_response";
 ```
 
-Defined in: [src/wire/request.ts:28](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/wire/request.ts#L28)
+Defined in: [src/wire/request.ts:28](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/wire/request.ts#L28)
 
 ***
 
@@ -1787,7 +1892,7 @@ Defined in: [src/wire/request.ts:28](https://github.com/smart-health-checkin/che
 const WEB_WALLET_READY_MESSAGE_TYPE: "digital-credentials/web-wallet/ready";
 ```
 
-Defined in: [src/kit/web-wallet.ts:18](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L18)
+Defined in: [src/kit/web-wallet.ts:18](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L18)
 
 ***
 
@@ -1797,7 +1902,7 @@ Defined in: [src/kit/web-wallet.ts:18](https://github.com/smart-health-checkin/c
 const WEB_WALLET_REQUEST_MESSAGE_TYPE: "digital-credentials/web-wallet/request";
 ```
 
-Defined in: [src/kit/web-wallet.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L16)
+Defined in: [src/kit/web-wallet.ts:16](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L16)
 
 Web-wallet credential getter: a drop-in replacement for
 `navigator.credentials.get` that hands the request to a wallet **web app**
@@ -1820,9 +1925,33 @@ implementations stay compatible.
 const WEB_WALLET_RESPONSE_MESSAGE_TYPE: "digital-credentials/web-wallet/response";
 ```
 
-Defined in: [src/kit/web-wallet.ts:17](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L17)
+Defined in: [src/kit/web-wallet.ts:17](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L17)
 
 ## Functions
+
+### buildMockResponse()
+
+```ts
+function buildMockResponse(request, options?): SmartCheckinResponse;
+```
+
+Defined in: [src/kit/mock-wallet.ts:82](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L82)
+
+Build a response from a per-item specification. Exported so tests can
+assert on the response without going through the wire layer at all.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `request` | [`SmartCheckinRequest`](#smartcheckinrequest) |
+| `options` | `Pick`\<[`MockWalletOptions`](#mockwalletoptions), `"items"` \| `"fallback"`\> |
+
+#### Returns
+
+[`SmartCheckinResponse`](#smartcheckinresponse)
+
+***
 
 ### buildRequest()
 
@@ -1830,7 +1959,7 @@ Defined in: [src/kit/web-wallet.ts:17](https://github.com/smart-health-checkin/c
 function buildRequest(init): SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/scenarios.ts:34](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L34)
+Defined in: [src/kit/scenarios.ts:34](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L34)
 
 Complete a request from the parts an integrator actually cares about:
 `type`/`version` are fixed by the spec, `id` defaults to a UUID, and
@@ -1854,7 +1983,9 @@ Complete a request from the parts an integrator actually cares about:
 function createBrowserLocalAuthority(options?): VerifierAuthority;
 ```
 
-Defined in: [src/browser/index.ts:75](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L75)
+Defined in: [src/browser/index.ts:82](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L82)
+
+Ephemeral, single-use verifier key held in the page. The default.
 
 #### Parameters
 
@@ -1875,7 +2006,7 @@ Defined in: [src/browser/index.ts:75](https://github.com/smart-health-checkin/ch
 function createMockWalletCredentialGetter(options): (navigatorArgument) => Promise<unknown>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:47](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L47)
+Defined in: [src/kit/mock-wallet.ts:143](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L143)
 
 A drop-in `getCredential` hook for runCheckin: parses the navigator
 argument the same way a platform wallet would and returns a credential-like
@@ -1899,7 +2030,7 @@ object carrying the sealed response.
 function createServerAuthority(baseUrl): VerifierAuthority;
 ```
 
-Defined in: [src/browser/index.ts:126](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L126)
+Defined in: [src/browser/index.ts:133](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L133)
 
 HTTP client for a server-owned authority implementing the two-call
 contract: POST {request} → {handle, navigatorArgument};
@@ -1923,7 +2054,7 @@ POST {credential} → completion. The M4 reference server implements it.
 function createWebWalletCredentialGetter(options): (navigatorArgument) => Promise<unknown>;
 ```
 
-Defined in: [src/kit/web-wallet.ts:50](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/web-wallet.ts#L50)
+Defined in: [src/kit/web-wallet.ts:50](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/web-wallet.ts#L50)
 
 #### Parameters
 
@@ -1943,7 +2074,7 @@ Defined in: [src/kit/web-wallet.ts:50](https://github.com/smart-health-checkin/c
 function detectDcApiSupport(): DcApiSupport;
 ```
 
-Defined in: [src/browser/index.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L20)
+Defined in: [src/browser/index.ts:20](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L20)
 
 #### Returns
 
@@ -1957,7 +2088,7 @@ Defined in: [src/browser/index.ts:20](https://github.com/smart-health-checkin/ch
 function extractDcapiResponse(credential): string | DcapiMdocResponse;
 ```
 
-Defined in: [src/browser/index.ts:159](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/browser/index.ts#L159)
+Defined in: [src/browser/index.ts:166](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/browser/index.ts#L166)
 
 Pull the org-iso-mdoc response payload out of whatever the browser's
 credential object looks like: a DigitalCredential with `.data` (object or
@@ -1982,7 +2113,7 @@ response string.
 function fabricateResponse(request, include?): SmartCheckinResponse;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:157](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L157)
+Defined in: [src/kit/mock-wallet.ts:257](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L257)
 
 Fabricate one plausible demo artifact per request item. Pass `include` to
 honour per-item consent: excluded items come back with status "declined"
@@ -2007,7 +2138,7 @@ and no artifact, exactly as a real wallet would report them.
 function parseWalletRequest(navigatorArgument): ParsedWalletRequest;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:67](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L67)
+Defined in: [src/kit/mock-wallet.ts:167](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L167)
 
 Wallet side: recover the SMART request from a navigator.credentials.get argument.
 
@@ -2032,7 +2163,7 @@ function registerScenario(
    meta?): Scenario;
 ```
 
-Defined in: [src/kit/scenarios.ts:52](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L52)
+Defined in: [src/kit/scenarios.ts:52](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L52)
 
 Register (or replace) a named scenario — lets declarative surfaces like
 <smart-checkin scenario="my-intake"> use requests your code defines.
@@ -2059,7 +2190,7 @@ Register (or replace) a named scenario — lets declarative surfaces like
 function requestCheckin(input, options?): Promise<SmartCheckinResponse>;
 ```
 
-Defined in: [src/kit/index.ts:193](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L193)
+Defined in: [src/kit/index.ts:193](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L193)
 
 Ask, await, use the answer:
 
@@ -2087,7 +2218,7 @@ the outcome, so you can fall back gracefully on "declined").
 function resolveRequest(input): SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/index.ts:70](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L70)
+Defined in: [src/kit/index.ts:70](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L70)
 
 Public barrel: the check-in protocol surface.
 
@@ -2113,7 +2244,7 @@ FHIR writing is a separate, optional module — import it from
 function resolveScenario(key): Scenario;
 ```
 
-Defined in: [src/kit/scenarios.ts:197](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/scenarios.ts#L197)
+Defined in: [src/kit/scenarios.ts:197](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/scenarios.ts#L197)
 
 Public barrel: the check-in protocol surface.
 
@@ -2139,7 +2270,7 @@ FHIR writing is a separate, optional module — import it from
 function runCheckin(input, options?): Promise<CheckinOutcome>;
 ```
 
-Defined in: [src/kit/index.ts:105](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/index.ts#L105)
+Defined in: [src/kit/index.ts:105](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/index.ts#L105)
 
 Run the flow and report what happened, without throwing for ordinary
 outcomes (declined, unsupported browser). Use this when you want to branch
@@ -2169,7 +2300,7 @@ function sealWalletResponse(input): Promise<{
 }>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:83](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/kit/mock-wallet.ts#L83)
+Defined in: [src/kit/mock-wallet.ts:183](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/kit/mock-wallet.ts#L183)
 
 Wallet side: sign and HPKE-seal a SMART response for the verifier.
 `verifierOrigin` is the requesting page's origin — the SessionTranscript
@@ -2201,7 +2332,7 @@ binds to it, so a response cannot be replayed to a different origin.
 function validateResponseAgainstRequest(request, response): ValidationResult<SmartCheckinResponse>;
 ```
 
-Defined in: [src/model/validate.ts:181](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/validate.ts#L181)
+Defined in: [src/model/validate.ts:181](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/validate.ts#L181)
 
 #### Parameters
 
@@ -2222,7 +2353,7 @@ Defined in: [src/model/validate.ts:181](https://github.com/smart-health-checkin/
 function validateSmartCheckinRequest(v): ValidationResult<SmartCheckinRequest>;
 ```
 
-Defined in: [src/model/validate.ts:14](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/validate.ts#L14)
+Defined in: [src/model/validate.ts:14](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/validate.ts#L14)
 
 #### Parameters
 
@@ -2242,7 +2373,7 @@ Defined in: [src/model/validate.ts:14](https://github.com/smart-health-checkin/c
 function validateSmartCheckinResponse(v): ValidationResult<SmartCheckinResponse>;
 ```
 
-Defined in: [src/model/validate.ts:105](https://github.com/smart-health-checkin/checkin-client/blob/3605132ecc77db5a5dc25f99c61d3997b26d057c/src/model/validate.ts#L105)
+Defined in: [src/model/validate.ts:105](https://github.com/smart-health-checkin/checkin-client/blob/018c32fa16f1ea97d8079005facf58ad3138f136/src/model/validate.ts#L105)
 
 #### Parameters
 
