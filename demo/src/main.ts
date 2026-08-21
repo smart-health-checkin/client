@@ -20,8 +20,8 @@ import {
   requestCheckin,
   type SmartCheckinRequest,
   type SmartCheckinResponse,
-} from "../../src/index.ts";
-import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.ts";
+} from "../../src/index.js";
+import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.js";
 
 const DEFAULT_FHIR_BASE = "https://hapi.fhir.org/baseR4";
 const KNOWN_OPEN_SERVERS = [DEFAULT_FHIR_BASE];

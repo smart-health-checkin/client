@@ -12,8 +12,8 @@ import type {
   SmartCheckinRequest,
   SmartCheckinRequestItem,
   SmartCheckinResponse,
-} from "../model/index.ts";
-import { validateSmartCheckinRequest } from "../model/index.ts";
+} from "../model/index.js";
+import { validateSmartCheckinRequest } from "../model/index.js";
 import {
   CborTag,
   MDOC_DOC_TYPE,
@@ -31,7 +31,7 @@ import {
   mapGet,
   publicJwkToCoseKey,
   sha256,
-} from "../wire/index.ts";
+} from "../wire/index.js";
 
 export type MockWalletOptions = {
   origin: string;

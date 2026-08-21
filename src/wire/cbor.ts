@@ -4,7 +4,7 @@
  * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
-import { base64UrlEncodeBytes, compareBytes, concatBytes, hex, utf8 } from "./bytes.ts";
+import { base64UrlEncodeBytes, compareBytes, concatBytes, hex, utf8 } from "./bytes.js";
 
 export class CborTag {
   constructor(

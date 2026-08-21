@@ -5,8 +5,8 @@ import { createRoot } from "react-dom/client";
 import {
   createBrowserLocalAuthority,
   createWebWalletCredentialGetter,
-} from "../../../src/index.ts";
-import { useCheckin } from "./use-checkin.ts";
+} from "../../../src/index.js";
+import { useCheckin } from "./use-checkin.js";
 
 const REQUEST = {
   purpose: "Confirm your medications before your visit",

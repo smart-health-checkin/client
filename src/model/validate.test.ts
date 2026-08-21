@@ -3,8 +3,8 @@ import {
   validateResponseAgainstRequest,
   validateSmartCheckinRequest,
   validateSmartCheckinResponse,
-} from "./validate.ts";
-import type { SmartCheckinRequest, SmartCheckinResponse } from "./types.ts";
+} from "./validate.js";
+import type { SmartCheckinRequest, SmartCheckinResponse } from "./types.js";
 
 const REQUEST: SmartCheckinRequest = {
   type: "smart-health-checkin-request",

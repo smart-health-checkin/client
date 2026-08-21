@@ -5,7 +5,7 @@
  * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
-import { arrayBufferCopy, concatBytes, i2osp, utf8 } from "./bytes.ts";
+import { arrayBufferCopy, concatBytes, i2osp, utf8 } from "./bytes.js";
 
 const HPKE_KEM_DHKEM_P256_HKDF_SHA256 = 0x0010;
 const HPKE_KDF_HKDF_SHA256 = 0x0001;

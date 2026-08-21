@@ -5,7 +5,7 @@
  * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
-import type { SmartCheckinRequest } from "../model/index.ts";
+import type { SmartCheckinRequest } from "../model/index.js";
 import {
   base64UrlDecodeBytes,
   base64UrlDecodeUtf8,
@@ -13,13 +13,13 @@ import {
   base64UrlEncodeUtf8,
   concatBytes,
   sha256,
-} from "./bytes.ts";
-import { CborTag, cborDecode, cborEncode } from "./cbor.ts";
+} from "./bytes.js";
+import { CborTag, cborDecode, cborEncode } from "./cbor.js";
 import {
   createEphemeralReaderIdentity,
   signReaderAuth,
   type ReaderIdentity,
-} from "./reader-auth.ts";
+} from "./reader-auth.js";
 
 export const PROTOCOL_ID = "org-iso-mdoc" as const;
 export const MDOC_DOC_TYPE = "org.smarthealthit.checkin.1" as const;

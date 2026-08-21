@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { buildCheckinBundle, postCheckinBundle, CHECKIN_REQUEST_ID_SYSTEM, type FetchLike } from "./index.ts";
-import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.ts";
+import { buildCheckinBundle, postCheckinBundle, CHECKIN_REQUEST_ID_SYSTEM, type FetchLike } from "./index.js";
+import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
 
 const REQUEST: SmartCheckinRequest = {
   type: "smart-health-checkin-request",

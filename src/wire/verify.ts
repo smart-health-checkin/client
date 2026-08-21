@@ -13,9 +13,9 @@
  * the vendored real-capture fixtures.
  */
 
-import { arrayBufferCopy, concatBytes, sha256, bytesEqual } from "./bytes.ts";
-import { CborTag, cborDecode, cborEncode, mapGet } from "./cbor.ts";
-import { importCertificatePublicKey } from "./reader-auth.ts";
+import { arrayBufferCopy, concatBytes, sha256, bytesEqual } from "./bytes.js";
+import { CborTag, cborDecode, cborEncode, mapGet } from "./cbor.js";
+import { importCertificatePublicKey } from "./reader-auth.js";
 
 const X5CHAIN_HEADER_LABEL = 33;
 

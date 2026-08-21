@@ -17,7 +17,7 @@ import {
   parseWalletRequest,
   sealWalletResponse,
   type SmartCheckinRequest,
-} from "../../src/index.ts";
+} from "../../src/index.js";
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
 

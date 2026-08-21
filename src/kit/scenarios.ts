@@ -10,7 +10,7 @@ import {
   validateSmartCheckinRequest,
   type SmartCheckinRequest,
   type SmartCheckinRequestItem,
-} from "../model/index.ts";
+} from "../model/index.js";
 
 export type Scenario = {
   label: string;

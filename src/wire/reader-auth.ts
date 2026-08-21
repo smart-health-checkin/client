@@ -5,8 +5,8 @@
  * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
-import { arrayBufferCopy, concatBytes, utf8 } from "./bytes.ts";
-import { CborTag, cborDecode, cborEncode } from "./cbor.ts";
+import { arrayBufferCopy, concatBytes, utf8 } from "./bytes.js";
+import { CborTag, cborDecode, cborEncode } from "./cbor.js";
 
 export type ReaderIdentity = {
   keyPair: CryptoKeyPair;

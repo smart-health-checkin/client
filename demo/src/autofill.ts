@@ -14,7 +14,7 @@ import {
   createWebWalletCredentialGetter,
   detectDcApiSupport,
   requestCheckin,
-} from "../../src/index.ts";
+} from "../../src/index.js";
 
 const ALLERGY_REVIEW = {
   purpose: "Review your allergy list before your visit",

@@ -3,15 +3,23 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "demo/src"],
-  "exclude": ["demo/src/frameworks/checkin.service.ts"]
+  "include": [
+    "src",
+    "demo/src"
+  ],
+  "exclude": [
+    "demo/src/frameworks/checkin.service.ts"
+  ]
 }

@@ -18,10 +18,10 @@ export type {
   SmartCheckinResponse,
   SmartHealthCheckinAcceptedMediaType,
   ValidationResult,
-} from "./types.ts";
+} from "./types.js";
 
 export {
   validateResponseAgainstRequest,
   validateSmartCheckinRequest,
   validateSmartCheckinResponse,
-} from "./validate.ts";
+} from "./validate.js";

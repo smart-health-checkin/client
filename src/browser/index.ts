@@ -4,14 +4,14 @@
  * (VerifierAuthority). Everything below this layer is DOM-free.
  */
 
-import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.ts";
+import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
 import {
   buildOrgIsoMdocRequest,
   openWalletResponse,
   type DcapiMdocResponse,
   type OrgIsoMdocNavigatorArgument,
   type OrgIsoMdocRequestBundle,
-} from "../wire/index.ts";
+} from "../wire/index.js";
 
 export type DcApiSupport =
   | { state: "supported" }

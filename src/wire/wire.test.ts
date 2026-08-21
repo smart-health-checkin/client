@@ -13,29 +13,29 @@ import {
   base64UrlEncodeBytes,
   bytesEqual,
   hex,
-} from "./bytes.ts";
-import { cborDecode, cborEncode, mapGet, CborTag } from "./cbor.ts";
+} from "./bytes.js";
+import { cborDecode, cborEncode, mapGet, CborTag } from "./cbor.js";
 import {
   SMART_REQUEST_INFO_KEY,
   buildDcapiSessionTranscript,
   buildDeviceRequestBytesFromParts,
   buildEncryptionInfoBytes,
   buildItemsRequestTag24Bytes,
-} from "./request.ts";
+} from "./request.js";
 import {
   buildReaderAuthenticationBytes,
   importCertificatePublicKey,
   verifyReaderAuthSignature,
-} from "./reader-auth.ts";
+} from "./reader-auth.js";
 import {
   firstSmartCheckinResponse,
   hpkeSealDirectMdoc,
   openWalletResponse,
-} from "./response.ts";
+} from "./response.js";
 import {
   buildDeviceAuthenticationBytes,
   verifyDeviceResponseSignatures,
-} from "./verify.ts";
+} from "./verify.js";
 
 const FIXTURES = join(import.meta.dir, "../../fixtures");
 const REQ = join(FIXTURES, "dcapi-requests/real-chrome-android-smart-checkin");
@@ -302,7 +302,7 @@ describe("real Chrome/Android response capture", () => {
   });
 
   test("HPKE seal/open round trip", async () => {
-    const plaintext = (await import("./cbor.ts")).cborEncode(
+    const plaintext = (await import("./cbor.js")).cborEncode(
       new Map<string, unknown>([
         ["version", "1.0"],
         ["documents", []],

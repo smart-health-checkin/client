@@ -12,7 +12,7 @@ import {
   validateSmartCheckinResponse,
   type SmartCheckinRequest,
   type SmartCheckinResponse,
-} from "../model/index.ts";
+} from "../model/index.js";
 import {
   base64UrlDecodeBytes,
   base64UrlEncodeBytes,
@@ -20,7 +20,7 @@ import {
   hex,
   sha256,
   arrayBufferCopy,
-} from "./bytes.ts";
+} from "./bytes.js";
 import {
   CborTag,
   cborDecode,
@@ -29,14 +29,14 @@ import {
   cborToJsonValue,
   mapGet,
   type JsonValue,
-} from "./cbor.ts";
-import { hpkeAesGcm, hpkeContext, hpkeNonce } from "./hpke.ts";
+} from "./cbor.js";
+import { hpkeAesGcm, hpkeContext, hpkeNonce } from "./hpke.js";
 import {
   PROTOCOL_ID,
   SMART_REQUEST_INFO_KEY,
   SMART_RESPONSE_ELEMENT_ID,
   publicJwkToRawP256,
-} from "./request.ts";
+} from "./request.js";
 
 export type DcapiMdocResponse = {
   protocol: typeof PROTOCOL_ID;

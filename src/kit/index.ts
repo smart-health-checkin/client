@@ -14,15 +14,15 @@ import {
   validateSmartCheckinRequest,
   type SmartCheckinRequest,
   type SmartCheckinResponse,
-} from "../model/index.ts";
+} from "../model/index.js";
 import {
   createBrowserLocalAuthority,
   createServerAuthority,
   detectDcApiSupport,
   type CredentialCompletion,
   type VerifierAuthority,
-} from "../browser/index.ts";
-import { buildRequest, resolveScenario, type CheckinRequestInit } from "./scenarios.ts";
+} from "../browser/index.js";
+import { buildRequest, resolveScenario, type CheckinRequestInit } from "./scenarios.js";
 
 export {
   SCENARIOS,
@@ -31,7 +31,7 @@ export {
   resolveScenario,
   type CheckinRequestInit,
   type Scenario,
-} from "./scenarios.ts";
+} from "./scenarios.js";
 
 /** What to ask for: an inline init, a complete request, or a registered name. */
 export type CheckinRequestInput =

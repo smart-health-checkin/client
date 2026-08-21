@@ -20,8 +20,8 @@
  * - No patient matching, ever: context is configuration.
  */
 
-import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.ts";
-import { base64UrlEncodeUtf8 } from "../wire/bytes.ts";
+import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
+import { base64UrlEncodeUtf8 } from "../wire/bytes.js";
 
 export type PostMode = "transaction" | "individual";
 

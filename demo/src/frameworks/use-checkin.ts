@@ -13,7 +13,7 @@ import {
   type CheckinOptions,
   type CheckinRequestInput,
   type SmartCheckinResponse,
-} from "../../../src/index.ts";
+} from "../../../src/index.js";
 
 export type CheckinState = {
   status: "idle" | "waiting" | "done" | "declined" | "error";

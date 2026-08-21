@@ -9,7 +9,7 @@ import type {
   SmartCheckinRequest,
   SmartCheckinResponse,
   ValidationResult,
-} from "./types.ts";
+} from "./types.js";
 
 export function validateSmartCheckinRequest(v: unknown): ValidationResult<SmartCheckinRequest> {
   if (!isRecord(v)) {

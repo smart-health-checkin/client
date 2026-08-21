@@ -1,15 +1,29 @@
 {
-  "name": "@smart-health-checkin/provider-kit",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@smart-health-checkin/checkin-client",
+  "version": "0.1.0",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./fhir": {
+      "bun": "./src/fhir/index.ts",
+      "types": "./dist/fhir/index.d.ts",
+      "import": "./dist/fhir/index.js",
+      "default": "./dist/fhir/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "tsc -p tsconfig.build.json",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
+    "docs": "typedoc",
     "build:pages": "scripts/build-pages.sh"
   },
   "devDependencies": {
@@ -19,5 +33,19 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript": "^5.5.0"
-  }
+  },
+  "description": "Ask a patient's health app for what your visit needs, and get a verified answer back in your page (SMART Health Check-in).",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smart-health-checkin/checkin-client.git"
+  },
+  "homepage": "https://smart-health-checkin.org/",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ]
 }

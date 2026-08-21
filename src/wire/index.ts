@@ -5,10 +5,10 @@
  * fixtures in `fixtures/`.
  */
 
-export * from "./bytes.ts";
-export * from "./cbor.ts";
-export * from "./request.ts";
-export * from "./reader-auth.ts";
-export * from "./hpke.ts";
-export * from "./response.ts";
-export * from "./verify.ts";
+export * from "./bytes.js";
+export * from "./cbor.js";
+export * from "./request.js";
+export * from "./reader-auth.js";
+export * from "./hpke.js";
+export * from "./response.js";
+export * from "./verify.js";

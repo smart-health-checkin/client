@@ -20,7 +20,7 @@ export {
   type CheckinRequestInit,
   type CheckinRequestInput,
   type Scenario,
-} from "./kit/index.ts";
+} from "./kit/index.js";
 
 export {
   validateResponseAgainstRequest,
@@ -33,7 +33,7 @@ export {
   type SmartCheckinRequestItem,
   type SmartCheckinResponse,
   type ValidationResult,
-} from "./model/index.ts";
+} from "./model/index.js";
 
 export {
   createBrowserLocalAuthority,
@@ -44,7 +44,7 @@ export {
   type DcApiSupport,
   type PreparedCredentialRequest,
   type VerifierAuthority,
-} from "./browser/index.ts";
+} from "./browser/index.js";
 
 // Wallet-side helpers: the demo wallet app and phone-free testing.
 export {
@@ -54,7 +54,7 @@ export {
   sealWalletResponse,
   type MockWalletOptions,
   type ParsedWalletRequest,
-} from "./kit/mock-wallet.ts";
+} from "./kit/mock-wallet.js";
 
 export {
   createWebWalletCredentialGetter,
@@ -65,4 +65,4 @@ export {
   type WebWalletCredential,
   type WebWalletOptions,
   type WebWalletResponseMessage,
-} from "./kit/web-wallet.ts";
+} from "./kit/web-wallet.js";

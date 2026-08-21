@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { requestCheckin, runCheckin } from "./index.ts";
-import { createMockWalletCredentialGetter } from "./mock-wallet.ts";
-import { createBrowserLocalAuthority, type VerifierAuthority } from "../browser/index.ts";
-import type { SmartCheckinResponse } from "../model/index.ts";
+import { requestCheckin, runCheckin } from "./index.js";
+import { createMockWalletCredentialGetter } from "./mock-wallet.js";
+import { createBrowserLocalAuthority, type VerifierAuthority } from "../browser/index.js";
+import type { SmartCheckinResponse } from "../model/index.js";
 
 const ORIGIN = "http://localhost:3010";
 
@@ -57,7 +57,7 @@ describe("runCheckin", () => {
   });
 
   test("registerScenario makes a custom name usable", async () => {
-    const { registerScenario, resolveScenario } = await import("./scenarios.ts");
+    const { registerScenario, resolveScenario } = await import("./scenarios.js");
     registerScenario("test-intake", {
       purpose: "Test intake",
       items: [
