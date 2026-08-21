@@ -13,7 +13,7 @@ type CheckinBundle = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L43)
+Defined in: [src/fhir/index.ts:43](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L43)
 
 #### Properties
 
@@ -23,7 +23,7 @@ Defined in: [src/fhir/index.ts:43](https://github.com/smart-health-checkin/check
 bundle: Record<string, unknown>;
 ```
 
-Defined in: [src/fhir/index.ts:46](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L46)
+Defined in: [src/fhir/index.ts:46](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L46)
 
 The transaction Bundle equivalent of the plan.
 
@@ -33,7 +33,7 @@ The transaction Bundle equivalent of the plan.
 entries: CheckinBundleEntry[];
 ```
 
-Defined in: [src/fhir/index.ts:44](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L44)
+Defined in: [src/fhir/index.ts:44](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L44)
 
 ***
 
@@ -46,7 +46,7 @@ type CheckinBundleContext = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:31](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L31)
+Defined in: [src/fhir/index.ts:31](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L31)
 
 #### Properties
 
@@ -56,7 +56,7 @@ Defined in: [src/fhir/index.ts:31](https://github.com/smart-health-checkin/check
 optional appointment?: string;
 ```
 
-Defined in: [src/fhir/index.ts:33](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L33)
+Defined in: [src/fhir/index.ts:33](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L33)
 
 ##### patient?
 
@@ -64,7 +64,7 @@ Defined in: [src/fhir/index.ts:33](https://github.com/smart-health-checkin/check
 optional patient?: string;
 ```
 
-Defined in: [src/fhir/index.ts:32](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L32)
+Defined in: [src/fhir/index.ts:32](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L32)
 
 ***
 
@@ -78,7 +78,7 @@ type CheckinBundleEntry = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:36](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L36)
+Defined in: [src/fhir/index.ts:36](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L36)
 
 #### Properties
 
@@ -88,7 +88,7 @@ Defined in: [src/fhir/index.ts:36](https://github.com/smart-health-checkin/check
 optional artifactId?: string;
 ```
 
-Defined in: [src/fhir/index.ts:40](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L40)
+Defined in: [src/fhir/index.ts:40](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L40)
 
 Artifact id this entry came from; the Provenance entry has none.
 
@@ -98,7 +98,7 @@ Artifact id this entry came from; the Provenance entry has none.
 fullUrl: string;
 ```
 
-Defined in: [src/fhir/index.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L37)
+Defined in: [src/fhir/index.ts:37](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L37)
 
 ##### resource
 
@@ -106,7 +106,7 @@ Defined in: [src/fhir/index.ts:37](https://github.com/smart-health-checkin/check
 resource: Record<string, unknown>;
 ```
 
-Defined in: [src/fhir/index.ts:38](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L38)
+Defined in: [src/fhir/index.ts:38](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L38)
 
 ***
 
@@ -116,7 +116,7 @@ Defined in: [src/fhir/index.ts:38](https://github.com/smart-health-checkin/check
 type FetchLike = (input, init?) => Promise<Response>;
 ```
 
-Defined in: [src/fhir/index.ts:29](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L29)
+Defined in: [src/fhir/index.ts:29](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L29)
 
 Minimal fetch signature so tests and hosts can inject their own.
 
@@ -139,7 +139,7 @@ Minimal fetch signature so tests and hosts can inject their own.
 type PostMode = "transaction" | "individual";
 ```
 
-Defined in: [src/fhir/index.ts:26](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L26)
+Defined in: [src/fhir/index.ts:26](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L26)
 
 ***
 
@@ -153,7 +153,7 @@ type PostResult = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:204](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L204)
+Defined in: [src/fhir/index.ts:204](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L204)
 
 #### Properties
 
@@ -163,7 +163,7 @@ Defined in: [src/fhir/index.ts:204](https://github.com/smart-health-checkin/chec
 bundle: unknown;
 ```
 
-Defined in: [src/fhir/index.ts:206](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L206)
+Defined in: [src/fhir/index.ts:206](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L206)
 
 ##### mode
 
@@ -171,7 +171,7 @@ Defined in: [src/fhir/index.ts:206](https://github.com/smart-health-checkin/chec
 mode: PostMode;
 ```
 
-Defined in: [src/fhir/index.ts:205](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L205)
+Defined in: [src/fhir/index.ts:205](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L205)
 
 ##### result
 
@@ -179,7 +179,7 @@ Defined in: [src/fhir/index.ts:205](https://github.com/smart-health-checkin/chec
 result: unknown;
 ```
 
-Defined in: [src/fhir/index.ts:207](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L207)
+Defined in: [src/fhir/index.ts:207](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L207)
 
 ## Variables
 
@@ -189,7 +189,7 @@ Defined in: [src/fhir/index.ts:207](https://github.com/smart-health-checkin/chec
 const CHECKIN_APPOINTMENT_SYSTEM: "https://smart-health-checkin.github.io/appointment-context" = "https://smart-health-checkin.github.io/appointment-context";
 ```
 
-Defined in: [src/fhir/index.ts:51](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L51)
+Defined in: [src/fhir/index.ts:51](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L51)
 
 ***
 
@@ -199,7 +199,7 @@ Defined in: [src/fhir/index.ts:51](https://github.com/smart-health-checkin/check
 const CHECKIN_REQUEST_ID_SYSTEM: "https://smart-health-checkin.github.io/checkin-request-id" = "https://smart-health-checkin.github.io/checkin-request-id";
 ```
 
-Defined in: [src/fhir/index.ts:49](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L49)
+Defined in: [src/fhir/index.ts:49](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L49)
 
 ## Functions
 
@@ -209,7 +209,7 @@ Defined in: [src/fhir/index.ts:49](https://github.com/smart-health-checkin/check
 function buildCheckinBundle(input): CheckinBundle;
 ```
 
-Defined in: [src/fhir/index.ts:58](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L58)
+Defined in: [src/fhir/index.ts:58](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L58)
 
 Map a check-in response to a FHIR transaction Bundle. Pure — no network.
 Inspect or edit the result before sending it anywhere.
@@ -237,7 +237,7 @@ Inspect or edit the result before sending it anywhere.
 function postCheckinBundle(plan, options): Promise<PostResult>;
 ```
 
-Defined in: [src/fhir/index.ts:215](https://github.com/smart-health-checkin/checkin-client/blob/6d54a76430da3f53f74e91ed0e516c7490466183/src/fhir/index.ts#L215)
+Defined in: [src/fhir/index.ts:215](https://github.com/smart-health-checkin/checkin-client/blob/a66b55f54f92d40f48d2c97a8ce81f74226249ee/src/fhir/index.ts#L215)
 
 Post a bundle to a FHIR server. A convenience for demos and simple apps —
 production deployments usually have their own client and auth, in which

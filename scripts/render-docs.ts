@@ -2,70 +2,18 @@
  * Renders the repo's markdown docs into the site at /docs/.
  *
  * The markdown in docs/ is the single source: it reads on GitHub and renders
- * here. Every page gets the shared site chrome plus a docs sidebar, so the
- * documentation is one navigable thing rather than a set of loose pages.
+ * here. Every page carries the shared header and the deep footer, so any page
+ * is one click from everything else — no sidebar needed.
  */
 
 import { marked } from "marked";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, anchorFor } from "./api-index.ts";
+import { GUIDES } from "./site-nav.ts";
 import { CHROME_CSS, footer, header } from "./site-chrome.ts";
 
 const OUT = "_site/docs";
-
-type Guide = { file: string; slug: string; title: string; blurb: string };
-
-const GUIDES: Guide[] = [
-  {
-    file: "docs/getting-started.md",
-    slug: "getting-started",
-    title: "Getting started",
-    blurb: "Install it, make your first request, handle the paths that aren't success, run it without a phone.",
-  },
-  {
-    file: "docs/requests.md",
-    slug: "requests",
-    title: "Describing what you need",
-    blurb: "Items, FHIR selectors, questionnaires, accepted formats.",
-  },
-  {
-    file: "docs/responses.md",
-    slug: "responses",
-    title: "Working with responses",
-    blurb: "Artifacts, per-item status, and asking only for what's missing.",
-  },
-  {
-    file: "docs/wallets.md",
-    slug: "wallets",
-    title: "Wallets and browser support",
-    blurb: "Platform API, wallet web app, mock, and where keys live.",
-  },
-  {
-    file: "docs/fhir.md",
-    slug: "fhir",
-    title: "Writing FHIR",
-    blurb: "The optional mapping helper, and when not to use it.",
-  },
-  {
-    file: "docs/production.md",
-    slug: "production",
-    title: "Production checklist",
-    blurb: "Key custody, trust policy, identity, fallback, pinning.",
-  },
-  {
-    file: "docs/security-notes.md",
-    slug: "security-notes",
-    title: "Security notes",
-    blurb: "What's verified, what stays deployment policy.",
-  },
-  {
-    file: "demo/README.md",
-    slug: "demo",
-    title: "The demo pages",
-    blurb: "URL grammar for the clinic demo, wallet app, and examples.",
-  },
-];
 
 const DOCS_STYLE = `
   :root { --bg:#f7faf9; --surface:#fff; --ink:#16211f; --muted:#5b6b67; --accent:#0e7c6b; --line:#dce5e2; --code-bg:#eef4f2; }
@@ -75,15 +23,11 @@ const DOCS_STYLE = `
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; line-height:1.65; }
   ${CHROME_CSS}
-  .layout { max-width:60rem; margin:0 auto; padding:2rem 1.25rem 1rem; display:grid; grid-template-columns:14rem 1fr; gap:2.5rem; align-items:start; }
-  @media (max-width: 52rem) { .layout { grid-template-columns:1fr; gap:1.25rem; } }
-  .sidebar { position:sticky; top:1.5rem; font-size:0.9rem; }
-  .sidebar h4 { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin:0 0 0.5rem; font-family:"IBM Plex Mono",ui-monospace,monospace; }
-  .sidebar ul { list-style:none; margin:0 0 1.4rem; padding:0; display:flex; flex-direction:column; gap:0.15rem; }
-  .sidebar a { display:block; padding:0.25rem 0.5rem; margin-left:-0.5rem; border-radius:6px; color:var(--muted); text-decoration:none; }
-  .sidebar a:hover { color:var(--ink); background:var(--surface); }
-  .sidebar a[aria-current="page"] { color:var(--accent); font-weight:500; background:var(--surface); }
-  article { min-width:0; padding-bottom:2rem; }
+  .layout { max-width:48rem; margin:0 auto; padding:2.5rem 1.25rem 1rem; }
+  article { min-width:0; padding-bottom:1rem; }
+  .crumb { font-size:0.85rem; color:var(--muted); margin:0 0 1.25rem; }
+  .crumb a { color:var(--muted); text-decoration:none; }
+  .crumb a:hover { color:var(--accent); }
   h1 { font-size:1.85rem; letter-spacing:-0.01em; margin:0 0 1rem; text-wrap:balance; }
   h2 { font-size:1.15rem; margin:2rem 0 0.5rem; }
   h3 { font-size:1rem; margin:1.5rem 0 0.4rem; }
@@ -108,27 +52,8 @@ const DOCS_STYLE = `
   .api-list span { color:var(--muted); }
 `;
 
-function sidebar(currentSlug: string): string {
-  const guides = GUIDES.filter((g) => existsSync(g.file))
-    .map(
-      (g) =>
-        `      <li><a href="/docs/${g.slug}.html"${g.slug === currentSlug ? ' aria-current="page"' : ""}>${g.title}</a></li>`,
-    )
-    .join("\n");
-  const apiCurrent = currentSlug.startsWith("api");
-  return `<nav class="sidebar">
-    <h4>Guides</h4>
-    <ul>
-      <li><a href="/docs/"${currentSlug === "index" ? ' aria-current="page"' : ""}>Overview &amp; install</a></li>
-${guides}
-    </ul>
-    <h4>Reference</h4>
-    <ul>
-      <li><a href="/docs/api/"${apiCurrent ? ' aria-current="page"' : ""}>API reference</a></li>
-      <li><a href="/demo/">Live demo</a></li>
-      <li><a href="/spec/">Protocol spec</a></li>
-    </ul>
-  </nav>`;
+function crumb(title: string, isApi: boolean): string {
+  return `<p class="crumb"><a href="/docs/">Docs</a>${isApi ? ' <span>/</span> <a href="/docs/api/">API reference</a>' : ""} <span>/</span> ${title}</p>`;
 }
 
 function pager(slug: string): string {
@@ -156,7 +81,6 @@ const shell = (title: string, slug: string, body: string): string => `<!doctype 
 <body>
 ${header("docs")}
 <div class="layout">
-  ${sidebar(slug)}
   <article>${body}</article>
 </div>
 ${footer()}
@@ -181,7 +105,7 @@ mkdirSync(join(OUT, "api"), { recursive: true });
 // --- narrative guides -------------------------------------------------
 for (const guide of GUIDES) {
   if (!existsSync(guide.file)) continue;
-  const html = render(readFileSync(guide.file, "utf8")) + pager(guide.slug);
+  const html = crumb(guide.title, false) + render(readFileSync(guide.file, "utf8")) + pager(guide.slug);
   writeFileSync(
     join(OUT, `${guide.slug}.html`),
     shell(`${guide.title} — SMART Health Check-in`, guide.slug, html),
@@ -204,7 +128,7 @@ for (const file of readdirSync("docs/api")) {
   const name = basename(file, ".md");
   writeFileSync(
     join(OUT, "api", `${name}.html`),
-    shell(`${name} — API reference`, `api-${name}`, html),
+    shell(`${name} — API reference`, `api-${name}`, crumb(`${name} module`, true) + html),
   );
 }
 
@@ -239,7 +163,8 @@ writeFileSync(
   shell(
     "API reference — SMART Health Check-in",
     "api-index",
-    `<h1>API reference</h1>
+    `<p class="crumb"><a href="/docs/">Docs</a> <span>/</span> API reference</p>
+<h1>API reference</h1>
 <p class="lede">
   Every export, grouped by what you'd be doing. Signatures and types are
   generated from the source, so they can't drift; this page is checked at
