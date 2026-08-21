@@ -44,6 +44,18 @@
     border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
   }
   button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.secondary {
+    font: inherit; font-weight: 500; padding: 0.55rem 1.1rem; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  button.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .start-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .add-row { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+  .add-row input {
+    flex: 1; font: inherit; font-size: 0.9rem; padding: 0.45rem 0.65rem;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink);
+  }
+  .add-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .note { border-left: 3px solid var(--accent); padding: 0.2rem 0.85rem; font-size: 0.88rem; color: var(--muted); margin-top: 0.7rem; }
   a { color: var(--accent); }
   .muted { color: var(--muted); }
@@ -112,20 +124,28 @@
     <h1>Allergy review</h1>
     <p class="sub">
       This page plays the <em>provider's</em> data-collection app. It asks your
-      health app for your allergy list — one tap, like autofill. Shared records
-      usually carry the allergen and little else, so it then asks only for
-      what's <em>missing</em>.
+      health app for your allergy list — one tap, like autofill — or you can
+      type them in yourself. Either way you land in the same review, and
+      because shared records usually carry the allergen and little else, it
+      asks only for what's <em>missing</em>.
     </p>
   </header>
 
   <section class="card">
-    <button id="prefill" class="primary">Prefill from your health app</button>
+    <div class="start-row">
+      <button id="prefill" class="primary">Prefill from your health app</button>
+      <button id="manual" class="secondary">I'll enter them myself</button>
+    </div>
     <p class="note" id="status-note"></p>
   </section>
 
   <section class="card" id="review-card" hidden>
     <h2>Your allergy list <span class="muted" style="font-weight:400; font-size:0.85rem">— from your app</span></h2>
     <ul class="allergies" id="allergy-list"></ul>
+    <div class="add-row">
+      <input id="new-allergy" placeholder="Add an allergy — e.g. Amoxicillin" aria-label="Add an allergy">
+      <button id="add-row" class="secondary">Add</button>
+    </div>
     <p class="progress" id="progress"></p>
     <div class="actions">
       <button id="send" class="primary">Send to care team</button>

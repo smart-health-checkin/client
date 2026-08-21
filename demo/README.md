@@ -39,7 +39,7 @@ holding real patient data.
 …/demo/#wallet=app                       consent screen in a wallet tab
 …/demo/#wallet=auto&post=transaction     instant mock, then post to the FHIR base
 …/demo/#scenario=new-patient             real wallet via the DC API (Chrome/Android)
-…/demo/autofill.html#wallet=app          form prefilled from the patient's app
+…/demo/autofill.html#wallet=app          prefill from the app, or type your own
 …/demo/react.html                        same core, React bindings
 ```
 

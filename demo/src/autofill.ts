@@ -48,6 +48,10 @@ type Severity = (typeof SEVERITIES)[number] | "";
 
 type Row = {
   name: string;
+  /** True when the person typed it in rather than the app supplying it. */
+  addedByPatient?: boolean;
+  /** Set when the app later confirmed something the person had typed. */
+  confirmedByApp?: boolean;
   /** What the record already said (empty = the gap we're here to fill). */
   reportedReactions: string[];
   criticality?: string;
@@ -101,6 +105,11 @@ function init(): void {
     button.disabled = true;
   }
   button.onclick = () => void prefill();
+  el("manual").onclick = () => startManual();
+  el("add-row").onclick = () => addRow();
+  el("new-allergy").onkeydown = (event) => {
+    if ((event as KeyboardEvent).key === "Enter") addRow();
+  };
   el("send").onclick = () => finalize();
   for (const tab of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
     tab.onclick = () => {
@@ -119,7 +128,6 @@ async function prefill(): Promise<void> {
       authority: createBrowserLocalAuthority({ origin: location.origin }),
       ...(credentialGetter ? { getCredential: credentialGetter } : {}),
     });
-    rows.length = 0;
     for (const artifact of response.artifacts) {
       if (artifact.mediaType !== "application/fhir+json") continue;
       for (const resource of extractResources(artifact.value)) {
@@ -127,8 +135,19 @@ async function prefill(): Promise<void> {
         const reactions = reactionTexts(resource);
         const criticality =
           typeof resource.criticality === "string" ? resource.criticality : undefined;
+        const name = codeText(resource) ?? "(unnamed allergy)";
+        const existing = rows.find((r) => sameAllergen(r.name, name));
+        if (existing) {
+          // The app confirms something the person already typed: keep their
+          // answers, but let the record's detail close the gap.
+          existing.reportedReactions = reactions;
+          existing.criticality = criticality;
+          existing.confirmedByApp = true;
+          existing.gaps = gapsFor(reactions, criticality);
+          continue;
+        }
         rows.push({
-          name: codeText(resource) ?? "(unnamed allergy)",
+          name,
           reportedReactions: reactions,
           criticality,
           symptoms: new Set(
@@ -144,7 +163,7 @@ async function prefill(): Promise<void> {
     }
     const missing = rows.filter(needsDetail).length;
     el("status-note").textContent = !rows.length
-      ? "Your app returned no allergy records."
+      ? "Your app returned no allergy records — add any you know of below."
       : missing
         ? `${rows.length} allergies came from your app. ${missing} ${missing === 1 ? "is" : "are"} missing detail your record doesn't carry — only those need you.`
         : `${rows.length} allergies came from your app, all complete.`;
@@ -159,6 +178,39 @@ async function prefill(): Promise<void> {
     button.disabled = false;
     button.textContent = "Prefill from your health app";
   }
+}
+
+const sameAllergen = (a: string, b: string): boolean =>
+  a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/** The manual path is a first-class entry point, not a fallback of last resort. */
+function startManual(): void {
+  el("review-card").hidden = false;
+  el("status-note").textContent =
+    "Entering them yourself. You can still pull your list from your health app — anything it knows will merge in.";
+  render();
+  (el("new-allergy") as HTMLInputElement).focus();
+}
+
+function addRow(): void {
+  const input = el("new-allergy") as HTMLInputElement;
+  const name = input.value.trim();
+  if (!name) return;
+  if (!rows.some((r) => sameAllergen(r.name, name))) {
+    rows.push({
+      name,
+      addedByPatient: true,
+      reportedReactions: [],
+      symptoms: new Set(),
+      severity: "",
+      removed: false,
+      gaps: { reaction: true, severity: true },
+    });
+  }
+  input.value = "";
+  el("review-card").hidden = false;
+  render();
+  input.focus();
 }
 
 function render(): void {
@@ -181,9 +233,12 @@ function render(): void {
 
     const said = document.createElement("span");
     said.className = "said";
+    const appNote = row.addedByPatient && row.confirmedByApp ? " · your app has it too" : "";
     said.textContent = row.reportedReactions.length
-      ? row.reportedReactions.join(", ")
-      : "allergen only";
+      ? `${row.reportedReactions.join(", ")}${appNote}`
+      : row.addedByPatient
+        ? `you added this${appNote}`
+        : "allergen only";
 
     // Right-hand group stays together when the line wraps.
     const actions = document.createElement("span");
@@ -279,7 +334,7 @@ function render(): void {
   const outstanding = rows.filter(needsDetail).length;
   const progress = el("progress");
   progress.textContent = !rows.length
-    ? ""
+    ? "Add each allergy you know of, or pull the list from your health app."
     : outstanding
       ? `${outstanding} still ${outstanding === 1 ? "needs" : "need"} a detail your record doesn't have.`
       : "Everything the clinic asked for is filled in.";
@@ -346,6 +401,11 @@ function asNative(): unknown {
     reviewedBy: "PATIENT",
     items: rows.map((row) => ({
       allergen: row.name,
+      source: row.addedByPatient
+        ? row.confirmedByApp
+          ? "PT_ENTERED_APP_CONFIRMED"
+          : "PT_ENTERED"
+        : "PT_APP",
       status: row.removed ? "REMOVED_BY_PT" : "CONFIRMED_BY_PT",
       reactions: [...row.symptoms].map((s) => s.toUpperCase().replace(/ /g, "_")),
       severity: row.severity ? row.severity.slice(0, 3).toUpperCase() : null,
