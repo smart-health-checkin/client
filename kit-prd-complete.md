@@ -486,10 +486,14 @@ Max content width ~46rem; visible focus states; SVG diagrams inline with
   license.
 - **`demo/README.md`** — full URL grammar, precedence, backend policy,
   status.
-- **`docs/integrating.md`** (M3) — "integrate in an afternoon": drop-in
-  element snippet, JS-API pattern, encapsulation pattern (surface POSTs to
-  *your* FHIR backend), server-owned-authority pointer, production
-  checklist (patient matching, auth, retention are yours).
+- **`docs/*.md`** — the narrative documentation, and the single source for
+  it: `getting-started`, `requests`, `responses`, `wallets`, `fhir`,
+  `production`, `security-notes`. These render onto the site at `/docs/` and
+  read as-is on GitHub. The README is a front door only — it must not carry a
+  second copy of the API surface.
+- **`docs/api/`** — the exhaustive reference, generated as markdown by
+  TypeDoc (`bun run docs`) and committed, so it browses on GitHub and renders
+  on the site while being impossible to drift from the code.
 - **`docs/security-notes.md`** — browser-local keys are demo-grade;
   server-owned authority for production; fragment-param rationale; demo
   backend allowlist/warning policy; no-PHI-in-fixtures rule.
@@ -577,7 +581,7 @@ document; the spec wins over intuition.
 | M0 | Scaffold: repo, README, layer stubs, landing, demo (config-parsing only), fixtures vendored, Pages deploy | Site live: landing at `/`, demo at `/demo/` |
 | M1 | `model` + `wire` ports | Test suites 1–3 green over all fixtures; no DOM imports in either layer |
 | M2 | `browser` + `submit` + demo wired end-to-end | Full loop demoable on an Android phone with the prototype's reference wallet against public HAPI; dry-run mode; backend allowlist/warning UX; screen-recordable |
-| M3 | `<smart-checkin>` element + `docs/integrating.md` | A copy-paste snippet works on a blank page; demo gains an `/demo/embed.html` example |
+| M3 | Hosted `lib/` builds, git-installable package, narrative docs + generated API reference | A copy-paste `<script type="module">` works on a blank page; `npm install github:…` imports cleanly in Node, Bun, and tsc |
 | M4 | Server-owned authority reference (small Bun server implementing §8's HTTP contract; in-memory keys; audit log) | Demo runs with `authority={server}` against a locally run instance; documented |
 | M5 | Scenario library polish + demonstration script | Scenarios in the kit (not the demo); `docs/demo-script.md` with 5 URLs, expected outcomes, troubleshooting for demonstration events |
 

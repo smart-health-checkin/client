@@ -1,147 +1,109 @@
 # checkin-client
 
-Provider-side toolkit for **SMART Health Check-in**. One call, one job:
+Ask the patient's health app for what your visit needs, and get a verified
+answer back in your own page.
 
 ```ts
-const response = await requestCheckin({ purpose: "…", items: [ … ] });
+import { requestCheckin } from "@smart-health-checkin/checkin-client";
+
+const response = await requestCheckin({
+  purpose: "Before your visit",
+  items: [{
+    id: "allergies",
+    title: "Allergies and intolerances",
+    content: {
+      kind: "selection.fhir",
+      profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+    },
+    accept: ["application/fhir+json"],
+  }],
+});
+
+// response.artifacts — decrypted, signature-verified, cross-checked against
+// what you asked for. Prefill your form with it, write it, route on it: yours.
 ```
 
-Your page asks for what it needs, the patient's wallet answers, and your code
-gets a cryptographically verified, cross-validated response — on your page,
-in your workflow. What happens next (prefilling forms, writing FHIR, taking
-payment, routing the patient) is ordinary application code the kit has no
-opinion about.
+The patient interaction rides the W3C Digital Credentials API (direct
+`org-iso-mdoc`, per the [SMART Health Check-in 1.0 draft
+spec](https://smart-health-checkin.org/spec/)) — CBOR, COSE, HPKE, MSO digests
+and all. This library exists so you never touch that.
 
-Under the hood the patient interaction rides the W3C Digital Credentials API
-(direct `org-iso-mdoc`, per the [SMART Health Check-in 1.0 draft
-spec](/spec/)) — CBOR,
-COSE, HPKE, MSO digests and all. The kit exists so integrators never touch
-that plumbing.
+It stops when your code has the response. Writing FHIR, taking payment,
+routing the patient are your application's business, and deliberately not
+this library's: every concern a protocol library owns is one an adopting EHR
+has to audit and configure.
 
-> **Status: working draft.** The clinical model, the full mdoc wire layer
-> (request construction, SessionTranscript, HPKE, MSO digests, **and COSE
-> signature verification** — issuerAuth + deviceSignature, which the
-> prototype's verifier lacked), FHIR submission, and the `runCheckin` facade
-> are implemented and green against the vendored conformance fixtures,
-> including byte-exact oracles from a real Chrome/Android capture. The demo
-> runs end-to-end today (a built-in mock wallet answers with real
-> CBOR/COSE/HPKE when no phone is present). See [Roadmap](#roadmap).
+**Docs: <https://smart-health-checkin.org/docs/>** —
+[getting started](docs/getting-started.md) ·
+[describing what you need](docs/requests.md) ·
+[working with responses](docs/responses.md) ·
+[wallets & browser support](docs/wallets.md) ·
+[writing FHIR](docs/fhir.md) ·
+[production](docs/production.md) ·
+[API reference](docs/api/index.md)
 
-- Landing page: `https://smart-health-checkin.org/`
-- Live demo: `https://smart-health-checkin.org/demo/`
+## Install
 
-## API
+No npm registry — install from git, pinning a branch or a commit. A `prepare`
+step compiles the TypeScript on install, so you get JavaScript plus `.d.ts`
+types; Bun resolves the TypeScript sources directly.
 
-```ts
-// the whole surface
-requestCheckin(request, options?) -> Promise<SmartCheckinResponse>   // throws CheckinFlowError
-runCheckin(request, options?)     -> Promise<CheckinOutcome>          // status-based, never throws
+```sh
+npm install github:smart-health-checkin/checkin-client
+npm install github:smart-health-checkin/checkin-client#<commit-sha>
+bun add github:smart-health-checkin/checkin-client
 ```
 
-`request` is an inline init (`{ purpose, items }` — protocol boilerplate
-filled in), a complete `SmartCheckinRequest`, or `{ scenario: "name" }` for
-requests registered with `registerScenario`.
+Or with no build step, from the hosted ES modules — moving
+[`/lib/checkin.js`](https://smart-health-checkin.org/lib/checkin.js) or pinned
+`/lib/<version>/checkin.js`:
 
-`options`:
+```html
+<script type="module">
+  import { requestCheckin } from "https://smart-health-checkin.org/lib/checkin.js";
+</script>
+```
 
-| Option | Meaning |
+The optional FHIR helper is a separate entry point,
+`@smart-health-checkin/checkin-client/fhir` (or `/lib/fhir.js`), so nothing in
+the check-in path pulls it in.
+
+## Try it
+
+<https://smart-health-checkin.org/demo/> — a fictional clinic running the real
+protocol stack. No wallet-equipped phone needed: switch the responder to
+**demo wallet app** and a wallet opens in a tab with a real consent screen.
+Every wire artifact is one click away under *Developer detail*.
+
+The [allergy example](https://smart-health-checkin.org/demo/autofill.html#wallet=app)
+shows the pattern worth stealing: prefill from the app, then ask only for what
+the shared record couldn't carry.
+
+## What's in here
+
+| Path | What it is |
 | --- | --- |
-| `authority` | Verifier key custody: `"browser-local"` (default), `{ server }`, or your own `VerifierAuthority`. |
-| `getCredential` | Override the mediator. Defaults to the platform Digital Credentials API; pass a web-wallet or mock getter to run without a platform wallet. |
-
-`CheckinOutcome.status` is `completed | declined | unsupported | error`.
-Every response is verified (issuerAuth + deviceSignature + MSO digests) and
-cross-checked against the request before you see it.
-
-### Writing FHIR is a separate, optional module
-
-```ts
-import { buildCheckinBundle, postCheckinBundle } from "./src/fhir/index.ts";
-```
-
-Deliberately outside the kit: where patient-supplied data lands, under whose
-authorization, with what review, is deployment policy. `buildCheckinBundle`
-is pure — map the response to a transaction Bundle (with `Provenance`),
-inspect it, then send it with `postCheckinBundle` or your own client.
-
-## Layers
-
-Each layer is usable alone; dependencies point only downward.
-
-| Module | Purpose |
-| --- | --- |
-| `src/kit` | The facade: `requestCheckin` / `runCheckin`, scenarios, wallet mediators (web-wallet + mock). |
-| `src/fhir` | **Optional companion**, not part of the protocol surface: response → transaction Bundle + a small posting helper. |
-| `src/browser` | DC API support detection and the `navigator.credentials.get` call; key-custody seam (browser-local vs server-owned). |
-| `src/wire` | Pure byte functions: mdoc DeviceRequest + encryptionInfo, SessionTranscript, HPKE open, MSO digest and COSE verification. No DOM. |
-| `src/model` | Transport-neutral SMART request/response types and validators (spec §§5–6 as code). |
-
-### Submission mapping (defaults)
-
-- `application/fhir+json` artifacts → entries in one transaction `Bundle`.
-- `application/smart-health-card` artifacts → a `DocumentReference` holding
-  the JWS (chain of custody preserved); unpacking is opt-in.
-- Every write is accompanied by a `Provenance` resource: patient-supplied via
-  check-in, timestamped, referencing the configured patient/appointment and
-  the request id.
-- Patient matching is **not** performed: context comes from configuration and
-  is a deployment responsibility in production.
-
-## Demo
-
-`demo/` is the sample project in this repo and deploys to `/demo/` on the
-landing site. It is configured entirely by URL **fragment** parameters
-(fragment, not query, so identifiers stay out of server logs):
-
-```text
-…/demo/#wallet=app                      demo wallet web app: a real consent screen
-…/demo/#wallet=auto&scenario=phq2-dayof automatic mock: instant, no consent screen
-…/demo/#post=transaction                also post the result to the FHIR base
-…/demo/#request=<base64url request>     bring your own request object
-```
-
-Everything is also editable in the page under **Demo controls**, which writes
-your choices back to the URL. Companion pages: `autofill.html` (form
-prefilled from the patient's app, with symptom tagging), `react.html` (same
-core, React bindings), `wallet.html` (the demo wallet app).
-
-Precedence: `request=` (verbatim passthrough) beats `scenario=` beats the
-default scenario. Full grammar in [`demo/README.md`](demo/README.md).
-
-## Conformance fixtures
-
-[`fixtures/`](fixtures/) is a pinned copy of the SMART Health Check-in
-conformance corpus — normalized byte captures from real Chrome/Android
-sessions, shared across the Android, TypeScript, and Python suites in the
-spec prototype repo. The `wire` port is done when every fixture passes here
-too. See [`fixtures/PROVENANCE.md`](fixtures/PROVENANCE.md).
-
-## Relationship to `smart-health-checkin-mdoc`
-
-[`jmandel/smart-health-checkin-mdoc`](https://github.com/jmandel/smart-health-checkin-mdoc)
-holds the draft spec, the Android reference wallet, and the original
-prototype verifier. This kit is a fresh, coherently-designed provider-side
-implementation — written with full reference to that prototype (and porting
-freely from it), but organized around one question: *what does an integrator
-have to know to ask for data and get it?* The fixtures are the compatibility
-contract between the two.
-
-## Roadmap
-
-1. ~~**M1 — `model` + `wire` ports**, fixture-verified.~~ ✅ (all fixture oracles green, plus new issuerAuth/deviceSignature verification)
-2. ~~**M2 — `submit` + demo wired end-to-end** against public HAPI; dry-run mode; mock wallet for phone-free testing.~~ ✅
-3. ~~**M3 — hosted `lib/checkin.js` + integrator docs** ("integrate in an afternoon"), plus a demo wallet web app so the flow runs without a platform wallet.~~ ✅
-4. **M4 — server-owned authority reference** (keys server-side, audit trail).
-5. **M5 — demonstration script** for testing events.
+| `src/model` | The transport-neutral request/response model and validators (spec §§5–6). |
+| `src/wire` | The mdoc binding as pure byte functions: CBOR, SessionTranscript, HPKE, COSE verification. No DOM. |
+| `src/browser` | Digital Credentials API invocation and the key-custody seam. |
+| `src/kit` | The facade — `requestCheckin` / `runCheckin`, scenarios, wallet mediators. |
+| `src/fhir` | **Optional companion**, never imported by the rest: response → transaction Bundle, plus a posting helper. |
+| `demo/` | The clinic demo, the demo wallet app, the autofill example, a React example. |
+| `fixtures/` | Byte-level conformance corpus, pinned from the spec repo — the wire layer is verified against real Chrome/Android captures. |
 
 ## Development
 
 ```sh
 bun install
-bun test                 # fixture + unit tests
+bun test                 # unit + fixture conformance tests
 bun run typecheck
-scripts/build-pages.sh   # builds _site/ (landing at /, demo at /demo/)
+bun run build            # dist/ with declarations
+bun run docs             # regenerate docs/api from source
+scripts/build-pages.sh   # full site into _site/
 ```
 
-GitHub Pages deploys `_site/` via `.github/workflows/pages.yml` on pushes to
-`main` (repo setting: Pages → Source → GitHub Actions).
+`scripts/build-pages.sh` refuses to finish if the hosted bundles don't
+actually run — see `scripts/verify-lib.ts` for why that check exists.
+
+Apache-2.0. Related: [spec](https://github.com/smart-health-checkin/spec) ·
+[KTC materials](https://github.com/smart-health-checkin/ktc)

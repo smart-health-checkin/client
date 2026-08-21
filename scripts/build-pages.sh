@@ -23,13 +23,9 @@ bun build src/index.ts --outdir _site/lib --format esm --minify
 mv _site/lib/index.js _site/lib/checkin.js
 bun build src/fhir/index.ts --outdir _site/lib --format esm --minify
 mv _site/lib/index.js _site/lib/fhir.js
-# docs: landing page, generated API reference, rendered guides
-mkdir -p _site/docs
-cp site/docs/index.html _site/docs/index.html
+# docs: narrative guides + generated API reference, all from repo markdown
 bun run docs >/dev/null
-bun scripts/render-guides.ts >/dev/null
-cp -r docs-site/api _site/docs/api
-cp -r docs-site/guides _site/docs/guides
+bun scripts/render-docs.ts
 
 # pinned copies of the hosted modules, so links can outlive a rebuild
 VERSION=$(bun -e 'console.log(require("./package.json").version)')

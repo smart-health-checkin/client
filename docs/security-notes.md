@@ -26,3 +26,5 @@
   phone; never treat mock artifacts as clinically meaningful.
 - **Fixtures contain no PHI** and any checked-in private keys are
   intentionally public one-run test material (see `fixtures/PROVENANCE.md`).
+
+See also: [Production checklist](production.md) · [Wallets and browser support](wallets.md)

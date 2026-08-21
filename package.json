@@ -23,7 +23,7 @@
     "prepare": "tsc -p tsconfig.build.json",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "docs": "typedoc",
+    "docs": "bun scripts/build-api-docs.ts",
     "build:pages": "scripts/build-pages.sh"
   },
   "devDependencies": {
@@ -34,6 +34,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^5.5.0"
   },
   "description": "Ask a patient's health app for what your visit needs, and get a verified answer back in your page (SMART Health Check-in).",
