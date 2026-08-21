@@ -33,14 +33,20 @@ routing the patient are your application's business, and deliberately not
 this library's: every concern a protocol library owns is one an adopting EHR
 has to audit and configure.
 
-**Docs: <https://smart-health-checkin.org/docs/>** —
-[getting started](docs/getting-started.md) ·
-[describing what you need](docs/requests.md) ·
-[working with responses](docs/responses.md) ·
-[wallets & browser support](docs/wallets.md) ·
-[writing FHIR](docs/fhir.md) ·
-[production](docs/production.md) ·
-[API reference](docs/api/index.md)
+## Documentation
+
+The docs site is at [smart-health-checkin.org/docs](https://smart-health-checkin.org/docs/);
+the same pages live in this repo, so they read here too.
+
+| Guide | |
+| --- | --- |
+| [Getting started](docs/getting-started.md) | Install, first request, handling declines, running without a phone |
+| [Describing what you need](docs/requests.md) | Items, FHIR selectors, questionnaires, accepted formats |
+| [Working with responses](docs/responses.md) | Artifacts, per-item status, asking only for what's missing |
+| [Wallets and browser support](docs/wallets.md) | Platform API, wallet web app, mock, key custody |
+| [Writing FHIR](docs/fhir.md) | The optional mapping helper — and when not to use it |
+| [Production checklist](docs/production.md) | Trust policy, identity, fallback, pinning |
+| [API reference](docs/api/index.md) | Generated from source; every export |
 
 ## Install
 

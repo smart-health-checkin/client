@@ -26,6 +26,7 @@ mv _site/lib/index.js _site/lib/fhir.js
 # docs: narrative guides + generated API reference, all from repo markdown
 bun run docs >/dev/null
 bun scripts/render-docs.ts
+bun scripts/apply-chrome.ts
 
 # pinned copies of the hosted modules, so links can outlive a rebuild
 VERSION=$(bun -e 'console.log(require("./package.json").version)')

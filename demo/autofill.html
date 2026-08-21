@@ -30,6 +30,9 @@
   .wrap { max-width: 44rem; margin: 0 auto; padding: 0 1.25rem; }
   .demo-strip { background: var(--demo-bg); border-bottom: 1px solid var(--demo-line); color: var(--demo-ink); font-size: 0.85rem; }
   .demo-strip .wrap { min-height: 2.6rem; display: flex; align-items: center; gap: 0.7rem; }
+  .site-links { margin-left: auto; display: flex; gap: 0.9rem; flex: none; }
+  .site-links a { color: inherit; text-decoration: none; opacity: 0.85; font-size: 0.82rem; }
+  .site-links a:hover { text-decoration: underline; opacity: 1; }
   .demo-badge {
     font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.7rem; letter-spacing: 0.1em;
     border: 1px solid currentColor; border-radius: 3px; padding: 0.05rem 0.4rem; flex: none;
@@ -117,7 +120,7 @@
   <span class="demo-badge">DEMO</span>
   <span>Autofill sketch — a provider form prefilled by the patient's app ·
     <a href="./">full check-in demo</a></span>
-</div></div>
+<span class="site-links"><a href="/">Overview</a> <a href="/docs/">Docs</a> <a href="/spec/">Spec</a></span></div></div>
 
 <main class="wrap">
   <header>

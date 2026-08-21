@@ -1,81 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>checkin-client docs</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<style>
-  :root {
-    --bg: #f7faf9; --surface: #ffffff; --ink: #16211f; --muted: #5b6b67;
-    --accent: #0e7c6b; --line: #dce5e2; --code-bg: #eef4f2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
-      --accent: #3ac2aa; --line: #24322e; --code-bg: #131c19;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
-    --accent: #3ac2aa; --line: #24322e; --code-bg: #131c19;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6;
-  }
-  .wrap { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem; }
-  header.top { border-bottom: 1px solid var(--line); background: var(--surface); }
-  header.top .wrap { padding: 0.75rem 1.25rem; display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
-  header.top a { color: var(--muted); text-decoration: none; font-size: 0.88rem; }
-  header.top a.home { color: var(--ink); font-weight: 600; font-size: 0.95rem; }
-  header.top a:hover { color: var(--accent); }
-  main { padding: 2.5rem 0 4rem; display: flex; flex-direction: column; gap: 2.25rem; }
-  h1 { font-size: 1.9rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-  .lede { color: var(--muted); font-size: 1.05rem; margin: 0.6rem 0 0; max-width: 62ch; }
-  h2 { font-size: 1.1rem; margin: 0 0 0.6rem; }
-  h3 { font-size: 0.95rem; margin: 1.2rem 0 0.3rem; }
-  p { margin: 0.4rem 0; }
-  code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.9em; }
-  pre {
-    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
-    padding: 0.9rem 1.1rem; overflow-x: auto; margin: 0.6rem 0 0;
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.82rem; line-height: 1.55;
-  }
-  a { color: var(--accent); }
-  .muted { color: var(--muted); }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.9rem; }
-  .card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-    padding: 1rem 1.15rem; text-decoration: none; color: inherit; display: block;
-  }
-  .card:hover { border-color: var(--accent); }
-  .card strong { display: block; margin-bottom: 0.2rem; }
-  .card span { color: var(--muted); font-size: 0.9rem; }
-  table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.92rem; }
-  th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-weight: 600; }
-  td code { white-space: nowrap; }
-  footer { border-top: 1px solid var(--line); background: var(--surface); }
-  footer .wrap { padding: 1.5rem 1.25rem 2rem; color: var(--muted); font-size: 0.88rem; }
-</style>
-</head>
-<body>
-<header class="top">
-  <div class="wrap">
-    <a class="home" href="/">smart-health-checkin</a>
-    <a href="/docs/">Docs</a>
-    <a href="/docs/api/">API reference</a>
-    <a href="/demo/">Demo</a>
-    <a href="/spec/">Spec</a>
-  </div>
-</header>
-
-<main class="wrap">
-  <div>
-    <h1>checkin-client docs</h1>
+<div>
+    <h1>Docs</h1>
     <p class="lede">
       One call asks the patient's health app for what your visit needs and
       returns a cryptographically verified, validated response to your page.
@@ -189,33 +113,18 @@ try {
       <a href="/docs/api/">API reference</a>.
     </p>
   </section>
-</main>
-
-<footer>
-  <div class="wrap">
-    Docs track <code>main</code>.
-    <a href="https://github.com/smart-health-checkin/checkin-client" target="_blank" rel="noreferrer">Source</a> ·
-    <a href="https://github.com/smart-health-checkin/spec" target="_blank" rel="noreferrer">Spec repo</a> ·
-    Apache-2.0
-  </div>
-</footer>
 
 <script>
   for (const span of document.querySelectorAll(".computed")) {
-    span.textContent = new URL(span.dataset.file, location.href).href;
+    span.textContent = new URL(span.dataset.file, location.origin).href;
   }
-  fetch("/lib/version.json")
-    .then((r) => r.json())
-    .then(({ version }) => {
-      for (const a of document.querySelectorAll("a.pinned")) {
-        const href = `/lib/${version}/${a.dataset.mod}.js`;
-        a.href = href;
-        a.innerHTML = `<code>${href}</code>`;
-      }
-    })
-    .catch(() => {
-      for (const a of document.querySelectorAll("a.pinned")) a.textContent = "—";
-    });
+  fetch("/lib/version.json").then((r) => r.json()).then(({ version }) => {
+    for (const a of document.querySelectorAll("a.pinned")) {
+      const href = `/lib/${version}/${a.dataset.mod}.js`;
+      a.href = href;
+      a.innerHTML = `<code>${href}</code>`;
+    }
+  }).catch(() => {
+    for (const a of document.querySelectorAll("a.pinned")) a.textContent = "\u2014";
+  });
 </script>
-</body>
-</html>
