@@ -1,41 +1,26 @@
-/** Public barrel for @smart-health-checkin/provider-kit. */
+/**
+ * Public barrel: the check-in protocol surface.
+ *
+ * The kit's job ends when your code has a validated SmartCheckinResponse.
+ * FHIR writing is a separate, optional module — import it from
+ * `./fhir/index.ts` (built as `fhir.js` on the site) if you want it.
+ */
 
 export {
-  runCheckin,
   requestCheckin,
+  runCheckin,
+  resolveRequest,
   buildRequest,
   registerScenario,
-  CheckinFlowError,
-  resolveRequest,
-  SCENARIOS,
   resolveScenario,
-  type CheckinConfig,
+  SCENARIOS,
+  CheckinFlowError,
+  type CheckinOptions,
   type CheckinOutcome,
   type CheckinRequestInit,
-  type RequestCheckinOptions,
-  type RunCheckinHooks,
+  type CheckinRequestInput,
   type Scenario,
 } from "./kit/index.ts";
-
-export {
-  createMockWalletCredentialGetter,
-  fabricateResponse,
-  parseWalletRequest,
-  sealWalletResponse,
-  type MockWalletOptions,
-  type ParsedWalletRequest,
-} from "./kit/mock-wallet.ts";
-
-export {
-  createWebWalletCredentialGetter,
-  WalletDeclinedError,
-  WEB_WALLET_READY_MESSAGE_TYPE,
-  WEB_WALLET_REQUEST_MESSAGE_TYPE,
-  WEB_WALLET_RESPONSE_MESSAGE_TYPE,
-  type WebWalletCredential,
-  type WebWalletOptions,
-  type WebWalletResponseMessage,
-} from "./kit/web-wallet.ts";
 
 export {
   validateResponseAgainstRequest,
@@ -61,12 +46,23 @@ export {
   type VerifierAuthority,
 } from "./browser/index.ts";
 
+// Wallet-side helpers: the demo wallet app and phone-free testing.
 export {
-  buildWritePlan,
-  executeWritePlan,
-  CHECKIN_REQUEST_ID_SYSTEM,
-  type SubmitMode,
-  type SubmitResult,
-  type WritePlan,
-} from "./submit/index.ts";
+  createMockWalletCredentialGetter,
+  fabricateResponse,
+  parseWalletRequest,
+  sealWalletResponse,
+  type MockWalletOptions,
+  type ParsedWalletRequest,
+} from "./kit/mock-wallet.ts";
 
+export {
+  createWebWalletCredentialGetter,
+  WalletDeclinedError,
+  WEB_WALLET_READY_MESSAGE_TYPE,
+  WEB_WALLET_REQUEST_MESSAGE_TYPE,
+  WEB_WALLET_RESPONSE_MESSAGE_TYPE,
+  type WebWalletCredential,
+  type WebWalletOptions,
+  type WebWalletResponseMessage,
+} from "./kit/web-wallet.ts";

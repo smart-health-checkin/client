@@ -1,7 +1,14 @@
 /**
- * submit — SmartCheckinResponse → FHIR write plan and executor.
+ * fhir — an OPTIONAL companion helper, not part of the check-in protocol
+ * surface. It turns a SmartCheckinResponse into ordinary FHIR and posts it,
+ * for apps that want that done for them.
  *
- * Mapping defaults (PRD §9):
+ * Deliberately separate from the kit: what happens to patient-supplied data
+ * — where it lands, under whose authorization, with what review — is
+ * deployment policy. The check-in flow itself never touches it. Use this,
+ * your own FHIR client, or neither.
+ *
+ * Mapping defaults:
  * - fhir+json artifacts → POST entries in one transaction Bundle (each Bundle
  *   entry resource, or the single resource).
  * - smart-health-card artifacts → one DocumentReference per artifact holding
@@ -16,25 +23,25 @@
 import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.ts";
 import { base64UrlEncodeUtf8 } from "../wire/bytes.ts";
 
-export type SubmitMode = "transaction" | "individual" | "dry-run";
+export type PostMode = "transaction" | "individual";
 
 /** Minimal fetch signature so tests and hosts can inject their own. */
 export type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
-export type SubmitContext = {
+export type CheckinBundleContext = {
   patient?: string;
   appointment?: string;
 };
 
-export type WritePlanEntry = {
+export type CheckinBundleEntry = {
   fullUrl: string;
   resource: Record<string, unknown>;
   /** Artifact id this entry came from; the Provenance entry has none. */
   artifactId?: string;
 };
 
-export type WritePlan = {
-  entries: WritePlanEntry[];
+export type CheckinBundle = {
+  entries: CheckinBundleEntry[];
   /** The transaction Bundle equivalent of the plan. */
   bundle: Record<string, unknown>;
 };
@@ -44,14 +51,18 @@ export const CHECKIN_REQUEST_ID_SYSTEM =
 export const CHECKIN_APPOINTMENT_SYSTEM =
   "https://smart-health-checkin.github.io/appointment-context";
 
-export function buildWritePlan(input: {
+/**
+ * Map a check-in response to a FHIR transaction Bundle. Pure — no network.
+ * Inspect or edit the result before sending it anywhere.
+ */
+export function buildCheckinBundle(input: {
   request: SmartCheckinRequest;
   response: SmartCheckinResponse;
-  context?: SubmitContext;
+  context?: CheckinBundleContext;
   provenance?: boolean;
   now?: () => Date;
-}): WritePlan {
-  const entries: WritePlanEntry[] = [];
+}): CheckinBundle {
+  const entries: CheckinBundleEntry[] = [];
   for (const artifact of input.response.artifacts) {
     if (artifact.mediaType === "application/fhir+json") {
       for (const resource of extractFhirResources(artifact.value)) {
@@ -104,7 +115,7 @@ function extractFhirResources(value: unknown): Record<string, unknown>[] {
 
 function smartHealthCardDocumentReference(
   value: { verifiableCredential: ReadonlyArray<string> },
-  context?: SubmitContext,
+  context?: CheckinBundleContext,
 ): Record<string, unknown> {
   return {
     resourceType: "DocumentReference",
@@ -124,7 +135,7 @@ function smartHealthCardDocumentReference(
 function buildProvenance(input: {
   targets: string[];
   requestId: string;
-  context?: SubmitContext;
+  context?: CheckinBundleContext;
   recorded: string;
 }): Record<string, unknown> {
   // target carries only the resources created in this plan; appointment
@@ -175,7 +186,7 @@ function buildProvenance(input: {
   };
 }
 
-function toTransactionBundle(entries: WritePlanEntry[]): Record<string, unknown> {
+function toTransactionBundle(entries: CheckinBundleEntry[]): Record<string, unknown> {
   return {
     resourceType: "Bundle",
     type: "transaction",
@@ -190,24 +201,26 @@ function toTransactionBundle(entries: WritePlanEntry[]): Record<string, unknown>
   };
 }
 
-export type SubmitResult = {
-  mode: SubmitMode;
+export type PostResult = {
+  mode: PostMode;
   bundle: unknown;
-  result?: unknown;
+  result: unknown;
 };
 
-export async function executeWritePlan(
-  plan: WritePlan,
+/**
+ * Post a bundle to a FHIR server. A convenience for demos and simple apps —
+ * production deployments usually have their own client and auth, in which
+ * case use `buildCheckinBundle` alone and send it yourself.
+ */
+export async function postCheckinBundle(
+  plan: CheckinBundle,
   options: {
     fhirBase: string;
-    mode?: SubmitMode;
+    mode?: PostMode;
     fetchImpl?: FetchLike;
   },
-): Promise<SubmitResult> {
+): Promise<PostResult> {
   const mode = options.mode ?? "transaction";
-  if (mode === "dry-run") {
-    return { mode, bundle: plan.bundle };
-  }
   const fetchImpl = options.fetchImpl ?? fetch;
   const base = options.fhirBase.replace(/\/$/, "");
   const headers = {

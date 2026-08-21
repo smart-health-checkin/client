@@ -21,9 +21,9 @@ string, so patient identifiers and request payloads never reach server logs.
 | `patient` | FHIR Patient reference on the target server (e.g. `Patient/123`). |
 | `appointment` | FHIR Appointment reference; fetched for display context when present. |
 | `fhir` | Target FHIR base URL. Defaults to the preconfigured demo backend. |
-| `submit` | `transaction` (default), `individual`, or `dry-run` (show the Bundle, post nothing). |
+| `post` | `none` (default — the response stays in the page), `transaction`, or `individual`. Posting uses the optional `fhir` helper, not the kit. |
 | `returnUrl` | Where the patient lands after completion — the closed-loop return leg. |
-| `mock` | `1` answers the request with the kit's built-in mock wallet — real CBOR/COSE/HPKE over fabricated demo data — so the full flow (including FHIR submission) runs with no phone or platform wallet present. |
+| `wallet` | `platform` (default, the browser's DC API), `app` (demo wallet web app with a real consent screen), or `auto` (instant mock, no consent screen). Both demo responders run real CBOR/COSE/HPKE over fabricated records. |
 
 Precedence: `request=` beats `scenario=` beats the default scenario. Unknown
 params are ignored.
@@ -36,7 +36,12 @@ holding real patient data.
 ## Example URLs
 
 ```text
-…/demo/#mock=1&submit=dry-run                         inspect the write plan, no network
-…/demo/#mock=1&scenario=phq2-dayof&patient=Patient/example
-…/demo/#scenario=new-patient                          real wallet via the DC API (Chrome/Android)
+…/demo/#wallet=app                       consent screen in a wallet window
+…/demo/#wallet=auto&post=transaction     instant mock, then post to the FHIR base
+…/demo/#scenario=new-patient             real wallet via the DC API (Chrome/Android)
+…/demo/autofill.html#wallet=app          form prefilled from the patient's app
+…/demo/react.html                        same core, React bindings
 ```
+
+All of it is also editable in the page under **Demo controls**, which writes
+your choices back into the URL.

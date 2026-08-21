@@ -1,9 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { runCheckin } from "./index.ts";
+import { requestCheckin, runCheckin } from "./index.ts";
 import { createMockWalletCredentialGetter } from "./mock-wallet.ts";
 import { createBrowserLocalAuthority, type VerifierAuthority } from "../browser/index.ts";
 import type { SmartCheckinResponse } from "../model/index.ts";
-import type { FetchLike } from "../submit/index.ts";
 
 const ORIGIN = "http://localhost:3010";
 
@@ -12,27 +11,22 @@ function localAuthority(): VerifierAuthority {
 }
 
 describe("runCheckin", () => {
-  test("full pipeline with the mock wallet: request → signed response → dry-run submit", async () => {
+  test("full pipeline with the mock wallet returns a validated response", async () => {
     const outcome = await runCheckin(
+      { scenario: "new-patient" },
       {
-        request: { scenario: "new-patient" },
-        context: { patient: "Patient/p1" },
-        submit: { fhirBase: "https://example.org/fhir", mode: "dry-run" },
         authority: localAuthority(),
+        getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }),
       },
-      { getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }) },
     );
     expect(outcome.status).toBe("completed");
     expect(outcome.request.id).toBe("demo-new-patient");
     expect(outcome.response?.requestId).toBe("demo-new-patient");
-    expect(outcome.submission?.mode).toBe("dry-run");
-    const bundle = outcome.submission?.bundle as { type: string; entry: unknown[] };
-    expect(bundle.type).toBe("transaction");
-    expect(bundle.entry.length).toBeGreaterThan(0);
+    // the kit knows nothing about submission
+    expect("submission" in outcome).toBe(false);
   });
 
   test("requestCheckin accepts an inline request init and returns the response", async () => {
-    const { requestCheckin } = await import("./index.ts");
     const response = await requestCheckin(
       {
         purpose: "Allergy review",
@@ -83,11 +77,11 @@ describe("runCheckin", () => {
 
   test("phq2 scenario yields a QuestionnaireResponse artifact", async () => {
     const outcome = await runCheckin(
+      { scenario: "phq2-dayof" },
       {
-        request: { scenario: "phq2-dayof" },
         authority: localAuthority(),
+        getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }),
       },
-      { getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }) },
     );
     expect(outcome.status).toBe("completed");
     const artifact = outcome.response!.artifacts[0] as { value: { resourceType: string } };
@@ -96,8 +90,9 @@ describe("runCheckin", () => {
 
   test("user cancellation maps to declined", async () => {
     const outcome = await runCheckin(
-      { request: { scenario: "insurance-only" }, authority: localAuthority() },
+      { scenario: "insurance-only" },
       {
+        authority: localAuthority(),
         getCredential: async () => {
           const e = new Error("The request has been aborted.");
           e.name = "NotAllowedError";
@@ -110,8 +105,11 @@ describe("runCheckin", () => {
 
   test("missing DC API support maps to unsupported", async () => {
     const outcome = await runCheckin(
-      { request: { scenario: "insurance-only" }, authority: localAuthority() },
-      { detectSupport: () => ({ state: "unsupported", reason: "test environment" }) },
+      { scenario: "insurance-only" },
+      {
+        authority: localAuthority(),
+        detectSupport: () => ({ state: "unsupported", reason: "test environment" }),
+      },
     );
     expect(outcome.status).toBe("unsupported");
     expect(outcome.error?.message).toBe("test environment");
@@ -138,33 +136,16 @@ describe("runCheckin", () => {
       },
     };
     const outcome = await runCheckin(
-      { request: { scenario: "insurance-only" }, authority },
-      { getCredential: async () => ({ data: { response: "unused" } }) },
+      { scenario: "insurance-only" },
+      { authority, getCredential: async () => ({ data: { response: "unused" } }) },
     );
     expect(outcome.status).toBe("error");
     expect(outcome.error?.stage).toBe("validate");
   });
 
-  test("submit failure keeps the response and reports the submit stage", async () => {
-    const outcome = await runCheckin(
-      {
-        request: { scenario: "new-patient" },
-        submit: { fhirBase: "https://example.org/fhir" },
-        authority: localAuthority(),
-      },
-      {
-        getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }),
-        fetchImpl: (async () => new Response("{}", { status: 500 })) as FetchLike,
-      },
-    );
-    expect(outcome.status).toBe("error");
-    expect(outcome.error?.stage).toBe("submit");
-    expect(outcome.response).toBeDefined();
-  });
-
   test("unknown scenario throws synchronously-shaped error", async () => {
     await expect(
-      runCheckin({ request: { scenario: "nope" }, authority: localAuthority() }),
+      runCheckin({ scenario: "nope" }, { authority: localAuthority() }),
     ).rejects.toThrow(/unknown scenario/);
   });
 });

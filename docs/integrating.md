@@ -88,25 +88,32 @@ decides what to render and what to submit. The
 shows the full pattern: request US Core allergy data, render each allergy as
 a form row, and let the patient confirm/annotate before anything is sent.
 
-## 3. Or let the kit write the FHIR
+## 3. Writing FHIR (optional, and not the kit's job)
+
+The kit stops at the response. It has no configuration for FHIR servers,
+auth, retention, or patient matching, because those are deployment policy —
+and every one of them would be a thing you'd have to audit and argue about
+before adopting a protocol library.
+
+Use your own FHIR client, or the optional helper that ships alongside:
 
 ```ts
-import { runCheckin } from ".../kit.js";
+import { buildCheckinBundle, postCheckinBundle } from ".../fhir.js";
 
-const outcome = await runCheckin({
-  request: { request: myRequest },            // or { scenario: "registered-name" }
+const bundle = buildCheckinBundle({
+  request, response,
   context: { patient: "Patient/123", appointment: "Appointment/456" },
-  submit:  { fhirBase: "https://your-fhir-server.example.org/r4" },
 });
+// bundle.bundle is a plain transaction Bundle — inspect or edit it freely
 
-if (outcome.status === "completed") location.assign("/checkin/payment");
+await postCheckinBundle(bundle, { fhirBase, mode: "transaction" });
+// …or send bundle.bundle with your own client and auth
 ```
 
-`outcome.status` is `completed | declined | unsupported | error`;
-`declined` means the patient cancelled (offer the front-desk path),
-`unsupported` means the browser lacks the Digital Credentials API (show your
-existing forms). The kit validates every response against the request before
-submitting anything.
+`buildCheckinBundle` is pure (no network): fhir+json artifacts become entries,
+SMART Health Cards become a `DocumentReference` holding the JWS, and a
+`Provenance` marks everything patient-supplied with the check-in request id
+and your configured context.
 
 ## 4. The encapsulation pattern
 
@@ -126,7 +133,7 @@ Bundle without sending it.
 - **Patient matching / context**: the kit stamps the context you configure
   and never guesses. Bind the page to an authenticated patient session.
 - **FHIR authorization**: the demo posts anonymously to a public test
-  server; production wraps the executor in your auth.
+  server; in production this is your client and your auth.
 - **Key custody**: the default authority keeps HPKE keys in page memory
   (fine for demos). For server-side custody and audit, implement the
   two-call `VerifierAuthority` HTTP contract (`createServerAuthority`) — a
@@ -136,3 +143,14 @@ Bundle without sending it.
   deployment policy.
 - **Retention & review**: decide where patient-supplied data lands
   (staging area vs. chart) and who reviews it.
+
+## 6. Framework bindings
+
+The core is a plain async function, so bindings are thin:
+
+- React: [`use-checkin.ts`](../demo/src/frameworks/use-checkin.ts) — a ~25-line
+  hook; live at [`/demo/react.html`](https://smart-health-checkin.github.io/checkin-provider-kit/demo/react.html).
+- Angular: [`checkin.service.ts`](../demo/src/frameworks/checkin.service.ts) —
+  the same wrapper with signals, ready to drop into an Angular app.
+
+Neither the kit nor the protocol knows anything about either framework.

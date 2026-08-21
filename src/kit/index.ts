@@ -1,14 +1,19 @@
 /**
- * kit — product facade: runCheckin(config) orchestrates
- * configure → launch → receive → submit, and returns a CheckinOutcome.
- * Navigation (the closed-loop return leg) is the caller's or the element's
- * job — runCheckin itself has no navigation side effects.
+ * kit — the product surface, deliberately narrow: build a check-in request,
+ * invoke the patient's wallet, verify what comes back, hand your code a
+ * validated SmartCheckinResponse. That's it.
+ *
+ * What happens next — writing FHIR, taking payment, prefilling forms,
+ * routing the patient — is your application's business. The kit has no
+ * opinion, no configuration, and no code for it. (An optional, separate
+ * FHIR helper lives in `src/fhir` for when a demo or app wants one.)
  */
 
 import {
   validateResponseAgainstRequest,
   validateSmartCheckinRequest,
   type SmartCheckinRequest,
+  type SmartCheckinResponse,
 } from "../model/index.ts";
 import {
   createBrowserLocalAuthority,
@@ -17,12 +22,8 @@ import {
   type CredentialCompletion,
   type VerifierAuthority,
 } from "../browser/index.ts";
-import { buildWritePlan, executeWritePlan, type FetchLike } from "../submit/index.ts";
 import { buildRequest, resolveScenario, type CheckinRequestInit } from "./scenarios.ts";
-import type { CheckinConfig, CheckinOutcome } from "./types.ts";
-import type { SmartCheckinResponse } from "../model/index.ts";
 
-export type { CheckinConfig, CheckinOutcome } from "./types.ts";
 export {
   SCENARIOS,
   buildRequest,
@@ -32,25 +33,54 @@ export {
   type Scenario,
 } from "./scenarios.ts";
 
-export type RunCheckinHooks = {
-  /** Injectable for tests and the demo's mock mode. */
+/** What to ask for: an inline init, a complete request, or a registered name. */
+export type CheckinRequestInput =
+  | SmartCheckinRequest
+  | CheckinRequestInit
+  | { scenario: string };
+
+export type CheckinOptions = {
+  /**
+   * Where the verifier's private key material lives. Default "browser-local"
+   * (page memory — fine for demos); use a server-owned authority in
+   * production.
+   */
+  authority?: "browser-local" | { server: string } | VerifierAuthority;
+  /**
+   * Override the mediator. Defaults to the platform Digital Credentials API;
+   * pass a web-wallet or mock getter to run without a platform wallet.
+   */
   getCredential?: (options: unknown) => Promise<unknown>;
+  /** Test seam. */
   detectSupport?: typeof detectDcApiSupport;
-  fetchImpl?: FetchLike;
 };
 
-export function resolveRequest(config: CheckinConfig): SmartCheckinRequest {
-  const request =
-    "scenario" in config.request
-      ? resolveScenario(config.request.scenario).request
-      : config.request.request;
-  const validation = validateSmartCheckinRequest(request);
+export type CheckinOutcome = {
+  status: "completed" | "declined" | "unsupported" | "error";
+  /** The request as sent (scenario/init resolved). */
+  request: SmartCheckinRequest;
+  /** Present iff the flow completed; always validated against the request. */
+  response?: SmartCheckinResponse;
+  error?: {
+    stage: "prepare" | "credential" | "open" | "validate";
+    message: string;
+  };
+};
+
+export function resolveRequest(input: CheckinRequestInput): SmartCheckinRequest {
+  const candidate =
+    "type" in input
+      ? input
+      : "items" in input
+        ? buildRequest(input)
+        : resolveScenario(input.scenario).request;
+  const validation = validateSmartCheckinRequest(candidate);
   if (!validation.ok) throw new Error(`invalid check-in request: ${validation.error}`);
   return validation.value;
 }
 
-function resolveAuthority(config: CheckinConfig): VerifierAuthority {
-  const authority = config.authority ?? "browser-local";
+function resolveAuthority(options: CheckinOptions): VerifierAuthority {
+  const authority = options.authority ?? "browser-local";
   if (authority === "browser-local") return createBrowserLocalAuthority();
   if (typeof authority === "object" && "server" in authority) {
     return createServerAuthority(authority.server);
@@ -67,33 +97,29 @@ function isUserDecline(e: unknown): boolean {
   );
 }
 
+/**
+ * Run the flow and report what happened, without throwing for ordinary
+ * outcomes (declined, unsupported browser). Use this when you want to branch
+ * on `status`; use `requestCheckin` when you just want the data.
+ */
 export async function runCheckin(
-  config: CheckinConfig,
-  hooks: RunCheckinHooks = {},
+  input: CheckinRequestInput,
+  options: CheckinOptions = {},
 ): Promise<CheckinOutcome> {
-  let request: SmartCheckinRequest;
-  try {
-    request = resolveRequest(config);
-  } catch (e) {
-    throw e instanceof Error ? e : new Error(String(e));
-  }
+  const request = resolveRequest(input);
 
-  const detect = hooks.detectSupport ?? detectDcApiSupport;
-  if (!hooks.getCredential) {
+  const detect = options.detectSupport ?? detectDcApiSupport;
+  if (!options.getCredential) {
     const support = detect();
     if (support.state === "unsupported") {
-      return {
-        status: "unsupported",
-        request,
-        error: { stage: "prepare", message: support.reason },
-      };
+      return { status: "unsupported", request, error: { stage: "prepare", message: support.reason } };
     }
   }
 
   let authority: VerifierAuthority;
   let prepared;
   try {
-    authority = resolveAuthority(config);
+    authority = resolveAuthority(options);
     prepared = await authority.prepareCredentialRequest({ request });
   } catch (e) {
     return outcomeError(request, "prepare", e);
@@ -102,9 +128,8 @@ export async function runCheckin(
   let credential: unknown;
   try {
     const getCredential =
-      hooks.getCredential ??
-      ((options: unknown) =>
-        navigator.credentials.get(options as CredentialRequestOptions));
+      options.getCredential ??
+      ((args: unknown) => navigator.credentials.get(args as CredentialRequestOptions));
     credential = await getCredential(prepared.navigatorArgument);
     if (credential === null || credential === undefined) {
       return { status: "declined", request };
@@ -125,43 +150,17 @@ export async function runCheckin(
   }
 
   // Authorities are expected to validate, but never trust a custom one:
-  // re-run the §6.6 cross-checks before doing anything with the response.
+  // re-run the §6.6 cross-checks before handing anything to the caller.
   const crossCheck = validateResponseAgainstRequest(request, completion.smartResponse);
   if (!crossCheck.ok) {
     return outcomeError(request, "validate", new Error(crossCheck.error));
   }
-  const response = crossCheck.value;
-
-  if (!config.submit) {
-    return { status: "completed", request, response };
-  }
-
-  try {
-    const plan = buildWritePlan({
-      request,
-      response,
-      context: config.context,
-      provenance: config.submit.provenance,
-    });
-    const submission = await executeWritePlan(plan, {
-      fhirBase: config.submit.fhirBase,
-      mode: config.submit.mode,
-      fetchImpl: hooks.fetchImpl,
-    });
-    return { status: "completed", request, response, submission };
-  } catch (e) {
-    return {
-      status: "error",
-      request,
-      response,
-      error: { stage: "submit", message: e instanceof Error ? e.message : String(e) },
-    };
-  }
+  return { status: "completed", request, response: crossCheck.value };
 }
 
 function outcomeError(
   request: SmartCheckinRequest,
-  stage: "prepare" | "credential" | "open" | "validate" | "submit",
+  stage: "prepare" | "credential" | "open" | "validate",
   e: unknown,
 ): CheckinOutcome {
   return {
@@ -171,22 +170,7 @@ function outcomeError(
   };
 }
 
-/**
- * The autofill-shaped API: ask, await, get the validated response back —
- * no FHIR submission, no side effects. Provider-side code uses the returned
- * artifacts to prefill its own forms and stays in full control of what
- * happens next.
- *
- *   // define the request inline — type/version/id boilerplate is filled in:
- *   const response = await requestCheckin({ purpose: "…", items: [ … ] });
- *   // or pass a complete SmartCheckinRequest, or a registered scenario name:
- *   await requestCheckin(myFullRequest);
- *   await requestCheckin({ scenario: "my-registered-intake" });
- *
- * Throws CheckinFlowError when the flow does not complete (declined,
- * unsupported browser, or an error) — the outcome rides on the error for
- * graceful fallbacks.
- */
+/** Thrown by `requestCheckin` when the flow does not complete. */
 export class CheckinFlowError extends Error {
   constructor(readonly outcome: CheckinOutcome) {
     super(
@@ -198,33 +182,19 @@ export class CheckinFlowError extends Error {
   }
 }
 
-export type RequestCheckinOptions = {
-  authority?: CheckinConfig["authority"];
-  /**
-   * Override the mediator. Defaults to the platform Digital Credentials API;
-   * pass a web-wallet or mock getter to run without a platform wallet.
-   */
-  getCredential?: RunCheckinHooks["getCredential"];
-};
-
+/**
+ * Ask, await, use the answer:
+ *
+ *   const response = await requestCheckin({ purpose: "…", items: [ … ] });
+ *
+ * Returns the validated response, or throws CheckinFlowError (which carries
+ * the outcome, so you can fall back gracefully on "declined").
+ */
 export async function requestCheckin(
-  request: SmartCheckinRequest | CheckinRequestInit | { scenario: string },
-  options: RequestCheckinOptions = {},
+  input: CheckinRequestInput,
+  options: CheckinOptions = {},
 ): Promise<SmartCheckinResponse> {
-  const resolved: SmartCheckinRequest | { scenario: string } =
-    "type" in request
-      ? request
-      : "items" in request
-        ? buildRequest(request)
-        : request;
-  const config: CheckinConfig = {
-    request: "type" in resolved ? { request: resolved } : { scenario: resolved.scenario },
-    ...(options.authority ? { authority: options.authority } : {}),
-  };
-  const hooks: RunCheckinHooks = options.getCredential
-    ? { getCredential: options.getCredential }
-    : {};
-  const outcome = await runCheckin(config, hooks);
+  const outcome = await runCheckin(input, options);
   if (outcome.status !== "completed" || !outcome.response) {
     throw new CheckinFlowError(outcome);
   }

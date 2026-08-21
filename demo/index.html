@@ -17,7 +17,7 @@
     --code-bg: #eef4f2;
     --danger: #b3423a;
     --demo-bg: #fdf6e7;
-    --demo-line: #e4d3a8;
+    --demo-line: #e0cf9f;
     --demo-ink: #6b5a2a;
   }
   @media (prefers-color-scheme: dark) {
@@ -30,9 +30,9 @@
       --line: #24322e;
       --code-bg: #131c19;
       --danger: #e08d84;
-      --demo-bg: #1f1b10;
-      --demo-line: #4a3f1e;
-      --demo-ink: #d8c68b;
+      --demo-bg: #1e1a10;
+      --demo-line: #463d1f;
+      --demo-ink: #dbc98f;
     }
   }
   :root[data-theme="dark"] {
@@ -44,9 +44,9 @@
     --line: #24322e;
     --code-bg: #131c19;
     --danger: #e08d84;
-    --demo-bg: #1f1b10;
-    --demo-line: #4a3f1e;
-    --demo-ink: #d8c68b;
+    --demo-bg: #1e1a10;
+    --demo-line: #463d1f;
+    --demo-ink: #dbc98f;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -57,52 +57,94 @@
     font-family: "IBM Plex Sans", system-ui, sans-serif;
     line-height: 1.55;
   }
+  .wrap { max-width: 48rem; margin: 0 auto; padding: 0 1.25rem; }
 
-  .demo-bar {
+  /* ---- demo strip ------------------------------------------------- */
+  .demo-strip {
     background: var(--demo-bg);
-    border-bottom: 1px dashed var(--demo-line);
+    border-bottom: 1px solid var(--demo-line);
     color: var(--demo-ink);
+  }
+  .demo-strip .wrap {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     font-size: 0.85rem;
-    padding: 0.5rem 1.25rem;
   }
-  .demo-bar-inner { max-width: 46rem; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem; align-items: center; }
-  .demo-bar strong { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; letter-spacing: 0.06em; }
-  .demo-bar select, .demo-bar input {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem;
-    padding: 0.15rem 0.35rem; border: 1px solid var(--demo-line); border-radius: 4px;
-    background: transparent; color: inherit; min-width: 0;
-  }
-  #demo-settings { flex: 1; }
-  #demo-settings summary { cursor: pointer; font-size: 0.82rem; }
-  .settings-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-    gap: 0.45rem 1rem; margin: 0.6rem 0 0;
-  }
-  .settings-grid label { display: flex; gap: 0.4rem; align-items: center; font-size: 0.8rem; }
-  .settings-grid label input, .settings-grid label select { flex: 1; }
-  .settings-note { font-size: 0.78rem; opacity: 0.8; margin: 0.5rem 0 0; }
-  .copy-btn {
-    margin-left: auto; font-size: 0.78rem; font-weight: 400;
+  .demo-badge {
     font-family: "IBM Plex Mono", ui-monospace, monospace;
-    color: var(--accent); background: none; border: none; cursor: pointer; padding: 0.1rem 0.3rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    padding: 0.05rem 0.4rem;
+    flex: none;
+  }
+  .demo-strip .what { flex: 1; min-width: 0; }
+  .demo-toggle {
+    font: inherit;
+    font-size: 0.82rem;
+    color: inherit;
+    background: none;
+    border: 1px solid var(--demo-line);
+    border-radius: 6px;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: none;
+  }
+  .demo-toggle:hover { border-color: currentColor; }
+  .demo-toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  .demo-toggle .caret { transition: transform 0.15s ease; font-size: 0.7rem; }
+  .demo-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
+
+  .demo-panel { background: var(--demo-bg); border-bottom: 1px solid var(--demo-line); color: var(--demo-ink); }
+  .demo-panel .wrap { padding-top: 1rem; padding-bottom: 1.1rem; }
+  .control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.85rem 1.25rem;
+  }
+  .control { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .control > span { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.75; }
+  .control select, .control input {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--demo-line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    width: 100%;
+    min-width: 0;
+  }
+  .control select:focus-visible, .control input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .panel-foot {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+    margin-top: 0.9rem; font-size: 0.8rem; opacity: 0.85;
+  }
+  .panel-foot button {
+    font: inherit; font-size: 0.8rem; color: inherit; background: none;
+    border: 1px solid var(--demo-line); border-radius: 6px; padding: 0.2rem 0.6rem; cursor: pointer;
   }
 
+  /* ---- clinic app ------------------------------------------------- */
   .clinic-header { background: var(--surface); border-bottom: 1px solid var(--line); }
-  .clinic-header-inner {
-    max-width: 46rem; margin: 0 auto; padding: 1.1rem 1.25rem;
-    display: flex; align-items: center; gap: 0.85rem;
-  }
+  .clinic-header .wrap { padding-top: 1.1rem; padding-bottom: 1.1rem; display: flex; align-items: center; gap: 0.85rem; }
   .clinic-mark { color: var(--accent); flex: none; }
   .clinic-name { font-weight: 600; font-size: 1.05rem; }
   .clinic-sub { color: var(--muted); font-size: 0.88rem; }
 
-  main { max-width: 46rem; margin: 0 auto; padding: 1.75rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  main { padding-top: 1.75rem; padding-bottom: 4rem; display: flex; flex-direction: column; gap: 1.25rem; }
   h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.5rem; }
   p { margin: 0.35rem 0; }
   .muted { color: var(--muted); }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
 
-  #visit-context { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; font-size: 0.92rem; color: var(--muted); }
+  #visit-context { display: flex; flex-wrap: wrap; gap: 0.35rem 1.75rem; font-size: 0.92rem; color: var(--muted); }
   #visit-context b { color: var(--ink); font-weight: 500; }
 
   ul.request-items { list-style: none; margin: 0.75rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
@@ -130,11 +172,11 @@
   label.ack { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; font-size: 0.92rem; }
   a { color: var(--accent); }
 
-  #outcome-section h2 { font-size: 1.25rem; display: inline; margin-right: 0.6rem; }
+  .outcome-head { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
+  .outcome-head h2 { font-size: 1.25rem; margin: 0; }
   #outcome-status {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem;
-    padding: 0.15rem 0.6rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
-    vertical-align: middle;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.75rem;
+    padding: 0.1rem 0.55rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
   }
   #outcome-status[data-status="completed"] { color: var(--accent); border-color: var(--accent); }
   #outcome-status[data-status="error"] { color: var(--danger); border-color: var(--danger); }
@@ -147,65 +189,83 @@
     text-decoration: none; font-weight: 500;
   }
 
+  /* ---- developer detail ------------------------------------------- */
   section.dev { border-style: dashed; }
-  section.dev > h2 { color: var(--muted); font-size: 0.82rem; letter-spacing: 0.08em; font-family: "IBM Plex Mono", ui-monospace, monospace; }
-  details { border: 1px solid var(--line); border-radius: 8px; margin-top: 0.55rem; }
-  details summary {
-    cursor: pointer; padding: 0.5rem 0.85rem; font-size: 0.9rem; font-weight: 500;
-    display: flex; align-items: center; gap: 0.6rem;
+  section.dev > h2 {
+    color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; margin-bottom: 0.75rem;
   }
-  details summary .open-tab { font-size: 0.78rem; font-weight: 400;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    color: var(--accent); background: none; border: none; cursor: pointer; padding: 0.1rem 0.3rem;
+  details.artifact { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 0.5rem; }
+  details.artifact summary {
+    cursor: pointer; padding: 0.55rem 0.85rem; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 0.75rem; list-style: none;
   }
-  details pre {
+  details.artifact summary::-webkit-details-marker { display: none; }
+  details.artifact summary::before {
+    content: "\\25B8"; color: var(--muted); font-size: 0.7rem; flex: none; transition: transform 0.15s ease;
+  }
+  details.artifact[open] summary::before { transform: rotate(90deg); }
+  details.artifact summary .label { flex: 1; min-width: 0; }
+  details.artifact summary .tools { display: flex; gap: 0.3rem; flex: none; }
+  details.artifact summary button {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.72rem;
+    color: var(--accent); background: none; border: 1px solid var(--line);
+    border-radius: 5px; padding: 0.1rem 0.45rem; cursor: pointer;
+  }
+  details.artifact summary button:hover { border-color: var(--accent); }
+  details.artifact pre {
     background: var(--code-bg); border-top: 1px solid var(--line); margin: 0;
-    padding: 0.85rem 1rem; overflow-x: auto; max-height: 24rem; overflow-y: auto;
+    padding: 0.85rem 1rem; overflow: auto; max-height: 22rem;
     font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; line-height: 1.5;
   }
-  .dev-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+  .dev-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
   .dev-links a {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem;
-    padding: 0.25rem 0.65rem; border: 1px solid var(--line); border-radius: 999px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.76rem;
+    padding: 0.2rem 0.6rem; border: 1px solid var(--line); border-radius: 999px;
     color: var(--ink); text-decoration: none;
   }
 </style>
 </head>
 <body>
 
-<div class="demo-bar">
-  <div class="demo-bar-inner">
-    <strong>DEMO</strong>
-    <span>fictional clinic · test data only</span>
-    <details id="demo-settings">
-      <summary>settings</summary>
-      <div class="settings-grid">
-        <label>scenario <select id="scenario-select"></select></label>
-        <label>responder <select id="wallet-select">
-          <option value="platform">platform wallet (DC API)</option>
-          <option value="app">demo wallet app</option>
-          <option value="auto">automatic mock</option>
-        </select></label>
-        <label>submit <select id="submit-select">
-          <option value="transaction">transaction</option>
-          <option value="individual">individual</option>
-          <option value="dry-run">dry-run</option>
-        </select></label>
-        <label>patient <input id="patient-input" placeholder="Patient/example"></label>
-        <label>appointment <input id="appointment-input" placeholder="Appointment/…"></label>
-        <label>FHIR base <input id="fhir-input" placeholder="https://hapi.fhir.org/baseR4"></label>
-        <label>return URL <input id="return-input" placeholder="(none)"></label>
-      </div>
-      <p class="settings-note">
-        Changes rewrite this page's URL, so any configuration you build here is
-        a shareable link that reproduces it exactly.
-      </p>
-    </details>
+<div class="demo-strip">
+  <div class="wrap">
+    <span class="demo-badge">DEMO</span>
+    <span class="what">Fictional clinic, test data only.</span>
+    <button class="demo-toggle" id="demo-toggle" aria-expanded="false" aria-controls="demo-panel">
+      Demo controls <span class="caret" aria-hidden="true">&#9662;</span>
+    </button>
+  </div>
+</div>
+
+<div class="demo-panel" id="demo-panel" hidden>
+  <div class="wrap">
+    <div class="control-grid">
+      <label class="control"><span>Scenario</span><select id="scenario-select"></select></label>
+      <label class="control"><span>Responder</span><select id="wallet-select">
+        <option value="platform">platform wallet (DC API)</option>
+        <option value="app">demo wallet app</option>
+        <option value="auto">automatic mock</option>
+      </select></label>
+      <label class="control"><span>After the response</span><select id="submit-select">
+        <option value="none">keep it in the page</option>
+        <option value="transaction">post to FHIR (transaction)</option>
+        <option value="individual">post to FHIR (individual)</option>
+      </select></label>
+      <label class="control"><span>Patient</span><input id="patient-input"></label>
+      <label class="control"><span>Appointment</span><input id="appointment-input"></label>
+      <label class="control"><span>FHIR base</span><input id="fhir-input"></label>
+      <label class="control"><span>Return URL</span><input id="return-input" placeholder="(none)"></label>
+    </div>
+    <div class="panel-foot">
+      <button type="button" id="copy-link">Copy link to this setup</button>
+      <span>Every change is written to the URL, so any configuration here is a shareable, reproducible link.</span>
+    </div>
   </div>
 </div>
 
 <header class="clinic-header">
-  <div class="clinic-header-inner">
+  <div class="wrap">
     <svg class="clinic-mark" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
       <rect x="1" y="1" width="32" height="32" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
       <path d="M17 8 C 12 13, 9 17, 17 26 C 25 17, 22 13, 17 8 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -217,12 +277,12 @@
   </div>
 </header>
 
-<main>
+<main class="wrap">
   <section class="card">
     <div id="visit-context"></div>
   </section>
 
-  <section class="card" id="collect-card">
+  <section class="card">
     <h2>Before your visit</h2>
     <p class="muted" id="purpose-line"></p>
     <ul class="request-items" id="request-items"></ul>
@@ -231,7 +291,7 @@
     </p>
     <button id="start" class="primary" disabled>Check in with your health app</button>
     <p class="note" id="status-note"></p>
-    <p class="note" id="backend-note"></p>
+    <p class="note" id="backend-note" hidden></p>
     <label class="ack" id="backend-ack-wrap" hidden>
       <input type="checkbox" id="backend-ack">
       I recognize this server and I am using test data only.
@@ -239,42 +299,26 @@
   </section>
 
   <section class="card" id="outcome-section" hidden>
-    <h2 id="outcome-headline"></h2><span id="outcome-status"></span>
+    <div class="outcome-head">
+      <h2 id="outcome-headline"></h2>
+      <span id="outcome-status"></span>
+    </div>
     <div id="outcome-summary" class="muted"></div>
     <table class="items">
       <thead><tr><th>Requested</th><th>Status</th><th>Shared as</th></tr></thead>
       <tbody id="outcome-items"></tbody>
     </table>
-    <p class="muted" id="outcome-bundle-title" style="font-size:0.9rem"></p>
+    <p class="muted" id="outcome-note" style="font-size:0.9rem"></p>
     <div id="return-wrap"></div>
   </section>
 
   <section class="card dev">
     <h2>DEVELOPER DETAIL</h2>
-    <details>
-      <summary>Check-in configuration <button class="copy-btn" data-copy="config" type="button">copy</button><button class="open-tab" data-view="config" type="button">open in tab ↗</button></summary>
-      <pre id="config-json"></pre>
-    </details>
-    <details>
-      <summary>SMART request (as sent to the wallet) <button class="copy-btn" data-copy="request" type="button">copy</button><button class="open-tab" data-view="request" type="button">open in tab ↗</button></summary>
-      <pre id="request-json"></pre>
-    </details>
-    <details id="dev-response" hidden>
-      <summary>SMART response (validated) <button class="copy-btn" data-copy="response" type="button">copy</button><button class="open-tab" data-view="response" type="button">open in tab ↗</button></summary>
-      <pre id="response-json"></pre>
-    </details>
-    <details id="outcome-bundle" hidden>
-      <summary><span id="bundle-summary-label">FHIR write plan</span> <button class="copy-btn" data-copy="bundle" type="button">copy</button><button class="open-tab" data-view="bundle" type="button">open in tab ↗</button></summary>
-      <pre id="bundle-json"></pre>
-    </details>
-    <details id="dev-result" hidden>
-      <summary>Server response <button class="copy-btn" data-copy="result" type="button">copy</button><button class="open-tab" data-view="result" type="button">open in tab ↗</button></summary>
-      <pre id="result-json"></pre>
-    </details>
-    <div class="dev-links" id="created-links"></div>
-    <div class="dev-links" style="margin-top:0.75rem">
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit#readme" target="_blank" rel="noreferrer">kit README ↗</a>
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar" target="_blank" rel="noreferrer">URL grammar ↗</a>
+    <div id="artifacts"></div>
+    <div class="dev-links">
+      <a href="./autofill.html">autofill example →</a>
+      <a href="../">about the kit ↗</a>
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit#readme" target="_blank" rel="noreferrer">README ↗</a>
       <a href="https://jmandel.github.io/smart-health-checkin-mdoc/spec.html" target="_blank" rel="noreferrer">draft spec ↗</a>
     </div>
   </section>

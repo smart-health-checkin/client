@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildWritePlan, executeWritePlan, CHECKIN_REQUEST_ID_SYSTEM, type FetchLike } from "./index.ts";
+import { buildCheckinBundle, postCheckinBundle, CHECKIN_REQUEST_ID_SYSTEM, type FetchLike } from "./index.ts";
 import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.ts";
 
 const REQUEST: SmartCheckinRequest = {
@@ -53,9 +53,9 @@ const RESPONSE: SmartCheckinResponse = {
   requestStatus: [{ item: "summary", status: "fulfilled" }],
 };
 
-describe("buildWritePlan", () => {
+describe("buildCheckinBundle", () => {
   test("maps artifacts to transaction entries plus one Provenance", () => {
-    const plan = buildWritePlan({
+    const plan = buildCheckinBundle({
       request: REQUEST,
       response: RESPONSE,
       context: { patient: "Patient/p1", appointment: "Appointment/a1" },
@@ -96,7 +96,7 @@ describe("buildWritePlan", () => {
   });
 
   test("SHC artifacts become DocumentReference wrappers; provenance can be disabled", () => {
-    const plan = buildWritePlan({ request: REQUEST, response: RESPONSE, provenance: false });
+    const plan = buildCheckinBundle({ request: REQUEST, response: RESPONSE, provenance: false });
     const types = plan.entries.map((e) => e.resource.resourceType);
     expect(types).not.toContain("Provenance");
     const docRef = plan.entries.find((e) => e.resource.resourceType === "DocumentReference")!
@@ -106,24 +106,12 @@ describe("buildWritePlan", () => {
   });
 });
 
-describe("executeWritePlan", () => {
-  const plan = buildWritePlan({ request: REQUEST, response: RESPONSE });
-
-  test("dry-run does no I/O and returns the bundle", async () => {
-    const result = await executeWritePlan(plan, {
-      fhirBase: "https://example.org/fhir",
-      mode: "dry-run",
-      fetchImpl: () => {
-        throw new Error("dry-run must not fetch");
-      },
-    });
-    expect(result.mode).toBe("dry-run");
-    expect(result.bundle).toBe(plan.bundle);
-  });
+describe("postCheckinBundle", () => {
+  const plan = buildCheckinBundle({ request: REQUEST, response: RESPONSE });
 
   test("transaction posts one Bundle to the base URL", async () => {
     const calls: Array<{ url: string; body: unknown }> = [];
-    const result = await executeWritePlan(plan, {
+    const result = await postCheckinBundle(plan, {
       fhirBase: "https://example.org/fhir/",
       fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
         calls.push({ url: String(url), body: JSON.parse(String(init?.body)) });
@@ -142,7 +130,7 @@ describe("executeWritePlan", () => {
   test("individual mode posts resources then a rewired Provenance", async () => {
     const calls: Array<{ url: string; body: Record<string, unknown> }> = [];
     let n = 0;
-    await executeWritePlan(plan, {
+    await postCheckinBundle(plan, {
       fhirBase: "https://example.org/fhir",
       mode: "individual",
       fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
@@ -168,7 +156,7 @@ describe("executeWritePlan", () => {
 
   test("transaction failure surfaces the OperationOutcome", async () => {
     await expect(
-      executeWritePlan(plan, {
+      postCheckinBundle(plan, {
         fhirBase: "https://example.org/fhir",
         fetchImpl: (async () =>
           new Response(

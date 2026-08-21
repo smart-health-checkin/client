@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f7faf9; --surface: #ffffff; --ink: #16211f; --muted: #5b6b67;
+    --accent: #0e7c6b; --line: #dce5e2; --danger: #b3423a;
+    --demo-bg: #fdf6e7; --demo-line: #e0cf9f; --demo-ink: #6b5a2a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
+      --accent: #3ac2aa; --line: #24322e; --danger: #e08d84;
+      --demo-bg: #1e1a10; --demo-line: #463d1f; --demo-ink: #dbc98f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
+    --accent: #3ac2aa; --line: #24322e; --danger: #e08d84;
+    --demo-bg: #1e1a10; --demo-line: #463d1f; --demo-ink: #dbc98f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.55; }
+  .demo-strip { background: var(--demo-bg); border-bottom: 1px solid var(--demo-line); color: var(--demo-ink); font-size: 0.85rem; }
+  .wrap { max-width: 42rem; margin: 0 auto; padding: 0 1.25rem; }
+  .demo-strip .wrap { min-height: 2.75rem; display: flex; align-items: center; gap: 0.75rem; }
+  .demo-badge {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.7rem; letter-spacing: 0.1em;
+    border: 1px solid currentColor; border-radius: 3px; padding: 0.05rem 0.4rem; flex: none;
+  }
+  main { padding: 2rem 0 4rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  h1 { font-size: 1.35rem; margin: 0; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
+  .muted { color: var(--muted); font-size: 0.92rem; }
+  .primary {
+    font: inherit; font-weight: 500; padding: 0.6rem 1.3rem; border-radius: 8px; margin-top: 0.6rem;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
+  }
+  .primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.9rem; color: var(--muted); }
+  .note.error { border-color: var(--danger); }
+  ul.meds { list-style: none; margin: 0.9rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  ul.meds li { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.9rem; }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="demo-strip"><div class="wrap">
+  <span class="demo-badge">DEMO</span>
+  <span>React example · <a href="./">vanilla demo</a> · <a href="./autofill.html">autofill</a></span>
+</div></div>
+
+<main class="wrap">
+  <header>
+    <h1>Same core, React bindings</h1>
+    <p class="muted">
+      The kit is a plain async function with no framework dependency. This page
+      renders with React through a ~25-line <code>useCheckin</code> hook; the
+      Angular service in
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/demo/src/frameworks/checkin.service.ts">checkin.service.ts</a>
+      is the same wrapper shape with signals.
+    </p>
+  </header>
+
+  <div id="root"></div>
+
+  <section class="card">
+    <h2>The whole binding</h2>
+<pre><code>export function useCheckin(request, options) {
+  const [state, setState] = useState({ status: "idle" });
+  const start = useCallback(async () =&gt; {
+    setState({ status: "waiting" });
+    try {
+      const response = await requestCheckin(request, options);
+      setState({ status: "done", response });
+    } catch (e) {
+      setState(e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
+        ? { status: "declined" }
+        : { status: "error", error: String(e) });
+    }
+  }, [request, options]);
+  return { ...state, start };
+}</code></pre>
+  </section>
+</main>
+<script type="module" src="./react.js"></script>
+</body>
+</html>
