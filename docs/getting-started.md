@@ -64,7 +64,7 @@ You wrote `purpose` and `items`; the kit filled in the protocol boilerplate
 (`type`, `version`, a unique `id`, `fhirVersions`). `purpose` and each
 `title` are shown to the patient, so write them for a person, not a chart.
 
-See [Describing what you need](requests.md) for the full vocabulary of
+See [Request model](requests.md) for the full vocabulary of
 selectors.
 
 ## What you get back
@@ -85,7 +85,7 @@ By the time you see it, the response has been decrypted, its signatures
 verified, and its contents cross-checked against what you asked for. A
 response that doesn't match the request never reaches your code.
 
-[Working with responses](responses.md) covers artifacts, per-item statuses,
+[Response model](responses.md) covers artifacts, per-item statuses,
 and the prefill patterns worth copying.
 
 ## Handling the paths that aren't success
@@ -152,6 +152,6 @@ The core is a plain async function, so bindings are thin: a
 about twenty lines, each running the same flow, both live on this site with
 their source in `demo/src/frameworks/`.
 
-Next: [Describing what you need](requests.md) ·
-[Working with responses](responses.md) ·
+Next: [Request model](requests.md) ·
+[Response model](responses.md) ·
 [Production checklist](production.md)

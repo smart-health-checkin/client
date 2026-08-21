@@ -41,8 +41,8 @@ the same pages live in this repo, so they read here too.
 | Guide | |
 | --- | --- |
 | [Getting started](docs/getting-started.md) | Install, first request, handling declines, running without a phone |
-| [Describing what you need](docs/requests.md) | Items, FHIR selectors, questionnaires, accepted formats |
-| [Working with responses](docs/responses.md) | Artifacts, per-item status, asking only for what's missing |
+| [Request model](docs/requests.md) | Items, FHIR selectors, questionnaires, accepted formats |
+| [Response model](docs/responses.md) | Artifacts, per-item status, asking only for what's missing |
 | [Wallets and browser support](docs/wallets.md) | Platform API, wallet web app, mock, key custody |
 | [Writing FHIR](docs/fhir.md) | The optional mapping helper — and when not to use it |
 | [Production checklist](docs/production.md) | Trust policy, identity, fallback, pinning |

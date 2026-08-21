@@ -17,14 +17,14 @@ export const GUIDES: Guide[] = [
   {
     file: "docs/requests.md",
     slug: "requests",
-    title: "Describing what you need",
-    blurb: "Items, FHIR selectors, questionnaires, accepted formats.",
+    title: "Request model",
+    blurb: "Request items, FHIR selectors, questionnaires, and accepted media types.",
   },
   {
     file: "docs/responses.md",
     slug: "responses",
-    title: "Working with responses",
-    blurb: "Artifacts, per-item status, and asking only for what's missing.",
+    title: "Response model",
+    blurb: "Artifacts, per-item status, what is verified, and prefill patterns.",
   },
   {
     file: "docs/wallets.md",

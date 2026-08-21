@@ -1,4 +1,4 @@
-# Describing what you need
+# Request model
 
 A check-in request is a short list of things you're asking for. Each item
 says three things: what it is *to the patient*, what it is *to their app*,
@@ -135,4 +135,4 @@ proof of who is asking. Who you are is established by the browser-asserted
 origin (and, optionally, reader authentication), not by anything you type
 into the request body.
 
-Next: [Working with responses](responses.md)
+Next: [Response model](responses.md)

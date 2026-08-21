@@ -1,4 +1,4 @@
-# Working with responses
+# Response model
 
 A response has two parts: **artifacts** (the data) and **requestStatus** (what
 happened to each thing you asked for). Read both — an empty artifact list with
