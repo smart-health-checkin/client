@@ -27,7 +27,8 @@ export const CHROME_CSS = `
   .site-footer { border-top: 1px solid var(--line); background: var(--surface); margin-top: 4rem; }
   .site-footer-inner { max-width: 62rem; margin: 0 auto; padding: 2.5rem 1.25rem 2rem; }
   .site-footer-cols {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    align-items: start;
     gap: 1.75rem 2rem;
   }
   .site-footer h4 {

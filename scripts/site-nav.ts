@@ -69,14 +69,12 @@ export type FooterColumn = { title: string; links: Array<{ href: string; label: 
 
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
+    // One list, in reading order. Columns are allowed to be different
+    // lengths; inventing a "More guides" bucket to even them up was worse.
     title: "Guides",
-    links: GUIDES.slice(0, 4).map((g) => ({ href: `/docs/${g.slug}.html`, label: g.title })),
-  },
-  {
-    title: "More guides",
     links: [
-      ...GUIDES.slice(4).map((g) => ({ href: `/docs/${g.slug}.html`, label: g.title })),
       { href: "/docs/", label: "Docs home & install" },
+      ...GUIDES.map((g) => ({ href: `/docs/${g.slug}.html`, label: g.title })),
     ],
   },
   {
