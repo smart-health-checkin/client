@@ -213,9 +213,12 @@
         Both run the real CBOR/COSE/HPKE pipeline over fabricated records.</li>
       <li><strong>The autofill pattern:</strong> the
         <a href="./demo/autofill.html#wallet=app">allergy-review example</a> shows a
-        provider form literally prefilled from the patient's app — request
-        USCDI data, populate the form inline, then let the patient tag
-        symptoms, set severity, and correct the record.</li>
+        provider form literally prefilled from the patient's app — and then
+        asking only for what the shared record <em>doesn't</em> carry. US Core
+        requires the substance but not the reaction, so records routinely
+        arrive as "Latex, and nothing else"; the form flags exactly those and
+        elicits the symptoms and severity from the person who knows, marking
+        them <code>newInformation</code> for the care team.</li>
       <li><strong>Framework bindings are trivial</strong> because the core is
         a plain async function: the same flow in
         <a href="./demo/react.html">React</a> (a ~25-line hook), with an

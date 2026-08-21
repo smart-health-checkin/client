@@ -34,16 +34,26 @@ const ALLERGY_REVIEW = {
 
 type AllergyRow = {
   name: string;
-  detail: string;
+  /** What the app's record already said (empty when it said nothing). */
+  reportedReactions: string[];
   criticality?: string;
   decision: "confirm" | "update" | "remove";
-  /** Symptom tags the patient adds — the detail the record usually lacks. */
   symptoms: Set<string>;
   severity: "" | "mild" | "moderate" | "severe";
   note: string;
-  /** True when the patient added this row rather than the wallet. */
   addedByPatient?: boolean;
+  /** Fields the shared record left blank — what this form is here to elicit. */
+  gaps: { reaction: boolean; severity: boolean };
 };
+
+/** US Core requires substance + clinical status; reaction and criticality are
+ *  optional, so records routinely arrive without them. */
+function gapsFor(reactions: string[], criticality?: string): AllergyRow["gaps"] {
+  return {
+    reaction: reactions.length === 0,
+    severity: !criticality || criticality === "unable-to-assess",
+  };
+}
 
 /** Symptom vocabulary for the demo (severe ones flagged for the care team). */
 const SYMPTOM_TAGS: Array<{ label: string; severe?: boolean }> = [
@@ -105,28 +115,33 @@ async function prefill(): Promise<void> {
       for (const resource of extractResources(artifact.value)) {
         if (resource.resourceType !== "AllergyIntolerance") continue;
         const reactions = reactionTexts(resource);
+        const criticality =
+          typeof resource.criticality === "string" ? resource.criticality : undefined;
         rows.push({
           name: codeText(resource) ?? "(unnamed allergy)",
-          detail: reactions.length ? `reported reaction: ${reactions.join(", ")}` : "",
-          criticality: typeof resource.criticality === "string" ? resource.criticality : undefined,
+          reportedReactions: reactions,
+          criticality,
           decision: "confirm",
-          // Pre-select tags that match what the record already says, so the
-          // patient is confirming rather than starting from nothing.
+          // Pre-select tags matching what the record already says, so the
+          // patient confirms rather than starting from nothing.
           symptoms: new Set(
             SYMPTOM_TAGS.filter((tag) =>
-              reactions.some((r) => tag.label.toLowerCase().split(" ")[0]!.startsWith(r.toLowerCase().split(" ")[0]!.slice(0, 4)) ||
-                r.toLowerCase().includes(tag.label.toLowerCase().split(" ")[0]!)),
+              reactions.some((r) => matchesTag(tag.label, r)),
             ).map((tag) => tag.label),
           ),
           severity: "",
           note: "",
+          gaps: gapsFor(reactions, criticality),
         });
       }
     }
     renderRows();
-    el("status-note").textContent = rows.length
-      ? `Prefilled ${rows.length} allergies from your app — review and add detail below.`
-      : "Your app returned no allergy records — add any you know of below.";
+    const missing = rows.filter((r) => r.gaps.reaction || r.gaps.severity).length;
+    el("status-note").textContent = !rows.length
+      ? "Your app returned no allergy records — add any you know of below."
+      : missing
+        ? `Prefilled ${rows.length} allergies from your app. ${missing} ${missing === 1 ? "is" : "are"} missing detail your record doesn't carry — just those need you.`
+        : `Prefilled ${rows.length} allergies from your app — everything we need is already there. Confirm and you're done.`;
     el("review-card").hidden = false;
   } catch (e) {
     el("status-note").textContent =
@@ -142,25 +157,37 @@ async function prefill(): Promise<void> {
 function renderRows(): void {
   const list = el("allergy-list");
   list.innerHTML = "";
-  rows.forEach((row, index) => {
+
+  // What the record couldn't tell us comes first — that is the whole point
+  // of asking the patient at check-in.
+  const ordered = [...rows].sort((a, b) => Number(needsDetail(b)) - Number(needsDetail(a)));
+
+  for (const row of ordered) {
+    const index = rows.indexOf(row);
     const li = document.createElement("li");
+    li.dataset.rowIndex = String(index);
     if (row.decision === "remove") li.className = "row-removed";
+    else if (needsDetail(row)) li.className = "row-gap";
 
     const head = document.createElement("div");
     head.className = "allergy-head";
     const name = document.createElement("span");
     name.className = "allergy-name";
     name.textContent = row.name;
+    head.append(name);
+
     const detail = document.createElement("span");
     detail.className = "allergy-detail";
-    detail.textContent = row.addedByPatient ? "added by you" : row.detail;
-    head.append(name, detail);
-    if (row.criticality) {
-      const badge = document.createElement("span");
-      badge.className = `badge${row.criticality === "high" ? " high" : ""}`;
-      badge.textContent = `${row.criticality} risk`;
-      head.append(badge);
-    }
+    detail.textContent = row.addedByPatient
+      ? "added by you"
+      : row.reportedReactions.length
+        ? `your record says: ${row.reportedReactions.join(", ")}`
+        : "your record lists the allergy only";
+    head.append(detail);
+
+    const badge = document.createElement("span");
+    badge.dataset.badge = "1";
+    head.append(badge);
     li.append(head);
 
     const decisionRow = document.createElement("div");
@@ -181,27 +208,17 @@ function renderRows(): void {
       rows[index]!.decision = decision.value as AllergyRow["decision"];
       renderRows();
     };
-    const severity = document.createElement("select");
-    for (const [value, label] of [
-      ["", "How bad? (optional)"],
-      ["mild", "Mild"],
-      ["moderate", "Moderate"],
-      ["severe", "Severe"],
-    ] as const) {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = label;
-      severity.append(option);
-    }
-    severity.value = row.severity;
-    severity.onchange = () => (rows[index]!.severity = severity.value as AllergyRow["severity"]);
-    decisionRow.append(decision, severity);
+    decisionRow.append(decision);
     li.append(decisionRow);
 
     if (row.decision !== "remove") {
+      // Symptoms: asked prominently when the record has none, offered as a
+      // confirmation when it does.
       const tagsLabel = document.createElement("div");
-      tagsLabel.className = "field-label";
-      tagsLabel.textContent = "What happens when you're exposed?";
+      tagsLabel.className = row.gaps.reaction ? "field-label ask" : "field-label";
+      tagsLabel.textContent = row.gaps.reaction
+        ? "Your record doesn't say what happens when you're exposed. What do you get?"
+        : "What happens when you're exposed?";
       const tags = document.createElement("div");
       tags.className = "tags";
       for (const tag of SYMPTOM_TAGS) {
@@ -216,23 +233,98 @@ function renderRows(): void {
           if (set.has(tag.label)) set.delete(tag.label);
           else set.add(tag.label);
           button.setAttribute("aria-pressed", String(set.has(tag.label)));
+          updateProgress();
         };
         tags.append(button);
       }
       li.append(tagsLabel, tags);
 
-      const noteRow = document.createElement("div");
-      noteRow.className = "review-row";
+      const severityLabel = document.createElement("div");
+      severityLabel.className = row.gaps.severity ? "field-label ask" : "field-label";
+      severityLabel.textContent = row.gaps.severity
+        ? "And how severe does it get? (your record doesn't say)"
+        : "How severe does it get?";
+      const severityRow = document.createElement("div");
+      severityRow.className = "review-row";
+      const severity = document.createElement("select");
+      for (const [value, label] of [
+        ["", "Choose…"],
+        ["mild", "Mild"],
+        ["moderate", "Moderate"],
+        ["severe", "Severe — needed urgent care"],
+      ] as const) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        severity.append(option);
+      }
+      severity.value = row.severity;
+      severity.onchange = () => {
+        rows[index]!.severity = severity.value as AllergyRow["severity"];
+        updateProgress();
+      };
       const input = document.createElement("input");
       input.placeholder = "Anything else your care team should know (optional)";
       input.value = row.note;
       input.oninput = () => (rows[index]!.note = input.value);
-      noteRow.append(input);
-      li.append(noteRow);
+      severityRow.append(severity, input);
+      li.append(severityLabel, severityRow);
     }
 
     list.append(li);
-  });
+  }
+  updateProgress();
+}
+
+/** A row still needs the patient when the record left a field blank and the
+ *  patient hasn't supplied it yet. */
+function needsDetail(row: AllergyRow): boolean {
+  if (row.decision === "remove") return false;
+  if (row.gaps.reaction && row.symptoms.size === 0) return true;
+  if (row.gaps.severity && !row.severity) return true;
+  return false;
+}
+
+/** Reflect answers immediately: the flag clears as soon as a row is complete. */
+function refreshRowStates(): void {
+  for (const li of document.querySelectorAll<HTMLLIElement>("#allergy-list li")) {
+    const row = rows[Number(li.dataset.rowIndex)];
+    if (!row) continue;
+    const badge = li.querySelector<HTMLElement>("[data-badge]");
+    if (row.decision === "remove") {
+      li.className = "row-removed";
+    } else if (needsDetail(row)) {
+      li.className = "row-gap";
+    } else {
+      li.className = "";
+    }
+    if (!badge) continue;
+    if (needsDetail(row) && row.decision !== "remove") {
+      badge.className = "badge gap";
+      badge.textContent = "needs your input";
+    } else if (row.decision !== "remove" && (row.symptoms.size || row.severity)) {
+      badge.className = "badge done";
+      badge.textContent = "complete";
+    } else if (row.criticality && row.criticality !== "unable-to-assess") {
+      badge.className = `badge${row.criticality === "high" ? " high" : ""}`;
+      badge.textContent = `${row.criticality} risk`;
+    } else {
+      badge.className = "";
+      badge.textContent = "";
+    }
+  }
+}
+
+function updateProgress(): void {
+  refreshRowStates();
+  const outstanding = rows.filter(needsDetail).length;
+  const progress = el("progress");
+  progress.textContent = outstanding
+    ? `${outstanding} ${outstanding === 1 ? "allergy needs" : "allergies need"} a detail your record doesn't have.`
+    : rows.length
+      ? "Everything your care team asked for is filled in."
+      : "";
+  progress.className = outstanding ? "progress outstanding" : "progress";
 }
 
 function addAllergy(): void {
@@ -240,12 +332,13 @@ function addAllergy(): void {
   if (!name?.trim()) return;
   rows.push({
     name: name.trim(),
-    detail: "",
+    reportedReactions: [],
     decision: "update",
     symptoms: new Set(),
     severity: "",
     note: "",
     addedByPatient: true,
+    gaps: { reaction: true, severity: true },
   });
   renderRows();
 }
@@ -256,16 +349,24 @@ function send(): void {
     {
       summary: "Patient-reviewed allergy list (prefilled from the patient's app)",
       source: "SMART Health Check-in — requestCheckin()",
-      review: rows.map((row) => ({
-        allergy: row.name,
-        origin: row.addedByPatient ? "added-by-patient" : "from-patient-app",
-        patientDecision: row.decision,
-        ...(row.decision !== "remove" && row.symptoms.size
-          ? { symptoms: [...row.symptoms] }
-          : {}),
-        ...(row.severity ? { severity: row.severity } : {}),
-        ...(row.note ? { note: row.note } : {}),
-      })),
+      review: rows.map((row) => {
+        const supplied: string[] = [];
+        if (row.gaps.reaction && row.symptoms.size) supplied.push("symptoms");
+        if (row.gaps.severity && row.severity) supplied.push("severity");
+        return {
+          allergy: row.name,
+          origin: row.addedByPatient ? "added-by-patient" : "from-patient-app",
+          patientDecision: row.decision,
+          ...(row.decision !== "remove" && row.symptoms.size
+            ? { symptoms: [...row.symptoms] }
+            : {}),
+          ...(row.severity ? { severity: row.severity } : {}),
+          ...(row.note ? { note: row.note } : {}),
+          // the value-add of asking at check-in: fields the shared record
+          // did not carry, now filled in by the person who knows
+          ...(supplied.length ? { newInformation: supplied } : {}),
+        };
+      }),
     },
     null,
     2,
@@ -288,6 +389,12 @@ function extractResources(value: unknown): Array<Record<string, unknown>> {
 function codeText(resource: Record<string, unknown>): string | undefined {
   const code = resource.code as { text?: unknown } | undefined;
   return typeof code?.text === "string" ? code.text : undefined;
+}
+
+function matchesTag(tagLabel: string, reactionText: string): boolean {
+  const tag = tagLabel.toLowerCase();
+  const reaction = reactionText.toLowerCase();
+  return tag.split(" / ").some((word) => reaction.includes(word.split(" ")[0]!));
 }
 
 function reactionTexts(resource: Record<string, unknown>): string[] {

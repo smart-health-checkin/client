@@ -61,6 +61,12 @@
   }
   .review-row input { flex: 1; min-width: 12rem; }
   .field-label { font-size: 0.78rem; color: var(--muted); width: 100%; margin-top: 0.55rem; }
+  .field-label.ask { color: var(--ink); font-weight: 500; font-size: 0.86rem; }
+  ul.allergies li.row-gap { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  .badge.gap { border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .badge.done { border-color: var(--line); color: var(--muted); }
+  .progress { font-size: 0.88rem; color: var(--muted); margin: 0.75rem 0 0; }
+  .progress.outstanding { color: var(--ink); font-weight: 500; }
   .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .tag {
     font-size: 0.82rem; padding: 0.25rem 0.65rem; border-radius: 999px; cursor: pointer;
@@ -87,9 +93,9 @@
     <p class="sub">
       This page plays the <em>provider's</em> data-collection app. Instead of
       asking you to type your allergy list from memory, it asks your health
-      app for it — one tap, like autofill — then you review, correct, and add
-      the detail only you know: which symptoms each allergen causes, and how
-      bad they get.
+      app for it — one tap, like autofill. Shared records usually carry the
+      allergen and not much else, so the form then asks you only for what's
+      <em>missing</em>: which symptoms each one causes, and how bad they get.
     </p>
   </header>
 
@@ -101,6 +107,7 @@
   <section class="card" id="review-card" hidden>
     <h2 style="font-size:1.05rem; margin:0 0 0.25rem">Your allergy list <span class="muted" style="font-weight:400; font-size:0.85rem">— prefilled from your app</span></h2>
     <ul class="allergies" id="allergy-list"></ul>
+    <p class="progress" id="progress"></p>
     <div class="review-row" style="margin-top:1rem">
       <button id="add-allergy" class="ghost" style="flex:0 0 auto">+ Add one we missed</button>
       <button id="send" class="primary" style="flex:0 0 auto">Finalize and send</button>
@@ -110,11 +117,11 @@
   <section class="card" id="sent-card" hidden>
     <h2 style="font-size:1.05rem; margin:0 0 0.25rem">What the clinic receives</h2>
     <p class="muted" style="font-size:0.88rem">
-      POC: shown here instead of posted. In production this submits through the
-      kit's FHIR layer exactly like the
-      <a href="./">full demo</a> does — the essential point is that the
-      structured allergy data came from the patient's app, and the patient only
-      had to review and annotate it.
+      POC: shown here instead of posted. In production this would post through
+      the same optional FHIR helper the <a href="./">full demo</a> uses. The
+      point is the division of labour: the structured list came from the
+      patient's app, and the patient was asked only for the detail the record
+      couldn't supply — flagged below as <code>newInformation</code>.
     </p>
     <pre id="sent-json"></pre>
   </section>

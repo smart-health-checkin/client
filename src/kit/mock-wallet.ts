@@ -259,6 +259,39 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
         patient: demoPatient,
         reaction: [{ manifestation: [{ text: "Oral itching" }] }],
       },
+      // Deliberately sparse — a very common real-world shape. US Core only
+      // requires the substance and clinical status, so plenty of records
+      // carry no reaction and no criticality. This is exactly the gap a
+      // check-in form should elicit rather than re-asking what's known.
+      {
+        resourceType: "AllergyIntolerance",
+        identifier: [{ ...mockIdentifier, value: `${runId}-3` }],
+        clinicalStatus: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+              code: "active",
+            },
+          ],
+        },
+        code: { text: "Sulfa drugs (sulfonamides)" },
+        patient: demoPatient,
+      },
+      {
+        resourceType: "AllergyIntolerance",
+        identifier: [{ ...mockIdentifier, value: `${runId}-4` }],
+        clinicalStatus: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+              code: "active",
+            },
+          ],
+        },
+        code: { text: "Latex" },
+        criticality: "unable-to-assess",
+        patient: demoPatient,
+      },
     ]);
   }
 
