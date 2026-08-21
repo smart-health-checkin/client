@@ -41,6 +41,7 @@ holding real patient data.
 …/demo/#scenario=new-patient             real wallet via the DC API (Chrome/Android)
 …/demo/autofill.html#wallet=app          prefill from the app, or type your own
 …/demo/react.html                        same core, React bindings
+…/demo/angular.html                      same core, Angular bindings
 ```
 
 All of it is also editable in the page under **Demo controls**, which writes

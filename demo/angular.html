@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>React example</title>
+<title>Angular example</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -57,40 +57,48 @@
 <body>
 <div class="demo-strip"><div class="wrap">
   <span class="demo-badge">DEMO</span>
-  <span class="what">React bindings over the same vanilla core</span>
+  <span class="what">Angular bindings over the same vanilla core</span>
   <a class="strip-link" href="./">Full check-in demo →</a>
 </div></div>
 
 <main class="wrap">
   <header>
-    <h1>Same core, React bindings</h1>
+    <h1>Same core, Angular bindings</h1>
     <p class="muted">
-      The kit is a plain async function with no framework dependency. This page
-      renders with React through a ~25-line <code>useCheckin</code> hook; the <a href="./angular.html">Angular example</a> is the same wrapper as an injectable service.
+      The library is a plain async function with no framework dependency. This
+      page renders with Angular through a ~20-line injectable service; the
+      <a href="./react.html">React example</a> is the same wrapper as a hook.
     </p>
   </header>
 
-  <div id="root"></div>
+  <div id="root"><app-root></app-root></div>
 
   <section class="card">
     <h2>The whole binding</h2>
-<pre><code>export function useCheckin(request, options) {
-  const [state, setState] = useState({ status: "idle" });
-  const start = useCallback(async () =&gt; {
-    setState({ status: "waiting" });
+<pre><code>@Injectable({ providedIn: "root" })
+export class CheckinService {
+  readonly status = signal&lt;Status&gt;("idle");
+  readonly response = signal&lt;SmartCheckinResponse | undefined&gt;(undefined);
+
+  async request(input, options?) {
+    this.status.set("waiting");
     try {
-      const response = await requestCheckin(request, options);
-      setState({ status: "done", response });
+      this.response.set(await requestCheckin(input, options));
+      this.status.set("done");
     } catch (e) {
-      setState(e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
-        ? { status: "declined" }
-        : { status: "error", error: String(e) });
+      this.status.set(
+        e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
+          ? "declined" : "error");
     }
-  }, [request, options]);
-  return { ...state, start };
+  }
 }</code></pre>
+    <p class="muted" style="font-size:0.88rem">
+      Compiled in the browser (JIT) so this page needs no Angular build step —
+      which is why the bundle is large. A real app compiles ahead of time and
+      ships only its own code plus this library.
+    </p>
   </section>
 </main>
-<script type="module" src="./react.js"></script>
+<script type="module" src="./angular.js"></script>
 </body>
 </html>

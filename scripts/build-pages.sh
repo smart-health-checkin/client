@@ -15,8 +15,10 @@ cp demo/index.html _site/demo/index.html
 cp demo/wallet.html _site/demo/wallet.html
 cp demo/autofill.html _site/demo/autofill.html
 cp demo/react.html _site/demo/react.html
+cp demo/angular.html _site/demo/angular.html
 bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts --outdir _site/demo --format esm --minify
 bun build demo/src/frameworks/react.tsx --outdir _site/demo --format esm --minify
+bun build demo/src/frameworks/angular.ts --outdir _site/demo --format esm --minify
 # hosted builds under /lib/ so the URL space stays organized
 mkdir -p _site/lib
 bun build src/index.ts --outdir _site/lib --format esm --minify

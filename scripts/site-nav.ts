@@ -53,8 +53,8 @@ export const GUIDES: Guide[] = [
   {
     file: "demo/README.md",
     slug: "demo",
-    title: "The demo pages",
-    blurb: "URL grammar for the clinic demo, wallet app, and examples.",
+    title: "Running the demos",
+    blurb: "The URL parameters that configure the clinic demo, wallet, and examples.",
   },
 ];
 
@@ -93,6 +93,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { href: "/demo/", label: "Clinic check-in demo" },
       { href: "/demo/autofill.html#wallet=app", label: "Allergy autofill example" },
       { href: "/demo/react.html", label: "React example" },
+      { href: "/demo/angular.html", label: "Angular example" },
       { href: "/demo/wallet.html", label: "Demo wallet app" },
     ],
   },

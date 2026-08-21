@@ -144,6 +144,14 @@ hand; it has no idea a FHIR server exists. If you want the results written as
 FHIR, [there's an optional helper](fhir.md) — or use your own client, your
 own auth, your own model.
 
+## Using it from a framework
+
+The core is a plain async function, so bindings are thin: a
+[React hook](https://smart-health-checkin.org/demo/react.html) and an
+[Angular service](https://smart-health-checkin.org/demo/angular.html) — each
+about twenty lines, each running the same flow, both live on this site with
+their source in `demo/src/frameworks/`.
+
 Next: [Describing what you need](requests.md) ·
 [Working with responses](responses.md) ·
 [Production checklist](production.md)
