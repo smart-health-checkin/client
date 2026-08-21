@@ -43,5 +43,8 @@ touch _site/.nojekyll
 # GitHub Pages. Until then the site stays on the *.github.io URL.
 [ -f site/CNAME ] && cp site/CNAME _site/CNAME
 
+# A hosted bundle that does not run is a broken deploy, not a smaller one.
+bun scripts/verify-lib.ts
+
 echo "Built _site/:"
 find _site -type f | sort

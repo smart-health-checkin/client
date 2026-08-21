@@ -42,7 +42,6 @@
     "url": "git+https://github.com/smart-health-checkin/checkin-client.git"
   },
   "homepage": "https://smart-health-checkin.org/",
-  "sideEffects": false,
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
