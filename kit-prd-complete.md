@@ -25,28 +25,32 @@ deliberately two-layered:
 
 The strategic design principle is the **closed loop**: the request starts on
 a provider-controlled web surface and the response returns *to that same
-surface*. The provider therefore keeps control of the overall check-in
-journey (payment, consents, next steps) and the patient is never stranded in
-a third-party app. After receiving a response, the provider surface can POST
-the results to any FHIR backend — this "browser surface mediates; backend
-sees ordinary FHIR writes" pattern is called the **encapsulation pattern**
-and is a first-class requirement, not an afterthought.
+surface*. The provider keeps control of the check-in journey (payment,
+consents, next steps) and the patient is never stranded in a third-party app.
+
+**Scope discipline is the other design principle, and it is load-bearing.**
+The kit's job ends when the caller's code holds a validated
+`SmartCheckinResponse`. It does not write FHIR, hold auth, match patients, or
+route users. Rationale: every concern a protocol library owns becomes a
+concern an adopting EHR must audit, configure, and argue about — and all of
+those are deployment policy, not protocol. A library that does one thing is
+cheap to say yes to. An optional, clearly separate FHIR helper ships
+alongside for demos and simple apps.
 
 **This kit is the provider side.** Audience: an EHR-portal or clinic web
-engineer whose mental model is *configure → launch → receive → submit →
-return*. They must never touch CBOR, COSE, HPKE, or DC API plumbing. The kit
-is a fresh, coherently designed implementation — written with full reference
-to the existing prototype (porting freely is encouraged), but organized
-top-down around the integrator's mental model rather than accreted from demo
-needs.
+engineer who wants to ask for data and get it. They must never touch CBOR,
+COSE, HPKE, or DC API plumbing. It is a fresh, coherently designed
+implementation — written with full reference to the existing prototype
+(porting freely is encouraged), but organized around that one question.
 
 Success criteria:
 
 - A portal engineer can integrate a working check-in flow in an afternoon
-  using only the README.
-- A complete end-to-end demo (request → wallet → response → FHIR write →
-  return leg) runs against a public test FHIR server with no EHR-vendor
-  involvement.
+  using only the README, and the integration is a single `await`.
+- A complete end-to-end demo runs with no EHR-vendor involvement and no
+  platform wallet (a demo wallet web app answers with a real consent screen).
+- Framework bindings (React, Angular) are thin wrappers over the same
+  vanilla async core.
 - Every byte-level behavior is verified against the vendored conformance
   fixtures (§16).
 
@@ -54,7 +58,7 @@ Success criteria:
 
 | Authority | Location | Role |
 | --- | --- | --- |
-| SMART Health Check-in 1.0 draft spec | <https://jmandel.github.io/smart-health-checkin-mdoc/spec.html> (raw: `…/spec.md`) | Normative for the clinical model (§§5–6), the mdoc presentation flow (§8), trust (§7), and CDDL/schemas (Appendices B–C). Consult whenever this PRD's protocol summary is insufficient. |
+| SMART Health Check-in 1.0 draft spec | <https://joshuamandel.com/smart-health-checkin-mdoc/spec.html> (raw: `…/spec.md`) | Normative for the clinical model (§§5–6), the mdoc presentation flow (§8), trust (§7), and CDDL/schemas (Appendices B–C). Consult whenever this PRD's protocol summary is insufficient. |
 | Prototype repo | <https://github.com/jmandel/smart-health-checkin-mdoc> | Reference implementation (TypeScript verifier SDK under `rp-web/src/sdk/`, Android wallet, Python checkers). Port from it freely with attribution comments; do not import it as a dependency. |
 | Conformance fixtures | `fixtures/` in this repo (pinned copy of the prototype's corpus; see `fixtures/PROVENANCE.md`) | **The compatibility contract.** Byte-level oracles for requests, responses, transcripts, and crypto. All wire code is done only when fixture tests pass. |
 | Public HAPI FHIR server | `https://hapi.fhir.org/baseR4` | Default demo submission backend (open, CORS-enabled, periodically wiped, test data only). |
@@ -74,13 +78,14 @@ Success criteria:
   fine — npm publishing is explicitly out of scope for now).
 - **Dependency policy**: zero runtime dependencies. Port or hand-write the
   minimal CBOR encoder/decoder; use WebCrypto (`crypto.subtle`) for all
-  cryptography. Dev dependencies: `typescript` only.
+  cryptography. Dev dependencies: `typescript`, plus `react`/`react-dom` used
+  only by the framework example page.
 - **Module discipline**: layers depend only downward (§4). No DOM access
-  outside `src/browser` and `src/kit`'s custom element. Public API is the
-  barrel `src/index.ts`; the demo must import only from the barrel.
-- **Docs discipline**: `src/kit/types.ts` and the README's API section are
-  the same contract; keep them in lockstep. README-first: API changes edit
-  the README in the same commit.
+  outside `src/browser` and the wallet mediators. Public API is the barrel
+  `src/index.ts`; the optional FHIR helper is a *separate* entry point
+  (`src/fhir/index.ts`) and must never be imported by `src/kit`.
+- **Docs discipline**: README-first — API changes edit the README in the same
+  commit.
 
 ## 4. Architecture
 
@@ -89,93 +94,84 @@ src/
   model/     clinical JSON model + validators        (no deps)
   wire/      mdoc byte functions: build/open/verify  (depends: model)
   browser/   DC API invocation + key-custody seam    (depends: wire, model)
-  submit/    response → FHIR write plan + executor   (depends: model)
-  kit/       facade: runCheckin, <smart-checkin>,
-             scenario library                        (depends: all above)
-  index.ts   public barrel
-demo/        sample project (standalone demo app; imports the barrel only)
+  kit/       facade: requestCheckin/runCheckin,
+             scenarios, wallet mediators             (depends: browser, wire, model)
+  fhir/      OPTIONAL companion: response → Bundle
+             + posting helper                        (depends: model only)
+  index.ts   public barrel (protocol surface; NOT fhir)
+demo/        clinic demo, wallet app, autofill example, React example
 site/        static landing page
 fixtures/    vendored conformance corpus (§16)
 scripts/     build-pages.sh, vendor-fixtures.sh
 .github/workflows/  ci.yml, pages.yml
 ```
 
-**Design center — config as data.** One serializable `CheckinConfig` object
-describes an entire check-in: what to request, FHIR context, where/how to
-submit, where the patient goes afterward, and key custody. The JS API takes
-it, the custom element declares it as attributes, the demo reads it from the
-URL fragment, and a *scenario* is a named canned config. If you can paste a
-config, you can reproduce a test case.
+**Design center — one await.** The entire integration is:
+
+```ts
+const response = await requestCheckin(request, options);
+```
+
+Everything else in the repo exists to support that call or to demonstrate
+what a caller might do afterwards. The demo's URL fragment is the *demo's*
+configuration, not the kit's.
 
 ## 5. Public API contract
 
 ```ts
-import type { SmartCheckinRequest, SmartCheckinResponse } from "./model";
+/** What to ask for: inline init, complete request, or a registered name. */
+type CheckinRequestInput =
+  | SmartCheckinRequest
+  | CheckinRequestInit            // { id?, purpose?, fhirVersions?, items }
+  | { scenario: string };
 
-export type CheckinConfig = {
-  /** What to ask the patient for. Exactly one variant. */
-  request:
-    | { scenario: string }                      // named template (§11)
-    | { request: SmartCheckinRequest };         // full object, passed through verbatim
-
-  /** FHIR context on the target server; stamped into Provenance, never guessed. */
-  context?: { patient?: string; appointment?: string };   // e.g. "Patient/123"
-
-  /** Where and how to submit. Omit for display-only flows. */
-  submit?: {
-    fhirBase: string;
-    mode?: "transaction" | "individual" | "dry-run";      // default "transaction"
-    provenance?: boolean;                                 // default true
-  };
-
-  /** Closed-loop return leg: where the patient lands after completion. */
-  complete?: { returnUrl?: string };
-
-  /** Verifier key custody. Default "browser-local". */
-  authority?: "browser-local" | { server: string };
+type CheckinOptions = {
+  /** Verifier key custody. Default "browser-local" (page memory). */
+  authority?: "browser-local" | { server: string } | VerifierAuthority;
+  /** Mediator override; defaults to the platform Digital Credentials API. */
+  getCredential?: (options: unknown) => Promise<unknown>;
+  /** Test seam. */
+  detectSupport?: typeof detectDcApiSupport;
 };
 
-export type CheckinOutcome = {
+type CheckinOutcome = {
   status: "completed" | "declined" | "unsupported" | "error";
-  request: SmartCheckinRequest;                 // as sent (scenario resolved)
-  response?: SmartCheckinResponse;              // present iff wallet returned one; always validated
-  submission?: {
-    mode: "transaction" | "individual" | "dry-run";
-    bundle: unknown;                            // what was (or would be) posted
-    result?: unknown;                           // server reply when mode !== "dry-run"
-  };
-  error?: { stage: "prepare" | "credential" | "open" | "validate" | "submit"; message: string };
+  request: SmartCheckinRequest;      // as sent (input resolved)
+  response?: SmartCheckinResponse;   // present iff completed; always validated
+  error?: { stage: "prepare" | "credential" | "open" | "validate"; message: string };
 };
 
-export function runCheckin(config: CheckinConfig): Promise<CheckinOutcome>;
+/** Ask, await, use the answer. Throws CheckinFlowError (carrying the outcome). */
+function requestCheckin(input: CheckinRequestInput, options?: CheckinOptions):
+  Promise<SmartCheckinResponse>;
+
+/** Same flow, status-based; never throws for ordinary outcomes. */
+function runCheckin(input: CheckinRequestInput, options?: CheckinOptions):
+  Promise<CheckinOutcome>;
+
+/** Request construction helpers. */
+function buildRequest(init: CheckinRequestInit): SmartCheckinRequest;
+function registerScenario(key: string, request, meta?): Scenario;
 ```
 
-Status semantics: `unsupported` = browser lacks DC API support (detected
-before any prompt); `declined` = user cancelled or wallet declined every
-item; `error` carries the failing stage; `completed` = validated response
-received (and submitted, unless submit was omitted or dry-run). A response
-whose items are individually declined/partial is still `completed` — item
-outcomes live in `response.requestStatus`.
+Status semantics: `unsupported` = no DC API (detected before any prompt);
+`declined` = user cancelled or the wallet declined; `error` names the failing
+stage; `completed` = validated response in hand. Per-item declines are
+*not* failures — they appear in `response.requestStatus`.
 
-**Custom element** (`M3`): `<smart-checkin>` renders a launch button and
-runs `runCheckin` on click.
+**Mediators** (both exported, both demo/test-grade):
 
-```html
-<smart-checkin
-  scenario="phq2-dayof"                 or  request-json='{"type":…}'
-  patient="Patient/123" appointment="Appointment/456"
-  fhir-base="https://…" submit-mode="transaction"
-  return-url="https://…" label="Share for check-in">
-</smart-checkin>
-```
+- `createWebWalletCredentialGetter({ walletUrl })` — hands the request to a
+  wallet **web app** in a popup over postMessage and awaits the sealed
+  response. Enables a full flow, with a real consent screen, on any browser.
+- `createMockWalletCredentialGetter({ origin })` — answers non-interactively
+  with fabricated data (real CBOR/COSE/HPKE). For scripted testing.
 
-It dispatches a composed, bubbling `CustomEvent<CheckinOutcome>` named
-`checkin-complete`; if `return-url` is set and status is `completed`, it
-navigates there after dispatching. Attributes map 1:1 onto `CheckinConfig`.
+Wallet-side helpers used by the demo wallet app: `parseWalletRequest`,
+`fabricateResponse(request, include?)`, `sealWalletResponse`.
 
-**Non-goals for the API**: wallet-side anything, credential issuance,
-patient matching, production authn/authz to the FHIR server (demo posts
-anonymously; real deployments wrap the executor), OpenID4VP binding.
+**Explicit non-API**: no FHIR submission, no auth, no patient matching, no
+routing/navigation, no framework bindings inside the kit.
 
 ## 6. Clinical model (`src/model`)
 
@@ -348,57 +344,47 @@ type VerifierAuthority = {
   `${server}/credential-requests/{handle}/complete` → completion. The M4
   reference server implements this contract.
 
-## 9. Submission layer (`src/submit`)
+## 9. Optional FHIR companion (`src/fhir`) — NOT part of the kit
 
-`buildWritePlan(response, { context, provenance }) → WritePlan` (pure) and
-`executeWritePlan(plan, { fhirBase, mode, fetchImpl? }) → result`.
+Separate entry point, separate build output, never imported by `src/kit`.
+Two functions:
+
+```ts
+buildCheckinBundle({ request, response, context?, provenance?, now? }) -> CheckinBundle  // pure
+postCheckinBundle(bundle, { fhirBase, mode?, fetchImpl? }) -> Promise<PostResult>
+```
 
 Mapping defaults:
 
 - Each `application/fhir+json` artifact: its resource (or each Bundle entry
-  resource) becomes a `POST` entry in one transaction `Bundle`
-  (`Bundle.type = "transaction"`).
+  resource) becomes a `POST` entry in one transaction `Bundle`.
 - Each `application/smart-health-card` artifact: one `DocumentReference`
-  per artifact — `status: "current"`, `content[0].attachment` =
-  `{ contentType: "application/smart-health-card", data: base64(JSON of
-  value) }` — preserving the JWS chain of custody. Unpacking the embedded
-  FHIR bundle is opt-in and off by default.
-- When `provenance !== false`, append one `Provenance` per plan:
-  `target` = all created entries (`fullUrl` references), `recorded` = now,
-  `agent[0]` = `{ type: {coding:[{system:
-  "http://terminology.hl7.org/CodeSystem/provenance-participant-type",
-  code:"author"}]}, who: { reference: context.patient } }` (omit `who` when
-  no patient context), `entity[0]` = `{ role: "source", what: { identifier: {
-  system: "https://smart-health-checkin.github.io/checkin-request-id",
-  value: request.id } } }`, plus `target`-style reference to
-  `context.appointment` in `Provenance.target` when present. Exact shape has
-  latitude; the *requirements* are: patient-supplied origin is explicit, the
-  request id is recoverable, and configured patient/appointment context is
-  linked.
-- `mode: "individual"` posts entries one-by-one (for servers with weak
-  transaction support); `"dry-run"` returns the plan without network I/O.
-- **No patient matching, ever.** Context is configuration; production
-  matching is deployment policy and says so in the docs.
+  holding the JWS (chain of custody preserved); unpacking is out of scope.
+- Unless `provenance: false`, one `Provenance` targets all created entries,
+  marks them patient-supplied, and carries the check-in request id (and the
+  appointment reference, when configured) as identifier **entities** — never
+  as `target` references, which must resolve on the destination server.
+- `mode: "individual"` posts resources one-by-one and rewrites `urn:uuid`
+  references in the Provenance to the server-assigned locations.
+- **No patient matching, ever.** Context is configuration.
+
+A "dry run" is not a library feature: callers that don't want to post simply
+don't call `postCheckinBundle`.
 
 ## 10. Facade (`src/kit`)
 
 `runCheckin` orchestration:
 
-1. Resolve `request` (scenario lookup → error if unknown) and
-   `validateSmartCheckinRequest` it.
-2. `detectDcApiSupport` → `status: "unsupported"` short-circuit.
-3. Resolve authority (default browser-local); `prepareCredentialRequest`.
-4. `navigator.credentials.get(navigatorArgument)`; user cancellation /
-   `NotAllowedError` → `status: "declined"`.
-5. `completeCredentialRequest` → wire-verified `smartResponse`.
-6. `validateResponseAgainstRequest` — failure is `error` at stage
-   `validate`; never submit an invalid response.
-7. If `submit` configured: build + execute write plan per §9.
-8. Return the outcome. (Navigation to `complete.returnUrl` is the *element's*
-   job, not `runCheckin`'s — the function stays side-effect-free beyond the
-   flow itself.)
+1. Resolve and validate the request (scenario lookup / `buildRequest`).
+2. `detectDcApiSupport` → `unsupported` short-circuit (skipped when a
+   `getCredential` override is supplied).
+3. Resolve the authority; `prepareCredentialRequest`.
+4. Invoke the mediator; cancellation → `declined`.
+5. `completeCredentialRequest` → wire-verified response.
+6. Re-run `validateResponseAgainstRequest` — never trust a custom authority.
+7. Return the outcome. No navigation, no submission, no side effects.
 
-The scenario library (§11) and the custom element (§5) also live here.
+`requestCheckin` wraps it and throws `CheckinFlowError` unless completed.
 
 ## 11. Scenario library
 
@@ -415,45 +401,47 @@ Named, canned `SmartCheckinRequest` templates. Ship at least these four
 Each entry: `{ label, description, request }`. Scenarios carry human
 descriptions because the demo displays them.
 
-## 12. Demo app (`demo/`, deploys to `/demo/`)
+## 12. Demo pages (`demo/`, deployed under `/demo/`)
 
-A standalone page proving the whole kit, configured **entirely by URL
-fragment** (fragment, not query — identifiers and payloads must never reach
-server logs). Grammar:
+**`index.html` — the clinic app.** Styled as a plausible fictional clinic
+("Evergreen Family Health"), bound by default to a fictional patient
+(`Patient/example`, shown by name). Layout: a thin DEMO strip with a
+right-aligned "Demo controls" disclosure; the controls panel is a labeled
+grid (scenario, responder, after-the-response, patient, appointment, FHIR
+base, return URL) plus "Copy link to this setup"; then the clinic header,
+visit context, requested items in plain language, the check-in button, the
+outcome, and a dashed **DEVELOPER DETAIL** card listing each artifact
+(request, response, bundle, server response) with `copy` and `open ↗`.
 
-| Param | Meaning |
-| --- | --- |
-| `scenario` | Scenario key (§11). |
-| `request` | base64url(JSON `SmartCheckinRequest`) — verbatim passthrough. |
-| `patient`, `appointment` | FHIR references on the target server. When `appointment` present, fetch it for display context (best-effort). |
-| `fhir` | Target FHIR base. Default `https://hapi.fhir.org/baseR4`. |
-| `submit` | `transaction` (default) \| `individual` \| `dry-run`. |
-| `returnUrl` | Closed-loop return leg. |
+Every control writes to the URL fragment, so any configuration is a
+shareable, reproducible link. Fragment params: `scenario`, `request`
+(base64url), `patient`, `appointment`, `fhir`, `post`
+(`none`|`transaction`|`individual`), `returnUrl`, `wallet`
+(`platform`|`app`|`auto`). Fragment, never query — identifiers must not
+reach server logs.
 
-Precedence: `request` > `scenario` > default (`insurance-only`). Unknown
-params ignored. React to `hashchange`.
+The demo posts to FHIR **explicitly, after the await**, using the optional
+helper — the code reads like the integration guide, and the "After the
+response" control makes the boundary visible.
 
-**Backend configurability policy** (deliberate): `fhir=` stays user-
-configurable — reusability across test contexts is the point — with
-guardrails against a crafted link exfiltrating a real patient's share:
+**Backend guardrail**: default `https://hapi.fhir.org/baseR4`; any other
+target shows a caution naming the host and requires an acknowledgment before
+the flow can start. Never accept auth material in the URL.
 
-- Allowlist of known-open test servers (`https://hapi.fhir.org/baseR4` at
-  minimum). Allowlisted target → quiet note "Submitting to the public HAPI
-  test server (periodically wiped — test data only)."
-- Any other target → prominent warning naming the host: "This link submits
-  your shared data to `<host>`. Only proceed with test data and a server you
-  recognize." Require an explicit acknowledgment (checkbox or confirm) before
-  the Start button enables.
-- Never accept auth material in the URL.
+**`wallet.html` — the demo wallet web app.** Answers requests over the
+web-wallet postMessage protocol: shows the requesting origin, the purpose,
+per-item checkboxes with a preview of what would be sent, then signs and
+HPKE-seals a DeviceResponse bound to the verifier's origin. Unchecked items
+come back `declined`.
 
-**UI states**: (1) configure — scenario chips (linking to fragment
-variants), scenario description, resolved `CheckinConfig` + request JSON,
-backend note, Start button (disabled with reason when unsupported /
-unacknowledged custom backend); (2) running; (3) response — per-item status
-table, artifact list, the write plan (always show the Bundle; in dry-run
-this is the terminal state); (4) submitted — server outcome, deep links to
-the created resources on the target server, and the return-leg button when
-`returnUrl` is set. Errors render the failing stage plainly.
+**`autofill.html` — the autofill pattern.** A provider form prefilled from
+the patient's app: request US Core allergies, render each as a form row, and
+let the patient tag symptoms (severe ones flagged), set severity, add notes,
+add a missed allergy, and finalize.
+
+**`react.html` — framework bindings.** The same flow through a ~25-line
+`useCheckin` hook, with an Angular service reference alongside
+(`demo/src/frameworks/checkin.service.ts`, not built here).
 
 ## 13. Landing page (`site/`, deploys to `/`)
 
@@ -510,10 +498,13 @@ Max content width ~46rem; visible focus states; SVG diagrams inline with
 
 ## 15. Build, CI, deployment
 
-- **`scripts/build-pages.sh`**: clean `_site/`; copy `site/index.html` →
-  `_site/index.html`; copy `demo/index.html` → `_site/demo/index.html`;
-  `bun build demo/src/main.ts --outdir _site/demo --format esm --minify`;
-  `touch _site/.nojekyll`.
+- **`scripts/build-pages.sh`**: clean `_site/`; copy the landing page and
+  every demo HTML file; bundle `demo/src/{main,autofill,wallet}.ts` and
+  `demo/src/frameworks/react.tsx` into `_site/demo/`; bundle
+  `src/index.ts` → `_site/kit.js` and `src/fhir/index.ts` → `_site/fhir.js`
+  (hosted builds so `<script type="module">` snippets work with no build
+  step); `touch _site/.nojekyll`; copy `site/CNAME` if present (custom
+  domain).
 - **`.github/workflows/pages.yml`**: on push to `main` +
   `workflow_dispatch`; permissions `contents: read, pages: write, id-token:
   write`; concurrency group `pages`; job 1 checkout → `oven-sh/setup-bun@v2`

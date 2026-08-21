@@ -14,7 +14,7 @@ opinion about.
 
 Under the hood the patient interaction rides the W3C Digital Credentials API
 (direct `org-iso-mdoc`, per the [SMART Health Check-in 1.0 draft
-spec](https://jmandel.github.io/smart-health-checkin-mdoc/spec.html)) — CBOR,
+spec](https://joshuamandel.com/smart-health-checkin-mdoc/spec.html)) — CBOR,
 COSE, HPKE, MSO digests and all. The kit exists so integrators never touch
 that plumbing.
 

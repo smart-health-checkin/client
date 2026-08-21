@@ -18,6 +18,9 @@ mv _site/index.js _site/kit.js
 bun build src/fhir/index.ts --outdir _site --format esm --minify
 mv _site/index.js _site/fhir.js
 touch _site/.nojekyll
+# Custom domain: create site/CNAME (one line: the domain) once DNS points at
+# GitHub Pages. Until then the site stays on the *.github.io URL.
+[ -f site/CNAME ] && cp site/CNAME _site/CNAME
 
 echo "Built _site/:"
 find _site -type f | sort
