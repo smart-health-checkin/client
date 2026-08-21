@@ -38,6 +38,9 @@ export const CHROME_CSS = `
   .site-footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
   .site-footer li a { color: var(--ink); text-decoration: none; font-size: 0.88rem; }
   .site-footer li a:hover { color: var(--accent); text-decoration: underline; }
+  .site-footer.shallow { margin-top: 2.5rem; }
+  .site-footer.shallow .site-footer-inner { padding: 1rem 1.25rem 1.25rem; }
+  .site-footer.shallow .site-footer-base { margin-top: 0; padding-top: 0; border-top: none; }
   .site-footer-base {
     margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--line);
     display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: baseline;
@@ -92,6 +95,21 @@ ${columns}
     <div class="site-footer-base">
       <span><strong>SMART Health Check-in</strong> — an open protocol and reference implementation for pre-visit check-in.</span>
       <span>Apache-2.0 · issues and contributions welcome</span>
+    </div>
+  </div>
+</div>`;
+}
+
+/**
+ * A one-line footer for the demo apps. They're applications, not
+ * documentation — a five-column site map under a check-in form is noise.
+ */
+export function shallowFooter(): string {
+  return `<div class="site-footer shallow">
+  <div class="site-footer-inner">
+    <div class="site-footer-base">
+      <span><strong>SMART Health Check-in</strong> — this is a demo, with fabricated data.</span>
+      <span><a href="/docs/">Docs</a> · <a href="/spec/">Spec</a> · <a href="/">About</a></span>
     </div>
   </div>
 </div>`;

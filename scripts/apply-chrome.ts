@@ -1,6 +1,6 @@
 /** Injects the shared site header/footer into pages built outside render-docs. */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { CHROME_CSS, footer, header, wrapVendored, type Section } from "./site-chrome.ts";
+import { CHROME_CSS, footer, header, shallowFooter, wrapVendored, type Section } from "./site-chrome.ts";
 
 // Landing page: full chrome, styled inline with its own tokens.
 const landing = "_site/index.html";
@@ -16,15 +16,16 @@ if (existsSync(landing)) {
   console.log("chrome: landing");
 }
 
-// Demo pages keep their in-character look and their DEMO strip, but end with
-// the same deep footer so they're never a dead end.
+// Demo pages keep their in-character look and their DEMO strip, and get a
+// one-line footer — the site map belongs on docs pages, not under a form.
 for (const path of ["_site/demo/index.html", "_site/demo/autofill.html", "_site/demo/react.html"]) {
   if (!existsSync(path)) continue;
   let html = readFileSync(path, "utf8");
   if (html.includes("site-footer")) continue;
   html = html
     .replace("</style>", `${CHROME_CSS}\n</style>`)
-    .replace(/<\/body>/, `${footer()}\n</body>`);
+    .replace(/<body>\s*/, `<body>\n${header("demo")}\n`)
+    .replace(/<\/body>/, `${shallowFooter()}\n</body>`);
   writeFileSync(path, html);
   console.log("chrome:", path.replace("_site/", ""));
 }
