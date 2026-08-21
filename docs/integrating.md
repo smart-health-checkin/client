@@ -8,7 +8,7 @@ server. This guide adds a working SMART Health Check-in flow to that page.
 ```html
 <script type="module">
   import { requestCheckin }
-    from "https://smart-health-checkin.github.io/checkin-provider-kit/kit.js";
+    from "https://smart-health-checkin.org/kit.js";
   // (bundler users: import from the kit source or a vendored build instead)
 
   const response = await requestCheckin({
@@ -53,7 +53,7 @@ entirely:
 ```html
 <script type="module">
   import { requestCheckin, CheckinFlowError }
-    from "https://smart-health-checkin.github.io/checkin-provider-kit/kit.js";
+    from "https://smart-health-checkin.org/kit.js";
   // (bundler users: import from the kit source / a vendored build instead)
 
   try {
@@ -84,7 +84,7 @@ complete `SmartCheckinRequest`, or a registered scenario name.
 
 One await, one validated `SmartCheckinResponse`, no side effects — your code
 decides what to render and what to submit. The
-[allergy-review example](https://smart-health-checkin.github.io/checkin-provider-kit/demo/autofill.html#wallet=app)
+[allergy-review example](https://smart-health-checkin.org/demo/autofill.html#wallet=app)
 shows the full pattern: request US Core allergy data, render each allergy as
 a form row, and let the patient confirm/annotate before anything is sent.
 
@@ -149,7 +149,7 @@ Bundle without sending it.
 The core is a plain async function, so bindings are thin:
 
 - React: [`use-checkin.ts`](../demo/src/frameworks/use-checkin.ts) — a ~25-line
-  hook; live at [`/demo/react.html`](https://smart-health-checkin.github.io/checkin-provider-kit/demo/react.html).
+  hook; live at [`/demo/react.html`](https://smart-health-checkin.org/demo/react.html).
 - Angular: [`checkin.service.ts`](../demo/src/frameworks/checkin.service.ts) —
   the same wrapper with signals, ready to drop into an Angular app.
 

@@ -27,8 +27,8 @@ that plumbing.
 > runs end-to-end today (a built-in mock wallet answers with real
 > CBOR/COSE/HPKE when no phone is present). See [Roadmap](#roadmap).
 
-- Landing page: `https://smart-health-checkin.github.io/checkin-provider-kit/`
-- Live demo: `https://smart-health-checkin.github.io/checkin-provider-kit/demo/`
+- Landing page: `https://smart-health-checkin.org/`
+- Live demo: `https://smart-health-checkin.org/demo/`
 
 ## API
 
