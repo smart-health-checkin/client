@@ -7,6 +7,7 @@
  */
 
 import { marked } from "marked";
+import { createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, anchorFor } from "./api-index.ts";
@@ -36,6 +37,15 @@ const DOCS_STYLE = `
   code { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:0.88em; background:var(--code-bg); padding:0.1em 0.35em; border-radius:4px; }
   pre { background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:0.9rem 1.1rem; overflow-x:auto; }
   pre code { background:none; padding:0; font-size:0.82rem; line-height:1.55; }
+  /* Shiki emits both palettes as custom properties; pick one per scheme. */
+  pre.shiki, pre.shiki span { color: var(--shiki-light); background-color: transparent; }
+  pre.shiki { background: var(--code-bg) !important; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) pre.shiki,
+    :root:not([data-theme="light"]) pre.shiki span { color: var(--shiki-dark); }
+  }
+  :root[data-theme="dark"] pre.shiki, :root[data-theme="dark"] pre.shiki span { color: var(--shiki-dark); }
+  pre.shiki code { display:block; font-size:0.82rem; line-height:1.55; }
   table { width:100%; border-collapse:collapse; margin:0.8rem 0; font-size:0.92rem; display:block; overflow-x:auto; }
   th, td { text-align:left; padding:0.45rem 0.6rem; border-bottom:1px solid var(--line); vertical-align:top; }
   blockquote { margin:0.8rem 0; padding:0.3rem 1rem; border-left:3px solid var(--accent); color:var(--muted); }
@@ -96,6 +106,38 @@ function rewriteLinks(html: string): string {
     .replace(/href="\.\.\/([a-z-]+)\.md"/g, 'href="/docs/$1.html"')
     .replace(/href="([a-z-]+)\.md"/g, 'href="/docs/$1.html"');
 }
+
+// Build-time syntax highlighting: dual-theme CSS variables, so the page
+// follows the reader's light/dark preference with no client-side JS.
+const highlighter = await createHighlighter({
+  themes: ["github-light", "github-dark"],
+  langs: ["ts", "js", "tsx", "json", "html", "bash", "sh", "text"],
+});
+
+const LANG_ALIASES: Record<string, string> = {
+  javascript: "js",
+  typescript: "ts",
+  shell: "bash",
+  sh: "bash",
+  console: "bash",
+  jsonc: "json",
+  "": "text",
+};
+
+marked.use({
+  renderer: {
+    code({ text, lang }: { text: string; lang?: string }): string {
+      const requested = (lang ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
+      const resolved = LANG_ALIASES[requested] ?? requested;
+      const supported = highlighter.getLoadedLanguages().includes(resolved) ? resolved : "text";
+      return highlighter.codeToHtml(text, {
+        lang: supported,
+        themes: { light: "github-light", dark: "github-dark" },
+        defaultColor: false,
+      });
+    },
+  },
+});
 
 const render = (md: string): string => rewriteLinks(marked.parse(md) as string);
 
