@@ -20,8 +20,22 @@ export {
 export {
   createMockWalletCredentialGetter,
   fabricateResponse,
+  parseWalletRequest,
+  sealWalletResponse,
   type MockWalletOptions,
+  type ParsedWalletRequest,
 } from "./kit/mock-wallet.ts";
+
+export {
+  createWebWalletCredentialGetter,
+  WalletDeclinedError,
+  WEB_WALLET_READY_MESSAGE_TYPE,
+  WEB_WALLET_REQUEST_MESSAGE_TYPE,
+  WEB_WALLET_RESPONSE_MESSAGE_TYPE,
+  type WebWalletCredential,
+  type WebWalletOptions,
+  type WebWalletResponseMessage,
+} from "./kit/web-wallet.ts";
 
 export {
   validateResponseAgainstRequest,
@@ -56,4 +70,3 @@ export {
   type WritePlan,
 } from "./submit/index.ts";
 
-export { SmartCheckinElement, defineSmartCheckin } from "./kit/element.ts";

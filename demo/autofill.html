@@ -54,12 +54,22 @@
     border: 1px solid var(--accent); color: var(--accent); margin-left: auto; white-space: nowrap;
   }
   .badge.high { border-color: var(--danger); color: var(--danger); }
-  .review-row { display: flex; gap: 0.6rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .review-row { display: flex; gap: 0.6rem; margin-top: 0.6rem; flex-wrap: wrap; align-items: center; }
   .review-row select, .review-row input {
     font: inherit; font-size: 0.9rem; padding: 0.35rem 0.6rem;
     border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
   }
   .review-row input { flex: 1; min-width: 12rem; }
+  .field-label { font-size: 0.78rem; color: var(--muted); width: 100%; margin-top: 0.55rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    font-size: 0.82rem; padding: 0.25rem 0.65rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: none; color: var(--ink); user-select: none;
+  }
+  .tag[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .tag[aria-pressed="true"][data-severe="1"] { border-color: var(--danger); color: var(--danger); }
+  .row-removed { opacity: 0.55; }
+  .row-removed .tags, .row-removed input { display: none; }
   pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem; overflow-x: auto; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; line-height: 1.5; }
   .muted { color: var(--muted); }
   a { color: var(--accent); }
@@ -77,7 +87,9 @@
     <p class="sub">
       This page plays the <em>provider's</em> data-collection app. Instead of
       asking you to type your allergy list from memory, it asks your health
-      app for it — one tap, like autofill — and you review what came back.
+      app for it — one tap, like autofill — then you review, correct, and add
+      the detail only you know: which symptoms each allergen causes, and how
+      bad they get.
     </p>
   </header>
 
@@ -89,7 +101,10 @@
   <section class="card" id="review-card" hidden>
     <h2 style="font-size:1.05rem; margin:0 0 0.25rem">Your allergy list <span class="muted" style="font-weight:400; font-size:0.85rem">— prefilled from your app</span></h2>
     <ul class="allergies" id="allergy-list"></ul>
-    <button id="send" class="ghost" style="margin-top:1rem">Send review to care team</button>
+    <div class="review-row" style="margin-top:1rem">
+      <button id="add-allergy" class="ghost" style="flex:0 0 auto">+ Add one we missed</button>
+      <button id="send" class="primary" style="flex:0 0 auto">Finalize and send</button>
+    </div>
   </section>
 
   <section class="card" id="sent-card" hidden>

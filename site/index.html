@@ -104,6 +104,14 @@
     margin: 0;
   }
   code { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .snippet { position: relative; }
+  .snippet .copy-btn {
+    position: absolute; top: 0.5rem; right: 0.6rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.75rem;
+    padding: 0.15rem 0.5rem; border: 1px solid var(--line); border-radius: 5px;
+    background: var(--surface); color: var(--accent); cursor: pointer;
+  }
+  .snippet .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   p { margin: 0.4rem 0; }
   .status {
     border-left: 3px solid var(--accent);
@@ -137,39 +145,46 @@
   <section>
     <h2>How a check-in runs</h2>
     <figure>
-      <svg viewBox="0 0 640 70" role="img" aria-label="Five steps: configure, launch, receive, submit, return — request and response both live on the provider surface; submission posts to your FHIR server.">
+      <svg viewBox="0 0 640 168" role="img" aria-label="Ask, then await: your page builds a request, the patient's wallet answers, and the awaited response lands back in your code — from which you can prefill forms, submit FHIR, take payment, or continue anywhere, in any order.">
         <defs>
           <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
           </marker>
         </defs>
+
+        <!-- ask -->
         <g fill="none" stroke="currentColor" stroke-width="1.2">
-          <rect x="4"   y="18" width="104" height="34" rx="6"/>
-          <rect x="136" y="18" width="104" height="34" rx="6"/>
-          <rect x="268" y="18" width="104" height="34" rx="6"/>
-          <rect x="400" y="18" width="104" height="34" rx="6"/>
-          <rect x="532" y="18" width="104" height="34" rx="6"/>
-          <line x1="108" y1="35" x2="130" y2="35" marker-end="url(#arr)"/>
-          <line x1="240" y1="35" x2="262" y2="35" marker-end="url(#arr)"/>
-          <line x1="372" y1="35" x2="394" y2="35" marker-end="url(#arr)"/>
-          <line x1="504" y1="35" x2="526" y2="35" marker-end="url(#arr)"/>
+          <rect x="4" y="20" width="150" height="38" rx="6"/>
+          <rect x="245" y="20" width="150" height="38" rx="6"/>
+          <line x1="154" y1="39" x2="239" y2="39" marker-end="url(#arr)"/>
+          <line x1="395" y1="39" x2="470" y2="39" marker-end="url(#arr)"/>
+          <path d="M470 39 H 560 V 78" marker-end="url(#arr)"/>
         </g>
         <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="12" text-anchor="middle">
-          <text x="56"  y="39">configure</text>
-          <text x="188" y="39">launch</text>
-          <text x="320" y="39">receive</text>
-          <text x="452" y="39">submit</text>
-          <text x="584" y="39">return</text>
+          <text x="79" y="43">your page asks</text>
+          <text x="320" y="43">wallet answers</text>
         </g>
         <g fill="currentColor" font-family="IBM Plex Sans, sans-serif" font-size="10" text-anchor="middle" opacity="0.65">
-          <text x="188" y="64">patient's wallet</text>
-          <text x="452" y="64">your FHIR server</text>
-          <text x="584" y="64">your workflow</text>
+          <text x="79" y="72">a check-in request</text>
+          <text x="320" y="72">patient consents per item</text>
+        </g>
+
+        <!-- the awaited response lands back in your code -->
+        <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 3">
+          <rect x="4" y="88" width="632" height="70" rx="8"/>
+        </g>
+        <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="12">
+          <text x="20" y="110">await → you have the data, in your own code</text>
+        </g>
+        <g fill="currentColor" font-family="IBM Plex Sans, sans-serif" font-size="10.5" opacity="0.75">
+          <text x="20" y="132">prefill your forms · write FHIR · take payment · ask follow-ups · route the patient</text>
+          <text x="20" y="148">…whatever your workflow needs, whenever it needs it — you never left your page.</text>
         </g>
       </svg>
       <figcaption>
-        The request starts and the response lands on the same provider-controlled
-        page — a closed loop, so the patient is never stranded outside your workflow.
+        Two steps, then you're back in your own code with the response in hand.
+        Everything after that — prefilling forms, writing FHIR, payment, next
+        screens — is ordinary application logic, in whatever order you want.
       </figcaption>
     </figure>
   </section>
@@ -187,12 +202,17 @@
       in the <em>Developer detail</em> section.
     </p>
     <ul>
-      <li><strong>No wallet-equipped phone?</strong> Add <code>mock=1</code>
-        to the URL fragment — a built-in mock wallet answers with fabricated
-        demo data over the real CBOR/COSE/HPKE pipeline:
-        <a href="./demo/#mock=1&amp;submit=dry-run"><code>demo/#mock=1&amp;submit=dry-run</code></a></li>
+      <li><strong>No wallet-equipped phone?</strong> Switch the
+        <em>responder</em> in the demo bar to <strong>demo wallet app</strong>
+        — a wallet window opens with a real consent screen where you choose
+        what to share:
+        <a href="./demo/#wallet=app">demo/#wallet=app</a>. There's also an
+        <em>automatic mock</em> that answers instantly with no consent screen,
+        for scripted testing:
+        <a href="./demo/#wallet=auto&amp;submit=dry-run">demo/#wallet=auto&amp;submit=dry-run</a>.
+        Both run the real CBOR/COSE/HPKE pipeline over fabricated records.</li>
       <li><strong>The autofill pattern:</strong> the
-        <a href="./demo/autofill.html#mock=1">allergy-review example</a> shows a
+        <a href="./demo/autofill.html#wallet=app">allergy-review example</a> shows a
         provider form literally prefilled from the patient's app — request
         USCDI data, populate the form inline, let the patient annotate.</li>
       <li><strong>Everything is a URL.</strong> The whole configuration —
@@ -233,24 +253,20 @@
   });
   // response.artifacts → prefill your intake form inline
 &lt;/script&gt;</code></pre>
-    <p><strong>2. Drop-in element: collect and submit to your FHIR
-      server.</strong> The element launches the flow, verifies the response,
-      POSTs a transaction Bundle (with Provenance) to your server, and sends
-      the patient to your next step. Define your request with
-      <code>registerScenario(...)</code> or a <code>request-json</code>
-      attribute:</p>
-<pre><code>&lt;script type="module"&gt;
-  import { registerScenario }
-    from "<span class="computed-url" data-file="./element.js"></span>";
-  registerScenario("visit-prep", { purpose: "…", items: [ /* … */ ] });
-&lt;/script&gt;
+    <p><strong>2. Or have the kit write the FHIR for you.</strong> Same flow,
+      one extra option: the kit maps the response to a transaction Bundle
+      (with a Provenance marking it patient-supplied) and POSTs it to the
+      server you name. You still get the outcome back and decide where the
+      patient goes next:</p>
+<pre><code>import { runCheckin } from "<span class="computed-url" data-file="./kit.js"></span>";
 
-&lt;smart-checkin
-  scenario="visit-prep"
-  patient="Patient/123"
-  fhir-base="https://your-fhir-server.example.org/r4"
-  return-url="/checkin/payment"&gt;
-&lt;/smart-checkin&gt;</code></pre>
+const outcome = await runCheckin({
+  request: { request: myRequest },
+  context: { patient: "Patient/123", appointment: "Appointment/456" },
+  submit:  { fhirBase: "https://your-fhir-server.example.org/r4" },
+});
+
+if (outcome.status === "completed") location.assign("/checkin/payment");</code></pre>
     <p>
       The full walkthrough — attributes, events, the JS API, auth wiring,
       and the production checklist — is in the
@@ -272,6 +288,23 @@
 <script>
   for (const span of document.querySelectorAll(".computed-url")) {
     span.textContent = new URL(span.dataset.file, location.href).href;
+  }
+  for (const pre of document.querySelectorAll("pre")) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "snippet";
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.append(pre);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "copy-btn";
+    button.textContent = "copy";
+    button.addEventListener("click", () => {
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        button.textContent = "copied";
+        setTimeout(() => (button.textContent = "copy"), 1200);
+      });
+    });
+    wrapper.append(button);
   }
 </script>
 </body>

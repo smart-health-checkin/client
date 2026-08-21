@@ -8,11 +8,9 @@ mkdir -p _site/demo
 
 cp site/index.html _site/index.html
 cp demo/index.html _site/demo/index.html
-cp demo/embed.html _site/demo/embed.html
+cp demo/wallet.html _site/demo/wallet.html
 cp demo/autofill.html _site/demo/autofill.html
-bun build demo/src/main.ts demo/src/embed.ts demo/src/autofill.ts --outdir _site/demo --format esm --minify
-bun build src/element-register.ts --outdir _site --format esm --minify
-mv _site/element-register.js _site/element.js
+bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts --outdir _site/demo --format esm --minify
 bun build src/index.ts --outdir _site --format esm --minify
 mv _site/index.js _site/kit.js
 touch _site/.nojekyll

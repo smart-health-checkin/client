@@ -42,47 +42,24 @@ describe("runCheckin", () => {
             title: "Allergies and intolerances",
             content: {
               kind: "selection.fhir",
-              profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+              profiles: [
+                "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
+              ],
             },
             accept: ["application/fhir+json"],
           },
         ],
       },
-      { authority: localAuthority(), mock: true },
-    ).catch(async () => {
-      // node/bun has no `location`; drive through runCheckin's hooks instead
-      const { runCheckin: run, buildRequest } = await import("./index.ts");
-      const outcome = await run(
-        {
-          request: {
-            request: buildRequest({
-              purpose: "Allergy review",
-              items: [
-                {
-                  id: "allergies",
-                  title: "Allergies and intolerances",
-                  content: {
-                    kind: "selection.fhir",
-                    profiles: [
-                      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
-                    ],
-                  },
-                  accept: ["application/fhir+json"],
-                },
-              ],
-            }),
-          },
-          authority: localAuthority(),
-        },
-        { getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }) },
-      );
-      if (outcome.status !== "completed" || !outcome.response) throw new Error(outcome.status);
-      return outcome.response;
-    });
-    const artifact = response.artifacts[0] as { value: { entry: Array<{ resource: { resourceType: string } }> } };
+      {
+        authority: localAuthority(),
+        getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }),
+      },
+    );
+    const artifact = response.artifacts[0] as {
+      value: { entry: Array<{ resource: { resourceType: string } }> };
+    };
     expect(artifact.value.entry[0]!.resource.resourceType).toBe("AllergyIntolerance");
-    const statuses = response.requestStatus.map((s) => s.item);
-    expect(statuses).toEqual(["allergies"]);
+    expect(response.requestStatus.map((s) => s.item)).toEqual(["allergies"]);
   });
 
   test("registerScenario makes a custom name usable", async () => {

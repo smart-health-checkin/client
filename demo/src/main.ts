@@ -11,6 +11,7 @@
 import {
   SCENARIOS,
   createMockWalletCredentialGetter,
+  createWebWalletCredentialGetter,
   createBrowserLocalAuthority,
   detectDcApiSupport,
   runCheckin,
@@ -22,6 +23,10 @@ import {
 const DEFAULT_FHIR_BASE = "https://hapi.fhir.org/baseR4";
 const KNOWN_OPEN_SERVERS = [DEFAULT_FHIR_BASE];
 const DEFAULT_SCENARIO = "insurance-only";
+/** The demo is bound to a fictional patient on the public test server. */
+const DEMO_PATIENT = "Patient/example";
+const DEMO_PATIENT_NAME = "Jordan Reyes (demo)";
+const DEMO_APPOINTMENT = "Appointment/demo-visit";
 
 function parseFragment(): URLSearchParams {
   return new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -36,16 +41,44 @@ function decodeRequestParam(value: string): SmartCheckinRequest | null {
   }
 }
 
+/**
+ * Which responder answers the request:
+ * - "platform": the browser's Digital Credentials API (a real wallet)
+ * - "app": the demo wallet **web app** in a popup — a real consent screen
+ * - "auto": non-interactive mock; answers instantly with fabricated data
+ */
+type WalletMode = "platform" | "app" | "auto";
+
 type Resolved = {
   config: CheckinConfig;
   /** The exact SMART request that will ride in the wallet request. */
   request: SmartCheckinRequest;
   scenarioKey: string | null;
   passthrough: boolean;
-  mock: boolean;
+  wallet: WalletMode;
   fhirBase: string;
   returnUrl?: string;
 };
+
+function resolveWalletMode(params: URLSearchParams): WalletMode {
+  const wallet = params.get("wallet");
+  if (wallet === "app" || wallet === "auto" || wallet === "platform") return wallet;
+  // back-compat: mock=1 meant the non-interactive mock
+  const mock = params.get("mock");
+  if (mock === "app") return "app";
+  if (mock === "1" || mock === "auto") return "auto";
+  return "platform";
+}
+
+function credentialHooks(wallet: WalletMode): { getCredential?: (o: unknown) => Promise<unknown> } {
+  if (wallet === "app") {
+    return { getCredential: createWebWalletCredentialGetter({ walletUrl: "./wallet.html" }) };
+  }
+  if (wallet === "auto") {
+    return { getCredential: createMockWalletCredentialGetter({ origin: location.origin }) };
+  }
+  return {};
+}
 
 function resolveConfig(params: URLSearchParams): Resolved {
   const rawRequest = params.get("request");
@@ -59,11 +92,16 @@ function resolveConfig(params: URLSearchParams): Resolved {
   const submitMode = params.get("submit");
   const fhirBase = params.get("fhir") ?? DEFAULT_FHIR_BASE;
   const returnUrl = params.get("returnUrl") ?? undefined;
+  const request = passthroughRequest ?? SCENARIOS[scenarioKey!]!.request;
+  const patient = params.get("patient") ?? DEMO_PATIENT;
+  const appointment = params.get("appointment") ?? DEMO_APPOINTMENT;
+  // The config shown to developers carries the request itself — a scenario is
+  // just how this demo page picks one, never something an integrator writes.
   const config: CheckinConfig = {
-    request: passthroughRequest ? { request: passthroughRequest } : { scenario: scenarioKey! },
+    request: { request },
     context: {
-      ...(params.get("patient") ? { patient: params.get("patient")! } : {}),
-      ...(params.get("appointment") ? { appointment: params.get("appointment")! } : {}),
+      ...(patient ? { patient } : {}),
+      ...(appointment ? { appointment } : {}),
     },
     submit: {
       fhirBase,
@@ -73,10 +111,10 @@ function resolveConfig(params: URLSearchParams): Resolved {
   };
   return {
     config,
-    request: passthroughRequest ?? SCENARIOS[scenarioKey!]!.request,
+    request,
     scenarioKey,
     passthrough: passthroughRequest !== null,
-    mock: params.get("mock") === "1",
+    wallet: resolveWalletMode(params),
     fhirBase,
     returnUrl,
   };
@@ -93,6 +131,20 @@ function setDevView(view: string, value: unknown, preId: string): void {
   el(preId).textContent = json;
 }
 
+for (const button of document.querySelectorAll<HTMLButtonElement>(".copy-btn")) {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const json = devViews.get(button.dataset.copy!);
+    if (!json) return;
+    void navigator.clipboard.writeText(json).then(() => {
+      const original = button.textContent;
+      button.textContent = "copied";
+      setTimeout(() => (button.textContent = original), 1200);
+    });
+  });
+}
+
 for (const button of document.querySelectorAll<HTMLButtonElement>(".open-tab")) {
   button.addEventListener("click", (event) => {
     event.preventDefault();
@@ -106,7 +158,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(".open-tab")) 
 
 function render(): void {
   const resolved = resolveConfig(parseFragment());
-  const { config, request, scenarioKey, passthrough, mock, fhirBase } = resolved;
+  const { config, request, scenarioKey, passthrough, wallet, fhirBase } = resolved;
 
   // demo bar: scenario dropdown
   const select = el("scenario-select") as HTMLSelectElement;
@@ -136,7 +188,32 @@ function render(): void {
     params.delete("request");
     location.hash = `#${params.toString()}`;
   };
-  el("demo-note").textContent = mock ? "· mock wallet on" : "";
+  const setParam = (key: string, value: string, dropWhen?: string): void => {
+    const params = parseFragment();
+    if (!value || value === dropWhen) params.delete(key);
+    else params.set(key, value);
+    if (key === "wallet") params.delete("mock");
+    location.hash = `#${params.toString()}`;
+  };
+
+  const walletSelect = el("wallet-select") as HTMLSelectElement;
+  walletSelect.value = wallet;
+  walletSelect.onchange = () => setParam("wallet", walletSelect.value, "platform");
+
+  const submitSelect = el("submit-select") as HTMLSelectElement;
+  submitSelect.value = config.submit?.mode ?? "transaction";
+  submitSelect.onchange = () => setParam("submit", submitSelect.value, "transaction");
+
+  const bindInput = (id: string, key: string, current: string, fallback: string): void => {
+    const input = el(id) as HTMLInputElement;
+    input.value = current;
+    input.placeholder = fallback;
+    input.onchange = () => setParam(key, input.value.trim(), fallback);
+  };
+  bindInput("patient-input", "patient", config.context?.patient ?? "", DEMO_PATIENT);
+  bindInput("appointment-input", "appointment", config.context?.appointment ?? "", DEMO_APPOINTMENT);
+  bindInput("fhir-input", "fhir", fhirBase, DEFAULT_FHIR_BASE);
+  bindInput("return-input", "returnUrl", resolved.returnUrl ?? "", "");
 
   // visit context
   const context: string[] = [];
@@ -149,7 +226,11 @@ function render(): void {
     span.append(`${label} `, b);
     contextEl.append(span);
   };
-  addContext("Patient:", config.context?.patient ?? "not linked");
+  const patientRef = config.context?.patient;
+  addContext(
+    "Patient:",
+    patientRef === DEMO_PATIENT ? `${DEMO_PATIENT_NAME} · ${patientRef}` : patientRef ?? "not linked",
+  );
   addContext("Appointment:", config.context?.appointment ?? "upcoming visit");
   addContext("Records destination:", (() => {
     try { return new URL(fhirBase).host; } catch { return fhirBase; }
@@ -213,16 +294,20 @@ function render(): void {
   const updateStart = (): void => {
     start.disabled = running || (!knownServer && !ack.checked);
   };
-  if (mock) {
+  if (wallet === "app") {
     statusNote.textContent =
-      "Mock wallet mode: the request is answered locally with fabricated demo data (real CBOR/COSE/HPKE) — no phone needed.";
+      "Demo wallet app: the request opens in a wallet window where you choose what to share. Real CBOR/COSE/HPKE, fabricated demo records — no phone needed.";
+    updateStart();
+  } else if (wallet === "auto") {
+    statusNote.textContent =
+      "Automatic mock wallet: the request is answered instantly with fabricated demo data, no consent screen. Useful for scripted testing.";
     updateStart();
   } else if (support.state === "supported") {
     statusNote.textContent =
-      "Your browser supports the Digital Credentials API — a health app on this device can answer. (Developers: add mock=1 to the URL to use the built-in mock wallet.)";
+      "Your browser supports the Digital Credentials API — a health app on this device can answer. No wallet on this device? Switch the responder to \"demo wallet app\" above.";
     updateStart();
   } else {
-    statusNote.textContent = `Digital Credentials API not available here (${support.reason}). Add mock=1 to the URL fragment to run the flow with the built-in mock wallet.`;
+    statusNote.textContent = `Digital Credentials API not available here (${support.reason}). Switch the responder to "demo wallet app" above to run the flow anyway.`;
     start.disabled = true;
   }
   ack.onchange = updateStart;
@@ -245,9 +330,7 @@ async function startCheckin(resolved: Resolved): Promise<void> {
         ...resolved.config,
         authority: createBrowserLocalAuthority({ origin: location.origin }),
       },
-      resolved.mock
-        ? { getCredential: createMockWalletCredentialGetter({ origin: location.origin }) }
-        : {},
+      credentialHooks(resolved.wallet),
     );
     renderOutcome(outcome, resolved);
   } catch (e) {

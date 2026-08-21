@@ -19,7 +19,6 @@ import {
 } from "../browser/index.ts";
 import { buildWritePlan, executeWritePlan, type FetchLike } from "../submit/index.ts";
 import { buildRequest, resolveScenario, type CheckinRequestInit } from "./scenarios.ts";
-import { createMockWalletCredentialGetter } from "./mock-wallet.ts";
 import type { CheckinConfig, CheckinOutcome } from "./types.ts";
 import type { SmartCheckinResponse } from "../model/index.ts";
 
@@ -201,8 +200,11 @@ export class CheckinFlowError extends Error {
 
 export type RequestCheckinOptions = {
   authority?: CheckinConfig["authority"];
-  /** Demo/testing only: answer with the built-in mock wallet. */
-  mock?: boolean;
+  /**
+   * Override the mediator. Defaults to the platform Digital Credentials API;
+   * pass a web-wallet or mock getter to run without a platform wallet.
+   */
+  getCredential?: RunCheckinHooks["getCredential"];
 };
 
 export async function requestCheckin(
@@ -219,8 +221,8 @@ export async function requestCheckin(
     request: "type" in resolved ? { request: resolved } : { scenario: resolved.scenario },
     ...(options.authority ? { authority: options.authority } : {}),
   };
-  const hooks: RunCheckinHooks = options.mock
-    ? { getCredential: createMockWalletCredentialGetter({ origin: location.origin }) }
+  const hooks: RunCheckinHooks = options.getCredential
+    ? { getCredential: options.getCredential }
     : {};
   const outcome = await runCheckin(config, hooks);
   if (outcome.status !== "completed" || !outcome.response) {

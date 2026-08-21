@@ -3,15 +3,15 @@
 You have a portal page (or any provider-controlled web page) and a FHIR
 server. This guide adds a working SMART Health Check-in flow to that page.
 
-## 1. Drop in the element
+## 1. Ask, then use the answer
 
 ```html
 <script type="module">
-  import { registerScenario }
-    from "https://smart-health-checkin.github.io/checkin-provider-kit/element.js";
+  import { requestCheckin }
+    from "https://smart-health-checkin.github.io/checkin-provider-kit/kit.js";
+  // (bundler users: import from the kit source or a vendored build instead)
 
-  // your request, defined by your code (type/version/id are filled in)
-  registerScenario("visit-prep", {
+  const response = await requestCheckin({
     purpose: "Before your visit",
     items: [{
       id: "summary", title: "Clinical summary",
@@ -19,48 +19,28 @@ server. This guide adds a working SMART Health Check-in flow to that page.
       accept: ["application/fhir+json"],
     }],
   });
+  // response.artifacts → your code decides what happens next
 </script>
-
-<smart-checkin
-  scenario="visit-prep"
-  patient="Patient/123"
-  appointment="Appointment/456"
-  fhir-base="https://your-fhir-server.example.org/r4"
-  return-url="/checkin/payment"
-  label="Share from your health app">
-</smart-checkin>
 ```
 
-That's the whole integration: the element renders a button, launches the
-Digital Credentials API request, receives and cryptographically verifies the
-wallet's response on your page, POSTs a FHIR transaction Bundle (with a
-Provenance resource) to `fhir-base`, and then sends the patient to
-`return-url` — your workflow keeps going.
+That is the whole integration. The kit builds the request, invokes the
+patient's wallet through the browser, cryptographically verifies what comes
+back, cross-checks it against what you asked for, and hands you a validated
+`SmartCheckinResponse` — on your page, in your code. Nothing is submitted
+anywhere unless you ask for it (§3).
 
-> The hosted `element.js` is for experimentation. For anything real, vendor a
-> pinned copy (build it from this repo with `bun build src/element-register.ts`)
-> so you control what runs on your page.
+> The hosted `kit.js` is for experimentation. For anything real, vendor a
+> pinned build (`bun build src/index.ts`) so you control what runs on your
+> page.
 
-Attributes:
-
-| Attribute | Meaning |
-| --- | --- |
-| `scenario` | A request name registered via `registerScenario(...)` (the kit also ships a few demo templates). |
-| `request-json` | The request as JSON, inline (overrides `scenario`); may omit `type`/`version`/`id`, which the kit fills in. |
-| `patient`, `appointment` | FHIR references on your server; stamped into Provenance. |
-| `fhir-base` | Where to submit. Omit for a display-only flow. |
-| `submit-mode` | `transaction` (default) \| `individual` \| `dry-run`. |
-| `return-url` | Closed-loop return leg after completion. |
-| `label` | Button text. |
-| `mock` | Demo only: answer with the built-in mock wallet instead of a real one. |
-
-Listen for the outcome (dispatched before any navigation; call
-`event.preventDefault()` to keep control of routing):
+**Running without a platform wallet.** Pass a different mediator via
+`getCredential` — the demo ships a wallet *web app* (a popup with a real
+consent screen) and a non-interactive mock:
 
 ```js
-document.addEventListener("checkin-complete", (event) => {
-  const outcome = event.detail; // CheckinOutcome
-  if (outcome.status === "completed") { /* … */ }
+import { createWebWalletCredentialGetter } from ".../kit.js";
+await requestCheckin(myRequest, {
+  getCredential: createWebWalletCredentialGetter({ walletUrl: "/wallet.html" }),
 });
 ```
 
@@ -104,21 +84,22 @@ complete `SmartCheckinRequest`, or a registered scenario name.
 
 One await, one validated `SmartCheckinResponse`, no side effects — your code
 decides what to render and what to submit. The
-[allergy-review example](https://smart-health-checkin.github.io/checkin-provider-kit/demo/autofill.html#mock=1)
+[allergy-review example](https://smart-health-checkin.github.io/checkin-provider-kit/demo/autofill.html#wallet=app)
 shows the full pattern: request US Core allergy data, render each allergy as
 a form row, and let the patient confirm/annotate before anything is sent.
 
-## 3. Or use the full JS API
+## 3. Or let the kit write the FHIR
 
 ```ts
-import { runCheckin } from "@smart-health-checkin/provider-kit";
+import { runCheckin } from ".../kit.js";
 
 const outcome = await runCheckin({
-  request:  { scenario: "phq2-dayof" },        // or { request: {...} }
-  context:  { patient: "Patient/123" },
-  submit:   { fhirBase: "https://your-fhir-server.example.org/r4" },
-  complete: { returnUrl: "/checkin/payment" },
+  request: { request: myRequest },            // or { scenario: "registered-name" }
+  context: { patient: "Patient/123", appointment: "Appointment/456" },
+  submit:  { fhirBase: "https://your-fhir-server.example.org/r4" },
 });
+
+if (outcome.status === "completed") location.assign("/checkin/payment");
 ```
 
 `outcome.status` is `completed | declined | unsupported | error`;
@@ -136,8 +117,9 @@ them patient-supplied (with the check-in request id and your configured
 patient/appointment context). Your FHIR API stays your single front door.
 
 Wire your own auth by fetching with your session credentials: pass a custom
-`fetchImpl` via `runCheckin(config, { fetchImpl })`, or do the POST yourself
-from the `checkin-complete` event using `buildWritePlan(...)`.
+`fetchImpl` via `runCheckin(config, { fetchImpl })`, or skip `submit`
+entirely and do the POST yourself — `buildWritePlan(...)` gives you the
+Bundle without sending it.
 
 ## 5. Production checklist (yours, not the kit's)
 

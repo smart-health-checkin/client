@@ -46,30 +46,60 @@ export type MockWalletOptions = {
  */
 export function createMockWalletCredentialGetter(options: MockWalletOptions) {
   return async (navigatorArgument: unknown): Promise<unknown> => {
-    const data = extractRequestData(navigatorArgument);
-    const deviceRequestBytes = base64UrlDecodeBytes(data.deviceRequest);
-    const encryptionInfoBytes = base64UrlDecodeBytes(data.encryptionInfo);
-
-    const smartRequest = extractSmartRequest(deviceRequestBytes);
+    const parsed = parseWalletRequest(navigatorArgument);
     const smartResponse =
-      options.respond?.(smartRequest) ?? fabricateResponse(smartRequest);
-
-    const sessionTranscript = await buildDcapiSessionTranscript({
-      origin: options.origin,
-      encryptionInfo: encryptionInfoBytes,
+      options.respond?.(parsed.smartRequest) ?? fabricateResponse(parsed.smartRequest);
+    return sealWalletResponse({
+      smartResponse,
+      encryptionInfoBytes: parsed.encryptionInfoBytes,
+      verifierOrigin: options.origin,
     });
-    const recipientPublicJwk = recipientJwkFromEncryptionInfo(encryptionInfoBytes);
-    const deviceResponseBytes = await buildSignedDeviceResponse({
-      smartResponseJson: JSON.stringify(smartResponse),
-      sessionTranscript,
-    });
-    const sealed = await hpkeSealDirectMdoc({
-      plaintext: deviceResponseBytes,
-      recipientPublicJwk,
-      info: sessionTranscript,
-    });
-    return sealed.response;
   };
+}
+
+export type ParsedWalletRequest = {
+  smartRequest: SmartCheckinRequest;
+  deviceRequestBytes: Uint8Array;
+  encryptionInfoBytes: Uint8Array;
+};
+
+/** Wallet side: recover the SMART request from a navigator.credentials.get argument. */
+export function parseWalletRequest(navigatorArgument: unknown): ParsedWalletRequest {
+  const data = extractRequestData(navigatorArgument);
+  const deviceRequestBytes = base64UrlDecodeBytes(data.deviceRequest);
+  const encryptionInfoBytes = base64UrlDecodeBytes(data.encryptionInfo);
+  return {
+    smartRequest: extractSmartRequest(deviceRequestBytes),
+    deviceRequestBytes,
+    encryptionInfoBytes,
+  };
+}
+
+/**
+ * Wallet side: sign and HPKE-seal a SMART response for the verifier.
+ * `verifierOrigin` is the requesting page's origin — the SessionTranscript
+ * binds to it, so a response cannot be replayed to a different origin.
+ */
+export async function sealWalletResponse(input: {
+  smartResponse: SmartCheckinResponse;
+  encryptionInfoBytes: Uint8Array;
+  verifierOrigin: string;
+}): Promise<{ protocol: string; data: { response: string } }> {
+  const sessionTranscript = await buildDcapiSessionTranscript({
+    origin: input.verifierOrigin,
+    encryptionInfo: input.encryptionInfoBytes,
+  });
+  const recipientPublicJwk = recipientJwkFromEncryptionInfo(input.encryptionInfoBytes);
+  const deviceResponseBytes = await buildSignedDeviceResponse({
+    smartResponseJson: JSON.stringify(input.smartResponse),
+    sessionTranscript,
+  });
+  const sealed = await hpkeSealDirectMdoc({
+    plaintext: deviceResponseBytes,
+    recipientPublicJwk,
+    info: sessionTranscript,
+  });
+  return sealed.response;
 }
 
 function extractRequestData(arg: unknown): { deviceRequest: string; encryptionInfo: string } {
@@ -119,11 +149,22 @@ function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array): JsonWe
   return { kty: "EC", crv: "P-256", x: b64u(x), y: b64u(y) };
 }
 
-/** Fabricate one plausible demo artifact per request item. */
-export function fabricateResponse(request: SmartCheckinRequest): SmartCheckinResponse {
+/**
+ * Fabricate one plausible demo artifact per request item. Pass `include` to
+ * honour per-item consent: excluded items come back with status "declined"
+ * and no artifact, exactly as a real wallet would report them.
+ */
+export function fabricateResponse(
+  request: SmartCheckinRequest,
+  include?: (itemId: string) => boolean,
+): SmartCheckinResponse {
   const artifacts: Record<string, unknown>[] = [];
   const requestStatus: Record<string, unknown>[] = [];
   for (const item of request.items) {
+    if (include && !include(item.id)) {
+      requestStatus.push({ item: item.id, status: "declined" });
+      continue;
+    }
     const preferred = item.accept[0] ?? "application/fhir+json";
     if (preferred === "application/smart-health-card") {
       artifacts.push({

@@ -47,15 +47,16 @@ const outcome = await runCheckin({
 });
 ```
 
-Or declaratively:
+Or, when you only want the data (the autofill shape):
 
-```html
-<smart-checkin
-  scenario="phq2-dayof"
-  patient="Patient/123"
-  fhir-base="https://fhir.example.org/r4"
-  return-url="https://portal.example.org/checkin/next-step">
-</smart-checkin>
+```ts
+import { requestCheckin } from "@smart-health-checkin/provider-kit";
+
+const response = await requestCheckin({
+  purpose: "Review your allergy list before your visit",
+  items: [ /* … */ ],
+});
+// response.artifacts → prefill your own form; nothing is submitted
 ```
 
 ### `CheckinConfig`
@@ -168,7 +169,7 @@ compatibility contract between the two.
 
 1. ~~**M1 — `model` + `wire` ports**, fixture-verified.~~ ✅ (all fixture oracles green, plus new issuerAuth/deviceSignature verification)
 2. ~~**M2 — `submit` + demo wired end-to-end** against public HAPI; dry-run mode; mock wallet for phone-free testing.~~ ✅
-3. **M3 — `<smart-checkin>` element** + integrator docs ("integrate in an afternoon").
+3. ~~**M3 — hosted `kit.js` + integrator docs** ("integrate in an afternoon"), plus a demo wallet web app so the flow runs without a platform wallet.~~ ✅
 4. **M4 — server-owned authority reference** (keys server-side, audit trail).
 5. **M5 — scenario library polish + demonstration script** for testing events.
 
