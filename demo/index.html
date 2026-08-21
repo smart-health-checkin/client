@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check-in demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f7faf9;
+    --surface: #ffffff;
+    --ink: #16211f;
+    --muted: #5b6b67;
+    --accent: #0e7c6b;
+    --line: #dce5e2;
+    --code-bg: #eef4f2;
+    --danger: #b3423a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1513;
+      --surface: #16201d;
+      --ink: #e6efec;
+      --muted: #93a5a0;
+      --accent: #3ac2aa;
+      --line: #24322e;
+      --code-bg: #131c19;
+      --danger: #e08d84;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1513;
+    --surface: #16201d;
+    --ink: #e6efec;
+    --muted: #93a5a0;
+    --accent: #3ac2aa;
+    --line: #24322e;
+    --code-bg: #131c19;
+    --danger: #e08d84;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    line-height: 1.55;
+  }
+  main { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.75rem; }
+  .eyebrow { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--accent); }
+  .eyebrow a { color: inherit; text-decoration: none; }
+  h1 { font-size: 1.6rem; font-weight: 600; margin: 0.25rem 0 0; }
+  h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem; }
+  p { margin: 0.35rem 0; }
+  .muted { color: var(--muted); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.85rem 1rem; overflow-x: auto; margin: 0.5rem 0 0;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.5;
+  }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+  .scenarios a {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem;
+    padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px;
+    color: var(--ink); text-decoration: none; background: var(--surface);
+  }
+  .scenarios a[aria-current="true"] { border-color: var(--accent); color: var(--accent); }
+  .scenarios a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button {
+    font: inherit; font-weight: 500; padding: 0.55rem 1.2rem; border-radius: 6px;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
+  }
+  button[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.9rem; color: var(--muted); }
+  a { color: var(--accent); }
+  label { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; font-size: 0.92rem; }
+  table.items { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+  table.items th, table.items td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--line); }
+  table.items th { font-weight: 600; }
+  #outcome-status[data-status="completed"] { color: var(--accent); }
+  #outcome-status[data-status="error"] { color: var(--danger); }
+  .return-link {
+    display: inline-block; margin-top: 0.75rem; padding: 0.5rem 1.1rem;
+    background: var(--accent); color: var(--bg); border-radius: 6px;
+    text-decoration: none; font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <div class="eyebrow"><a href="../">smart-health-checkin / checkin-provider-kit</a></div>
+    <h1>Check-in demo</h1>
+    <p class="muted">
+      Configured entirely by URL fragment — pick a scenario or pass a full
+      request object. See the
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar">URL grammar</a>.
+    </p>
+  </header>
+
+  <section class="card">
+    <h2>Scenario</h2>
+    <div class="scenarios" id="scenario-links"></div>
+    <div id="scenario-detail"></div>
+  </section>
+
+  <section class="card">
+    <h2>Resolved configuration</h2>
+    <pre id="config-json"></pre>
+    <p class="note" id="backend-note"></p>
+    <label id="backend-ack-wrap" hidden>
+      <input type="checkbox" id="backend-ack">
+      I recognize this server and I am using test data only.
+    </label>
+  </section>
+
+  <section>
+    <button id="start" disabled>Start check-in</button>
+    <p class="note" id="status-note"></p>
+  </section>
+
+  <section class="card" id="outcome-section" hidden>
+    <h2>Outcome: <span id="outcome-status"></span></h2>
+    <div id="outcome-summary" class="muted"></div>
+    <table class="items">
+      <thead><tr><th>Requested</th><th>Status</th><th>Returned as</th></tr></thead>
+      <tbody id="outcome-items"></tbody>
+    </table>
+    <div id="outcome-bundle" hidden>
+      <h2 id="outcome-bundle-title"></h2>
+      <div id="created-links" class="scenarios"></div>
+      <pre id="bundle-json"></pre>
+    </div>
+    <div id="return-wrap"></div>
+  </section>
+</main>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>

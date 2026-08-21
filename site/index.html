@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>checkin-provider-kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f7faf9;
+    --surface: #ffffff;
+    --ink: #16211f;
+    --muted: #5b6b67;
+    --accent: #0e7c6b;
+    --line: #dce5e2;
+    --code-bg: #eef4f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1513;
+      --surface: #16201d;
+      --ink: #e6efec;
+      --muted: #93a5a0;
+      --accent: #3ac2aa;
+      --line: #24322e;
+      --code-bg: #131c19;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1513;
+    --surface: #16201d;
+    --ink: #e6efec;
+    --muted: #93a5a0;
+    --accent: #3ac2aa;
+    --line: #24322e;
+    --code-bg: #131c19;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  main {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 4rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: 2.1rem;
+    font-weight: 600;
+    margin: 0.35rem 0 0;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.08rem; color: var(--muted); max-width: 60ch; margin: 0.75rem 0 0; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .actions a {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    background: var(--surface);
+  }
+  .actions a.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+  .actions a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  section h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+  }
+  figure { margin: 0; }
+  figure svg { max-width: 100%; height: auto; color: var(--ink); }
+  figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+  code { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  p { margin: 0.4rem 0; }
+  .status {
+    border-left: 3px solid var(--accent);
+    padding: 0.35rem 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <div class="eyebrow">smart-health-checkin</div>
+    <h1>checkin-provider-kit</h1>
+    <p class="lede">
+      Embed a SMART Health Check-in flow in any provider web surface, receive
+      the patient's response right there, submit it to your FHIR server, and
+      return the patient to the rest of check-in. The Digital Credentials API
+      plumbing stays inside the kit.
+    </p>
+  </header>
+
+  <div class="actions">
+    <a class="primary" href="./demo/">Open the demo</a>
+    <a href="https://github.com/smart-health-checkin/checkin-provider-kit">GitHub</a>
+    <a href="https://jmandel.github.io/smart-health-checkin-mdoc/spec.html">Draft spec</a>
+  </div>
+
+  <section>
+    <h2>How a check-in runs</h2>
+    <figure>
+      <svg viewBox="0 0 640 70" role="img" aria-label="Five steps: configure, launch, receive, submit, return — request and response both live on the provider surface; submission posts to your FHIR server.">
+        <defs>
+          <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="4"   y="18" width="104" height="34" rx="6"/>
+          <rect x="136" y="18" width="104" height="34" rx="6"/>
+          <rect x="268" y="18" width="104" height="34" rx="6"/>
+          <rect x="400" y="18" width="104" height="34" rx="6"/>
+          <rect x="532" y="18" width="104" height="34" rx="6"/>
+          <line x1="108" y1="35" x2="130" y2="35" marker-end="url(#arr)"/>
+          <line x1="240" y1="35" x2="262" y2="35" marker-end="url(#arr)"/>
+          <line x1="372" y1="35" x2="394" y2="35" marker-end="url(#arr)"/>
+          <line x1="504" y1="35" x2="526" y2="35" marker-end="url(#arr)"/>
+        </g>
+        <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="12" text-anchor="middle">
+          <text x="56"  y="39">configure</text>
+          <text x="188" y="39">launch</text>
+          <text x="320" y="39">receive</text>
+          <text x="452" y="39">submit</text>
+          <text x="584" y="39">return</text>
+        </g>
+        <g fill="currentColor" font-family="IBM Plex Sans, sans-serif" font-size="10" text-anchor="middle" opacity="0.65">
+          <text x="188" y="64">patient's wallet</text>
+          <text x="452" y="64">your FHIR server</text>
+          <text x="584" y="64">your workflow</text>
+        </g>
+      </svg>
+      <figcaption>
+        The request starts and the response lands on the same provider-controlled
+        page — a closed loop, so the patient is never stranded outside your workflow.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>One config object describes the whole flow</h2>
+<pre><code>import { runCheckin } from "@smart-health-checkin/provider-kit";
+
+const outcome = await runCheckin({
+  request:  { scenario: "phq2-dayof" },
+  context:  { patient: "Patient/123" },
+  submit:   { fhirBase: "https://fhir.example.org/r4" },
+  complete: { returnUrl: "https://portal.example.org/checkin/next" },
+});</code></pre>
+  </section>
+
+  <p class="status">
+    Status: working draft. The core flow — request construction,
+    SessionTranscript, HPKE, COSE verification, FHIR submission — is
+    implemented and byte-verified against real Chrome/Android captures from
+    the <a href="https://github.com/jmandel/smart-health-checkin-mdoc">spec
+    prototype</a>'s conformance fixtures. The
+    <a href="https://github.com/smart-health-checkin/checkin-provider-kit#readme">README</a>
+    is the API contract; the demo runs end-to-end today (use
+    <code>mock=1</code> if you don't have a wallet-equipped phone handy).
+  </p>
+</main>
+</body>
+</html>
