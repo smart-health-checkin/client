@@ -18,13 +18,20 @@ import {
   type VerifierAuthority,
 } from "../browser/index.ts";
 import { buildWritePlan, executeWritePlan, type FetchLike } from "../submit/index.ts";
-import { resolveScenario } from "./scenarios.ts";
+import { buildRequest, resolveScenario, type CheckinRequestInit } from "./scenarios.ts";
 import { createMockWalletCredentialGetter } from "./mock-wallet.ts";
 import type { CheckinConfig, CheckinOutcome } from "./types.ts";
 import type { SmartCheckinResponse } from "../model/index.ts";
 
 export type { CheckinConfig, CheckinOutcome } from "./types.ts";
-export { SCENARIOS, resolveScenario, type Scenario } from "./scenarios.ts";
+export {
+  SCENARIOS,
+  buildRequest,
+  registerScenario,
+  resolveScenario,
+  type CheckinRequestInit,
+  type Scenario,
+} from "./scenarios.ts";
 
 export type RunCheckinHooks = {
   /** Injectable for tests and the demo's mock mode. */
@@ -171,8 +178,11 @@ function outcomeError(
  * artifacts to prefill its own forms and stays in full control of what
  * happens next.
  *
- *   const response = await requestCheckin({ scenario: "allergy-review" });
- *   // or: await requestCheckin(mySmartCheckinRequest)
+ *   // define the request inline — type/version/id boilerplate is filled in:
+ *   const response = await requestCheckin({ purpose: "…", items: [ … ] });
+ *   // or pass a complete SmartCheckinRequest, or a registered scenario name:
+ *   await requestCheckin(myFullRequest);
+ *   await requestCheckin({ scenario: "my-registered-intake" });
  *
  * Throws CheckinFlowError when the flow does not complete (declined,
  * unsupported browser, or an error) — the outcome rides on the error for
@@ -196,11 +206,17 @@ export type RequestCheckinOptions = {
 };
 
 export async function requestCheckin(
-  request: SmartCheckinRequest | { scenario: string },
+  request: SmartCheckinRequest | CheckinRequestInit | { scenario: string },
   options: RequestCheckinOptions = {},
 ): Promise<SmartCheckinResponse> {
+  const resolved: SmartCheckinRequest | { scenario: string } =
+    "type" in request
+      ? request
+      : "items" in request
+        ? buildRequest(request)
+        : request;
   const config: CheckinConfig = {
-    request: "type" in request ? { request } : { scenario: request.scenario },
+    request: "type" in resolved ? { request: resolved } : { scenario: resolved.scenario },
     ...(options.authority ? { authority: options.authority } : {}),
   };
   const hooks: RunCheckinHooks = options.mock

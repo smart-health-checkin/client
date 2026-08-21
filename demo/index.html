@@ -49,6 +49,7 @@
     --demo-ink: #d8c68b;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     margin: 0;
     background: var(--bg);
@@ -64,14 +65,13 @@
     font-size: 0.85rem;
     padding: 0.5rem 1.25rem;
   }
-  .demo-bar-inner { max-width: 46rem; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .demo-bar-inner { max-width: 46rem; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem; align-items: center; }
   .demo-bar strong { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; letter-spacing: 0.06em; }
-  .demo-bar a {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem;
-    padding: 0.15rem 0.6rem; border: 1px solid var(--demo-line); border-radius: 999px;
-    color: inherit; text-decoration: none;
+  .demo-bar select {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem;
+    padding: 0.1rem 0.3rem; border: 1px solid var(--demo-line); border-radius: 4px;
+    background: transparent; color: inherit;
   }
-  .demo-bar a[aria-current="true"] { border-color: currentColor; font-weight: 600; }
 
   .clinic-header { background: var(--surface); border-bottom: 1px solid var(--line); }
   .clinic-header-inner {
@@ -163,8 +163,8 @@
 <div class="demo-bar">
   <div class="demo-bar-inner">
     <strong>DEMO</strong>
-    <span>fictional clinic · test data only · scenario:</span>
-    <span id="scenario-links" style="display:contents"></span>
+    <span>fictional clinic · test data only</span>
+    <label>scenario <select id="scenario-select"></select></label>
     <span id="demo-note"></span>
   </div>
 </div>

@@ -207,26 +207,50 @@
     <p>
       Two integration shapes, both closed-loop — the response returns to
       <em>your</em> page, and your backend only ever sees ordinary FHIR.
+      The URLs below point at this deployment's hosted builds, so the
+      snippets work as-is for experimentation; vendor a pinned copy for
+      anything real.
     </p>
-    <p><strong>1. Drop-in: collect and submit to your FHIR server.</strong>
-      One script tag, one element; it launches the flow, verifies the
-      response, POSTs a transaction Bundle (with Provenance) to your server,
-      and sends the patient to your next step:</p>
-<pre><code>&lt;script type="module" src=".../element.js"&gt;&lt;/script&gt;
+    <p><strong>1. Ask, await, prefill.</strong> Define the request inline
+      (the kit fills in protocol boilerplate), await the patient's validated
+      response, and populate your own form — no submission, your code stays
+      in control:</p>
+<pre><code>&lt;script type="module"&gt;
+  import { requestCheckin }
+    from "<span class="computed-url" data-file="./kit.js"></span>";
+
+  const response = await requestCheckin({
+    purpose: "Review your allergy list before your visit",
+    items: [{
+      id: "allergies",
+      title: "Allergies and intolerances",
+      content: {
+        kind: "selection.fhir",
+        profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+      },
+      accept: ["application/fhir+json"],
+    }],
+  });
+  // response.artifacts → prefill your intake form inline
+&lt;/script&gt;</code></pre>
+    <p><strong>2. Drop-in element: collect and submit to your FHIR
+      server.</strong> The element launches the flow, verifies the response,
+      POSTs a transaction Bundle (with Provenance) to your server, and sends
+      the patient to your next step. Define your request with
+      <code>registerScenario(...)</code> or a <code>request-json</code>
+      attribute:</p>
+<pre><code>&lt;script type="module"&gt;
+  import { registerScenario }
+    from "<span class="computed-url" data-file="./element.js"></span>";
+  registerScenario("visit-prep", { purpose: "…", items: [ /* … */ ] });
+&lt;/script&gt;
 
 &lt;smart-checkin
-  scenario="new-patient"
+  scenario="visit-prep"
   patient="Patient/123"
   fhir-base="https://your-fhir-server.example.org/r4"
   return-url="/checkin/payment"&gt;
 &lt;/smart-checkin&gt;</code></pre>
-    <p><strong>2. Autofill: just get the data back.</strong> Ask, await, and
-      use the validated response to prefill your own forms — no submission,
-      your code stays in control:</p>
-<pre><code>import { requestCheckin } from "@smart-health-checkin/provider-kit";
-
-const response = await requestCheckin({ scenario: "allergy-review" });
-// response.artifacts → populate your intake form inline</code></pre>
     <p>
       The full walkthrough — attributes, events, the JS API, auth wiring,
       and the production checklist — is in the
@@ -245,5 +269,10 @@ const response = await requestCheckin({ scenario: "allergy-review" });
     <code>mock=1</code> if you don't have a wallet-equipped phone handy).
   </p>
 </main>
+<script>
+  for (const span of document.querySelectorAll(".computed-url")) {
+    span.textContent = new URL(span.dataset.file, location.href).href;
+  }
+</script>
 </body>
 </html>

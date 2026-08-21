@@ -6,10 +6,23 @@ server. This guide adds a working SMART Health Check-in flow to that page.
 ## 1. Drop in the element
 
 ```html
-<script type="module" src="https://smart-health-checkin.github.io/checkin-provider-kit/element.js"></script>
+<script type="module">
+  import { registerScenario }
+    from "https://smart-health-checkin.github.io/checkin-provider-kit/element.js";
+
+  // your request, defined by your code (type/version/id are filled in)
+  registerScenario("visit-prep", {
+    purpose: "Before your visit",
+    items: [{
+      id: "summary", title: "Clinical summary",
+      content: { kind: "selection.fhir", profilesFrom: ["http://hl7.org/fhir/us/core"] },
+      accept: ["application/fhir+json"],
+    }],
+  });
+</script>
 
 <smart-checkin
-  scenario="new-patient"
+  scenario="visit-prep"
   patient="Patient/123"
   appointment="Appointment/456"
   fhir-base="https://your-fhir-server.example.org/r4"
@@ -32,8 +45,8 @@ Attributes:
 
 | Attribute | Meaning |
 | --- | --- |
-| `scenario` | Named request template from the kit's scenario library. |
-| `request-json` | Full `SmartCheckinRequest` JSON (overrides `scenario`) — write your own request instead of using a template. |
+| `scenario` | A request name registered via `registerScenario(...)` (the kit also ships a few demo templates). |
+| `request-json` | The request as JSON, inline (overrides `scenario`); may omit `type`/`version`/`id`, which the kit fills in. |
 | `patient`, `appointment` | FHIR references on your server; stamped into Provenance. |
 | `fhir-base` | Where to submit. Omit for a display-only flow. |
 | `submit-mode` | `transaction` (default) \| `individual` \| `dry-run`. |
@@ -57,20 +70,37 @@ When you already have a data-collection UI and only want the patient's data
 to land in it (the way browser autofill fills a form), skip submission
 entirely:
 
-```ts
-import { requestCheckin, CheckinFlowError } from "@smart-health-checkin/provider-kit";
+```html
+<script type="module">
+  import { requestCheckin, CheckinFlowError }
+    from "https://smart-health-checkin.github.io/checkin-provider-kit/kit.js";
+  // (bundler users: import from the kit source / a vendored build instead)
 
-try {
-  const response = await requestCheckin({ scenario: "allergy-review" }); // or a full SmartCheckinRequest
-  for (const artifact of response.artifacts) {
-    // application/fhir+json artifacts → prefill your form inline
+  try {
+    const response = await requestCheckin({
+      purpose: "Review your allergy list before your visit",
+      items: [{
+        id: "allergies", title: "Allergies and intolerances",
+        content: {
+          kind: "selection.fhir",
+          profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+        },
+        accept: ["application/fhir+json"],
+      }],
+    });
+    for (const artifact of response.artifacts) {
+      // application/fhir+json artifacts → prefill your form inline
+    }
+  } catch (e) {
+    if (e instanceof CheckinFlowError && e.outcome.status === "declined") {
+      // patient chose not to share — fall back to your blank form
+    }
   }
-} catch (e) {
-  if (e instanceof CheckinFlowError && e.outcome.status === "declined") {
-    // patient chose not to share — fall back to your blank form
-  }
-}
+</script>
 ```
+
+`requestCheckin` accepts the inline shape above (boilerplate filled in), a
+complete `SmartCheckinRequest`, or a registered scenario name.
 
 One await, one validated `SmartCheckinResponse`, no side effects — your code
 decides what to render and what to submit. The

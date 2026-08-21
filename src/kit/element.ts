@@ -8,6 +8,7 @@
 
 import type { SmartCheckinRequest } from "../model/index.ts";
 import { runCheckin, type RunCheckinHooks } from "./index.ts";
+import { buildRequest, type CheckinRequestInit } from "./scenarios.ts";
 import type { CheckinConfig } from "./types.ts";
 import { createMockWalletCredentialGetter } from "./mock-wallet.ts";
 
@@ -82,9 +83,14 @@ export class SmartCheckinElement extends HTMLElement {
     const fhirBase = this.getAttribute("fhir-base");
     const submitModeAttr = this.getAttribute("submit-mode");
     const returnUrl = this.getAttribute("return-url") ?? undefined;
+    const parsedRequest = requestJson
+      ? (JSON.parse(requestJson) as SmartCheckinRequest | CheckinRequestInit)
+      : undefined;
+    const isFullRequest = (r: SmartCheckinRequest | CheckinRequestInit): r is SmartCheckinRequest =>
+      (r as { type?: unknown }).type === "smart-health-checkin-request";
     return {
-      request: requestJson
-        ? { request: JSON.parse(requestJson) as SmartCheckinRequest }
+      request: parsedRequest
+        ? { request: isFullRequest(parsedRequest) ? parsedRequest : buildRequest(parsedRequest) }
         : { scenario: scenario! },
       ...(patient || appointment ? { context: { patient, appointment } } : {}),
       ...(fhirBase

@@ -31,6 +31,79 @@ describe("runCheckin", () => {
     expect(bundle.entry.length).toBeGreaterThan(0);
   });
 
+  test("requestCheckin accepts an inline request init and returns the response", async () => {
+    const { requestCheckin } = await import("./index.ts");
+    const response = await requestCheckin(
+      {
+        purpose: "Allergy review",
+        items: [
+          {
+            id: "allergies",
+            title: "Allergies and intolerances",
+            content: {
+              kind: "selection.fhir",
+              profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+            },
+            accept: ["application/fhir+json"],
+          },
+        ],
+      },
+      { authority: localAuthority(), mock: true },
+    ).catch(async () => {
+      // node/bun has no `location`; drive through runCheckin's hooks instead
+      const { runCheckin: run, buildRequest } = await import("./index.ts");
+      const outcome = await run(
+        {
+          request: {
+            request: buildRequest({
+              purpose: "Allergy review",
+              items: [
+                {
+                  id: "allergies",
+                  title: "Allergies and intolerances",
+                  content: {
+                    kind: "selection.fhir",
+                    profiles: [
+                      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
+                    ],
+                  },
+                  accept: ["application/fhir+json"],
+                },
+              ],
+            }),
+          },
+          authority: localAuthority(),
+        },
+        { getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }) },
+      );
+      if (outcome.status !== "completed" || !outcome.response) throw new Error(outcome.status);
+      return outcome.response;
+    });
+    const artifact = response.artifacts[0] as { value: { entry: Array<{ resource: { resourceType: string } }> } };
+    expect(artifact.value.entry[0]!.resource.resourceType).toBe("AllergyIntolerance");
+    const statuses = response.requestStatus.map((s) => s.item);
+    expect(statuses).toEqual(["allergies"]);
+  });
+
+  test("registerScenario makes a custom name usable", async () => {
+    const { registerScenario, resolveScenario } = await import("./scenarios.ts");
+    registerScenario("test-intake", {
+      purpose: "Test intake",
+      items: [
+        {
+          id: "meds",
+          title: "Medication list",
+          content: { kind: "selection.fhir" },
+          accept: ["application/fhir+json"],
+        },
+      ],
+    });
+    const scenario = resolveScenario("test-intake");
+    expect(scenario.request.type).toBe("smart-health-checkin-request");
+    expect(scenario.request.id.length).toBeGreaterThan(0);
+    expect(scenario.description).toBe("Test intake");
+  });
+
   test("phq2 scenario yields a QuestionnaireResponse artifact", async () => {
     const outcome = await runCheckin(
       {

@@ -34,10 +34,23 @@
     <code>checkin-complete</code> event.
   </p>
 
-  <pre>&lt;script type="module" src=".../element.js"&gt;&lt;/script&gt;
+  <pre>&lt;script type="module"&gt;
+  import { registerScenario } from "<span class="computed-url" data-file="../element.js"></span>";
+
+  // your request, defined by your code — no canned templates
+  registerScenario("visit-prep", {
+    purpose: "A quick wellness check before today's visit",
+    items: [{
+      id: "phq2", title: "PHQ-2 questionnaire", required: true,
+      content: { kind: "form.fhir",
+                 questionnaireCanonical: "https://fhir.loinc.org/Questionnaire/55757-9" },
+      accept: ["application/fhir+json"],
+    }],
+  });
+&lt;/script&gt;
 
 &lt;smart-checkin
-  scenario="phq2-dayof"
+  scenario="visit-prep"
   patient="Patient/example"
   fhir-base="https://hapi.fhir.org/baseR4"
   submit-mode="dry-run"
@@ -46,7 +59,7 @@
 &lt;/smart-checkin&gt;</pre>
 
   <smart-checkin
-    scenario="phq2-dayof"
+    scenario="visit-prep"
     patient="Patient/example"
     fhir-base="https://hapi.fhir.org/baseR4"
     submit-mode="dry-run"
@@ -58,5 +71,10 @@
   <pre id="outcome">(waiting for a run)</pre>
 </main>
 <script type="module" src="./embed.js"></script>
+<script>
+  for (const span of document.querySelectorAll(".computed-url")) {
+    span.textContent = new URL(span.dataset.file, location.href).href;
+  }
+</script>
 </body>
 </html>

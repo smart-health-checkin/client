@@ -9,8 +9,26 @@ import {
   createBrowserLocalAuthority,
   detectDcApiSupport,
   requestCheckin,
-  resolveScenario,
 } from "../../src/index.ts";
+
+// The request is defined inline, right where it's used — the kit fills in
+// the type/version/id boilerplate. This is the primary integration ergonomic.
+const ALLERGY_REVIEW = {
+  purpose: "Review your allergy list before your visit",
+  items: [
+    {
+      id: "allergies",
+      title: "Allergies and intolerances",
+      summary: "Your current allergy list, so you can review and correct it.",
+      required: true,
+      content: {
+        kind: "selection.fhir" as const,
+        profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+      },
+      accept: ["application/fhir+json"],
+    },
+  ],
+};
 
 type AllergyRow = {
   name: string;
@@ -46,7 +64,7 @@ async function prefill(): Promise<void> {
   button.disabled = true;
   button.textContent = "Waiting for your health app…";
   try {
-    const response = await requestCheckin(resolveScenario("allergy-review").request, {
+    const response = await requestCheckin(ALLERGY_REVIEW, {
       mock,
       authority: createBrowserLocalAuthority({ origin: location.origin }),
     });

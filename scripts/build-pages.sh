@@ -13,6 +13,8 @@ cp demo/autofill.html _site/demo/autofill.html
 bun build demo/src/main.ts demo/src/embed.ts demo/src/autofill.ts --outdir _site/demo --format esm --minify
 bun build src/element-register.ts --outdir _site --format esm --minify
 mv _site/element-register.js _site/element.js
+bun build src/index.ts --outdir _site --format esm --minify
+mv _site/index.js _site/kit.js
 touch _site/.nojekyll
 
 echo "Built _site/:"

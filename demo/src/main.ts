@@ -108,25 +108,35 @@ function render(): void {
   const resolved = resolveConfig(parseFragment());
   const { config, request, scenarioKey, passthrough, mock, fhirBase } = resolved;
 
-  // demo bar: scenario chips
-  const links = el("scenario-links");
-  links.replaceChildren(
+  // demo bar: scenario dropdown
+  const select = el("scenario-select") as HTMLSelectElement;
+  select.replaceChildren(
     ...Object.keys(SCENARIOS).map((key) => {
-      const a = document.createElement("a");
-      a.textContent = key;
-      const params = parseFragment();
-      params.set("scenario", key);
-      params.delete("request");
-      a.href = `#${params.toString()}`;
-      if (key === scenarioKey) a.setAttribute("aria-current", "true");
-      return a;
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = key;
+      return option;
     }),
+    ...(passthrough
+      ? [
+          (() => {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "(custom request via URL)";
+            return option;
+          })(),
+        ]
+      : []),
   );
-  el("demo-note").textContent = passthrough
-    ? "· full request passed via #request="
-    : mock
-      ? "· mock wallet on"
-      : "";
+  select.value = passthrough ? "" : scenarioKey!;
+  select.onchange = () => {
+    if (!select.value) return;
+    const params = parseFragment();
+    params.set("scenario", select.value);
+    params.delete("request");
+    location.hash = `#${params.toString()}`;
+  };
+  el("demo-note").textContent = mock ? "· mock wallet on" : "";
 
   // visit context
   const context: string[] = [];
