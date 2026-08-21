@@ -86,6 +86,30 @@ export const SCENARIOS: Record<string, Scenario> = {
       ],
     },
   },
+  "allergy-review": {
+    label: "allergy-review",
+    description: "Prefill the clinic's allergy-review form from the patient's app.",
+    request: {
+      type: "smart-health-checkin-request",
+      version: "1",
+      id: "demo-allergy-review",
+      purpose: "Review your allergy list before your visit",
+      fhirVersions: ["4.0.1"],
+      items: [
+        {
+          id: "allergies",
+          title: "Allergies and intolerances",
+          summary: "Your current allergy list, so you can review and correct it.",
+          required: true,
+          content: {
+            kind: "selection.fhir",
+            profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+          },
+          accept: ["application/fhir+json"],
+        },
+      ],
+    },
+  },
   "medlist-refresh": {
     label: "medlist-refresh",
     description: "Current medication list before a follow-up visit.",

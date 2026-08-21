@@ -19,7 +19,9 @@ import {
 } from "../browser/index.ts";
 import { buildWritePlan, executeWritePlan, type FetchLike } from "../submit/index.ts";
 import { resolveScenario } from "./scenarios.ts";
+import { createMockWalletCredentialGetter } from "./mock-wallet.ts";
 import type { CheckinConfig, CheckinOutcome } from "./types.ts";
+import type { SmartCheckinResponse } from "../model/index.ts";
 
 export type { CheckinConfig, CheckinOutcome } from "./types.ts";
 export { SCENARIOS, resolveScenario, type Scenario } from "./scenarios.ts";
@@ -161,4 +163,52 @@ function outcomeError(
     request,
     error: { stage, message: e instanceof Error ? e.message : String(e) },
   };
+}
+
+/**
+ * The autofill-shaped API: ask, await, get the validated response back —
+ * no FHIR submission, no side effects. Provider-side code uses the returned
+ * artifacts to prefill its own forms and stays in full control of what
+ * happens next.
+ *
+ *   const response = await requestCheckin({ scenario: "allergy-review" });
+ *   // or: await requestCheckin(mySmartCheckinRequest)
+ *
+ * Throws CheckinFlowError when the flow does not complete (declined,
+ * unsupported browser, or an error) — the outcome rides on the error for
+ * graceful fallbacks.
+ */
+export class CheckinFlowError extends Error {
+  constructor(readonly outcome: CheckinOutcome) {
+    super(
+      outcome.error
+        ? `check-in ${outcome.status} at ${outcome.error.stage}: ${outcome.error.message}`
+        : `check-in ${outcome.status}`,
+    );
+    this.name = "CheckinFlowError";
+  }
+}
+
+export type RequestCheckinOptions = {
+  authority?: CheckinConfig["authority"];
+  /** Demo/testing only: answer with the built-in mock wallet. */
+  mock?: boolean;
+};
+
+export async function requestCheckin(
+  request: SmartCheckinRequest | { scenario: string },
+  options: RequestCheckinOptions = {},
+): Promise<SmartCheckinResponse> {
+  const config: CheckinConfig = {
+    request: "type" in request ? { request } : { scenario: request.scenario },
+    ...(options.authority ? { authority: options.authority } : {}),
+  };
+  const hooks: RunCheckinHooks = options.mock
+    ? { getCredential: createMockWalletCredentialGetter({ origin: location.origin }) }
+    : {};
+  const outcome = await runCheckin(config, hooks);
+  if (outcome.status !== "completed" || !outcome.response) {
+    throw new CheckinFlowError(outcome);
+  }
+  return outcome.response;
 }

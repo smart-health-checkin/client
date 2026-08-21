@@ -153,9 +153,15 @@ export function fabricateResponse(request: SmartCheckinRequest): SmartCheckinRes
 }
 
 function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
+  // Unique per run: real check-ins are distinct, and duplicate-detecting
+  // servers (e.g. public HAPI) reject content-identical re-creates.
+  const runId = crypto.randomUUID();
+  const mockIdentifier = { system: "urn:smart-health-checkin:mock-run", value: runId };
+  const demoPatient = { display: "Demo patient (mock wallet)" };
   if (item.content.kind === "form.fhir") {
     return {
       resourceType: "QuestionnaireResponse",
+      identifier: mockIdentifier,
       status: "completed",
       ...(item.content.questionnaireCanonical
         ? { questionnaire: item.content.questionnaireCanonical }
@@ -164,31 +170,94 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
         {
           linkId: "mock-1",
           text: `Mock answer for ${item.title}`,
-          answer: [{ valueString: "Mock wallet demo answer" }],
+          answer: [{ valueString: `Mock wallet demo answer (run ${runId.slice(0, 8)})` }],
         },
       ],
     };
   }
-  return {
+
+  // Keyword-match the selector so demos get plausible USCDI content.
+  const hints = `${item.title} ${item.summary ?? ""} ${JSON.stringify(item.content)}`.toLowerCase();
+  const bundle = (resources: Record<string, unknown>[]): unknown => ({
     resourceType: "Bundle",
     type: "collection",
-    entry: [
+    entry: resources.map((resource) => ({ resource })),
+  });
+
+  if (hints.includes("allerg")) {
+    return bundle([
       {
-        resource: {
-          resourceType: "Condition",
-          clinicalStatus: {
-            coding: [
-              {
-                system: "http://terminology.hl7.org/CodeSystem/condition-clinical",
-                code: "active",
-              },
-            ],
-          },
-          code: { text: `Mock condition for "${item.title}"` },
+        resourceType: "AllergyIntolerance",
+        identifier: [mockIdentifier],
+        clinicalStatus: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+              code: "active",
+            },
+          ],
         },
+        code: { text: "Penicillin" },
+        criticality: "high",
+        patient: demoPatient,
+        reaction: [{ manifestation: [{ text: "Hives" }] }],
       },
-    ],
-  };
+      {
+        resourceType: "AllergyIntolerance",
+        identifier: [{ ...mockIdentifier, value: `${runId}-2` }],
+        clinicalStatus: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+              code: "active",
+            },
+          ],
+        },
+        code: { text: "Peanut" },
+        criticality: "low",
+        patient: demoPatient,
+        reaction: [{ manifestation: [{ text: "Oral itching" }] }],
+      },
+    ]);
+  }
+
+  if (hints.includes("medication")) {
+    return bundle([
+      {
+        resourceType: "MedicationRequest",
+        identifier: [mockIdentifier],
+        status: "active",
+        intent: "order",
+        medicationCodeableConcept: { text: "Lisinopril 10 mg — once daily" },
+        subject: demoPatient,
+      },
+      {
+        resourceType: "MedicationRequest",
+        identifier: [{ ...mockIdentifier, value: `${runId}-2` }],
+        status: "active",
+        intent: "order",
+        medicationCodeableConcept: { text: "Metformin 500 mg — twice daily" },
+        subject: demoPatient,
+      },
+    ]);
+  }
+
+  return bundle([
+    {
+      resourceType: "Condition",
+      identifier: [mockIdentifier],
+      clinicalStatus: {
+        coding: [
+          {
+            system: "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            code: "active",
+          },
+        ],
+      },
+      code: { text: `Mock condition for "${item.title}"` },
+      subject: demoPatient,
+    },
+  ]);
 }
 
 /** Build a signed DeviceResponse carrying the SMART response element. */

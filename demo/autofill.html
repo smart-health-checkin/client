@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Allergy Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f7faf9; --surface: #ffffff; --ink: #16211f; --muted: #5b6b67;
+    --accent: #0e7c6b; --line: #dce5e2; --code-bg: #eef4f2; --danger: #b3423a;
+    --demo-bg: #fdf6e7; --demo-line: #e4d3a8; --demo-ink: #6b5a2a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
+      --accent: #3ac2aa; --line: #24322e; --code-bg: #131c19; --danger: #e08d84;
+      --demo-bg: #1f1b10; --demo-line: #4a3f1e; --demo-ink: #d8c68b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
+    --accent: #3ac2aa; --line: #24322e; --code-bg: #131c19; --danger: #e08d84;
+    --demo-bg: #1f1b10; --demo-line: #4a3f1e; --demo-ink: #d8c68b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.55; }
+  .demo-bar { background: var(--demo-bg); border-bottom: 1px dashed var(--demo-line); color: var(--demo-ink); font-size: 0.85rem; padding: 0.5rem 1.25rem; }
+  .demo-bar-inner { max-width: 42rem; margin: 0 auto; }
+  .demo-bar strong { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; letter-spacing: 0.06em; }
+  main { max-width: 42rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.25rem; }
+  h1 { font-size: 1.35rem; margin: 0; }
+  .sub { color: var(--muted); font-size: 0.95rem; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
+  button.primary {
+    font: inherit; font-weight: 500; padding: 0.6rem 1.3rem; border-radius: 8px;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
+  }
+  button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.ghost {
+    font: inherit; font-weight: 500; padding: 0.6rem 1.3rem; border-radius: 8px;
+    border: 1px solid var(--line); background: none; color: var(--ink); cursor: pointer;
+  }
+  .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.88rem; color: var(--muted); margin-top: 0.8rem; }
+  ul.allergies { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+  ul.allergies li { border: 1px solid var(--line); border-radius: 8px; padding: 0.8rem 1rem; }
+  .allergy-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .allergy-name { font-weight: 600; }
+  .allergy-detail { color: var(--muted); font-size: 0.86rem; }
+  .badge {
+    font-size: 0.7rem; letter-spacing: 0.05em; padding: 0.1rem 0.5rem; border-radius: 999px;
+    border: 1px solid var(--accent); color: var(--accent); margin-left: auto; white-space: nowrap;
+  }
+  .badge.high { border-color: var(--danger); color: var(--danger); }
+  .review-row { display: flex; gap: 0.6rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .review-row select, .review-row input {
+    font: inherit; font-size: 0.9rem; padding: 0.35rem 0.6rem;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink);
+  }
+  .review-row input { flex: 1; min-width: 12rem; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem; overflow-x: auto; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; line-height: 1.5; }
+  .muted { color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="demo-bar"><div class="demo-bar-inner">
+  <strong>DEMO</strong> · the "autofill" pattern: a provider form prefilled by the patient's app ·
+  <a href="./">full check-in demo</a>
+</div></div>
+
+<main>
+  <header>
+    <h1>Allergy review</h1>
+    <p class="sub">
+      This page plays the <em>provider's</em> data-collection app. Instead of
+      asking you to type your allergy list from memory, it asks your health
+      app for it — one tap, like autofill — and you review what came back.
+    </p>
+  </header>
+
+  <section class="card" id="prefill-card">
+    <button id="prefill" class="primary">Prefill from your health app</button>
+    <p class="note" id="status-note"></p>
+  </section>
+
+  <section class="card" id="review-card" hidden>
+    <h2 style="font-size:1.05rem; margin:0 0 0.25rem">Your allergy list <span class="muted" style="font-weight:400; font-size:0.85rem">— prefilled from your app</span></h2>
+    <ul class="allergies" id="allergy-list"></ul>
+    <button id="send" class="ghost" style="margin-top:1rem">Send review to care team</button>
+  </section>
+
+  <section class="card" id="sent-card" hidden>
+    <h2 style="font-size:1.05rem; margin:0 0 0.25rem">What the clinic receives</h2>
+    <p class="muted" style="font-size:0.88rem">
+      POC: shown here instead of posted. In production this submits through the
+      kit's FHIR layer exactly like the
+      <a href="./">full demo</a> does — the essential point is that the
+      structured allergy data came from the patient's app, and the patient only
+      had to review and annotate it.
+    </p>
+    <pre id="sent-json"></pre>
+  </section>
+</main>
+<script type="module" src="./autofill.js"></script>
+</body>
+</html>

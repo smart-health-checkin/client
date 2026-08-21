@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Check-in demo</title>
+<title>Online Check-in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -16,6 +16,9 @@
     --line: #dce5e2;
     --code-bg: #eef4f2;
     --danger: #b3423a;
+    --demo-bg: #fdf6e7;
+    --demo-line: #e4d3a8;
+    --demo-ink: #6b5a2a;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -27,6 +30,9 @@
       --line: #24322e;
       --code-bg: #131c19;
       --danger: #e08d84;
+      --demo-bg: #1f1b10;
+      --demo-line: #4a3f1e;
+      --demo-ink: #d8c68b;
     }
   }
   :root[data-theme="dark"] {
@@ -38,6 +44,9 @@
     --line: #24322e;
     --code-bg: #131c19;
     --danger: #e08d84;
+    --demo-bg: #1f1b10;
+    --demo-line: #4a3f1e;
+    --demo-ink: #d8c68b;
   }
   * { box-sizing: border-box; }
   body {
@@ -47,94 +56,192 @@
     font-family: "IBM Plex Sans", system-ui, sans-serif;
     line-height: 1.55;
   }
-  main { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.75rem; }
-  .eyebrow { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--accent); }
-  .eyebrow a { color: inherit; text-decoration: none; }
-  h1 { font-size: 1.6rem; font-weight: 600; margin: 0.25rem 0 0; }
-  h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem; }
+
+  .demo-bar {
+    background: var(--demo-bg);
+    border-bottom: 1px dashed var(--demo-line);
+    color: var(--demo-ink);
+    font-size: 0.85rem;
+    padding: 0.5rem 1.25rem;
+  }
+  .demo-bar-inner { max-width: 46rem; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .demo-bar strong { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; letter-spacing: 0.06em; }
+  .demo-bar a {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem;
+    padding: 0.15rem 0.6rem; border: 1px solid var(--demo-line); border-radius: 999px;
+    color: inherit; text-decoration: none;
+  }
+  .demo-bar a[aria-current="true"] { border-color: currentColor; font-weight: 600; }
+
+  .clinic-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .clinic-header-inner {
+    max-width: 46rem; margin: 0 auto; padding: 1.1rem 1.25rem;
+    display: flex; align-items: center; gap: 0.85rem;
+  }
+  .clinic-mark { color: var(--accent); flex: none; }
+  .clinic-name { font-weight: 600; font-size: 1.05rem; }
+  .clinic-sub { color: var(--muted); font-size: 0.88rem; }
+
+  main { max-width: 46rem; margin: 0 auto; padding: 1.75rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.5rem; }
   p { margin: 0.35rem 0; }
   .muted { color: var(--muted); }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; }
-  pre {
-    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
-    padding: 0.85rem 1rem; overflow-x: auto; margin: 0.5rem 0 0;
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.5;
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
+
+  #visit-context { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; font-size: 0.92rem; color: var(--muted); }
+  #visit-context b { color: var(--ink); font-weight: 500; }
+
+  ul.request-items { list-style: none; margin: 0.75rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  ul.request-items li {
+    border: 1px solid var(--line); border-radius: 8px; padding: 0.7rem 0.95rem;
+    display: flex; gap: 0.75rem; align-items: baseline;
   }
-  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-  .scenarios a {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem;
-    padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px;
-    color: var(--ink); text-decoration: none; background: var(--surface);
+  ul.request-items .item-title { font-weight: 500; }
+  ul.request-items .item-summary { color: var(--muted); font-size: 0.88rem; margin-top: 0.15rem; }
+  .chip {
+    flex: none; margin-left: auto; font-size: 0.72rem; letter-spacing: 0.04em;
+    padding: 0.12rem 0.55rem; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
   }
-  .scenarios a[aria-current="true"] { border-color: var(--accent); color: var(--accent); }
-  .scenarios a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  button {
-    font: inherit; font-weight: 500; padding: 0.55rem 1.2rem; border-radius: 6px;
+
+  button.primary {
+    font: inherit; font-weight: 500; font-size: 1rem;
+    padding: 0.7rem 1.5rem; border-radius: 8px; margin-top: 0.85rem;
     border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
   }
-  button[disabled] { opacity: 0.45; cursor: not-allowed; }
-  .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.9rem; color: var(--muted); }
+  button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.88rem; color: var(--muted); margin-top: 0.85rem; }
+  label.ack { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; font-size: 0.92rem; }
   a { color: var(--accent); }
-  label { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; font-size: 0.92rem; }
-  table.items { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92rem; }
+
+  #outcome-section h2 { font-size: 1.25rem; display: inline; margin-right: 0.6rem; }
+  #outcome-status {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem;
+    padding: 0.15rem 0.6rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+    vertical-align: middle;
+  }
+  #outcome-status[data-status="completed"] { color: var(--accent); border-color: var(--accent); }
+  #outcome-status[data-status="error"] { color: var(--danger); border-color: var(--danger); }
+  table.items { width: 100%; border-collapse: collapse; margin: 0.75rem 0 0.25rem; font-size: 0.92rem; }
   table.items th, table.items td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--line); }
   table.items th { font-weight: 600; }
-  #outcome-status[data-status="completed"] { color: var(--accent); }
-  #outcome-status[data-status="error"] { color: var(--danger); }
   .return-link {
-    display: inline-block; margin-top: 0.75rem; padding: 0.5rem 1.1rem;
-    background: var(--accent); color: var(--bg); border-radius: 6px;
+    display: inline-block; margin-top: 0.9rem; padding: 0.6rem 1.3rem;
+    background: var(--accent); color: var(--bg); border-radius: 8px;
     text-decoration: none; font-weight: 500;
+  }
+
+  section.dev { border-style: dashed; }
+  section.dev > h2 { color: var(--muted); font-size: 0.82rem; letter-spacing: 0.08em; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  details { border: 1px solid var(--line); border-radius: 8px; margin-top: 0.55rem; }
+  details summary {
+    cursor: pointer; padding: 0.5rem 0.85rem; font-size: 0.9rem; font-weight: 500;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  details summary .open-tab {
+    margin-left: auto; font-size: 0.78rem; font-weight: 400;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    color: var(--accent); background: none; border: none; cursor: pointer; padding: 0.1rem 0.3rem;
+  }
+  details pre {
+    background: var(--code-bg); border-top: 1px solid var(--line); margin: 0;
+    padding: 0.85rem 1rem; overflow-x: auto; max-height: 24rem; overflow-y: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; line-height: 1.5;
+  }
+  .dev-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+  .dev-links a {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem;
+    padding: 0.25rem 0.65rem; border: 1px solid var(--line); border-radius: 999px;
+    color: var(--ink); text-decoration: none;
   }
 </style>
 </head>
 <body>
 
-<main>
-  <header>
-    <div class="eyebrow"><a href="../">smart-health-checkin / checkin-provider-kit</a></div>
-    <h1>Check-in demo</h1>
-    <p class="muted">
-      Configured entirely by URL fragment — pick a scenario or pass a full
-      request object. See the
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar">URL grammar</a>.
-    </p>
-  </header>
+<div class="demo-bar">
+  <div class="demo-bar-inner">
+    <strong>DEMO</strong>
+    <span>fictional clinic · test data only · scenario:</span>
+    <span id="scenario-links" style="display:contents"></span>
+    <span id="demo-note"></span>
+  </div>
+</div>
 
+<header class="clinic-header">
+  <div class="clinic-header-inner">
+    <svg class="clinic-mark" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="1" y="1" width="32" height="32" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M17 8 C 12 13, 9 17, 17 26 C 25 17, 22 13, 17 8 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="clinic-name">Evergreen Family Health</div>
+      <div class="clinic-sub">Online check-in</div>
+    </div>
+  </div>
+</header>
+
+<main>
   <section class="card">
-    <h2>Scenario</h2>
-    <div class="scenarios" id="scenario-links"></div>
-    <div id="scenario-detail"></div>
+    <div id="visit-context"></div>
   </section>
 
-  <section class="card">
-    <h2>Resolved configuration</h2>
-    <pre id="config-json"></pre>
+  <section class="card" id="collect-card">
+    <h2>Before your visit</h2>
+    <p class="muted" id="purpose-line"></p>
+    <ul class="request-items" id="request-items"></ul>
+    <p class="muted" style="font-size:0.88rem">
+      You choose what to share. Your care team only receives what you approve.
+    </p>
+    <button id="start" class="primary" disabled>Check in with your health app</button>
+    <p class="note" id="status-note"></p>
     <p class="note" id="backend-note"></p>
-    <label id="backend-ack-wrap" hidden>
+    <label class="ack" id="backend-ack-wrap" hidden>
       <input type="checkbox" id="backend-ack">
       I recognize this server and I am using test data only.
     </label>
   </section>
 
-  <section>
-    <button id="start" disabled>Start check-in</button>
-    <p class="note" id="status-note"></p>
-  </section>
-
   <section class="card" id="outcome-section" hidden>
-    <h2>Outcome: <span id="outcome-status"></span></h2>
+    <h2 id="outcome-headline"></h2><span id="outcome-status"></span>
     <div id="outcome-summary" class="muted"></div>
     <table class="items">
-      <thead><tr><th>Requested</th><th>Status</th><th>Returned as</th></tr></thead>
+      <thead><tr><th>Requested</th><th>Status</th><th>Shared as</th></tr></thead>
       <tbody id="outcome-items"></tbody>
     </table>
-    <div id="outcome-bundle" hidden>
-      <h2 id="outcome-bundle-title"></h2>
-      <div id="created-links" class="scenarios"></div>
-      <pre id="bundle-json"></pre>
-    </div>
+    <p class="muted" id="outcome-bundle-title" style="font-size:0.9rem"></p>
     <div id="return-wrap"></div>
+  </section>
+
+  <section class="card dev">
+    <h2>DEVELOPER DETAIL</h2>
+    <details>
+      <summary>Check-in configuration <button class="open-tab" data-view="config" type="button">open in tab ↗</button></summary>
+      <pre id="config-json"></pre>
+    </details>
+    <details>
+      <summary>SMART request (as sent to the wallet) <button class="open-tab" data-view="request" type="button">open in tab ↗</button></summary>
+      <pre id="request-json"></pre>
+    </details>
+    <details id="dev-response" hidden>
+      <summary>SMART response (validated) <button class="open-tab" data-view="response" type="button">open in tab ↗</button></summary>
+      <pre id="response-json"></pre>
+    </details>
+    <details id="outcome-bundle" hidden>
+      <summary><span id="bundle-summary-label">FHIR write plan</span> <button class="open-tab" data-view="bundle" type="button">open in tab ↗</button></summary>
+      <pre id="bundle-json"></pre>
+    </details>
+    <details id="dev-result" hidden>
+      <summary>Server response <button class="open-tab" data-view="result" type="button">open in tab ↗</button></summary>
+      <pre id="result-json"></pre>
+    </details>
+    <div class="dev-links" id="created-links"></div>
+    <div class="dev-links" style="margin-top:0.75rem">
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit#readme" target="_blank" rel="noreferrer">kit README ↗</a>
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar" target="_blank" rel="noreferrer">URL grammar ↗</a>
+      <a href="https://jmandel.github.io/smart-health-checkin-mdoc/spec.html" target="_blank" rel="noreferrer">draft spec ↗</a>
+    </div>
   </section>
 </main>
 

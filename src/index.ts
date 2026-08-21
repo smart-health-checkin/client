@@ -2,11 +2,14 @@
 
 export {
   runCheckin,
+  requestCheckin,
+  CheckinFlowError,
   resolveRequest,
   SCENARIOS,
   resolveScenario,
   type CheckinConfig,
   type CheckinOutcome,
+  type RequestCheckinOptions,
   type RunCheckinHooks,
   type Scenario,
 } from "./kit/index.ts";
@@ -49,3 +52,5 @@ export {
   type SubmitResult,
   type WritePlan,
 } from "./submit/index.ts";
+
+export { SmartCheckinElement, defineSmartCheckin } from "./kit/element.ts";

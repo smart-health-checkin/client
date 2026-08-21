@@ -175,15 +175,63 @@
   </section>
 
   <section>
-    <h2>One config object describes the whole flow</h2>
-<pre><code>import { runCheckin } from "@smart-health-checkin/provider-kit";
+    <h2>Try the demo</h2>
+    <p>
+      <a href="./demo/">The demo</a> is a fictional clinic's check-in page
+      running the real protocol stack. Pick a scenario from the demo bar
+      (insurance card, new-patient summary, day-of PHQ-2, allergy review,
+      med list), press <em>Check in with your health app</em>, and watch the
+      response come back, get verified, and post to a public test FHIR
+      server. Every technical artifact — the SMART request, the wallet's
+      response, the FHIR transaction, the server's reply — is one click away
+      in the <em>Developer detail</em> section.
+    </p>
+    <ul>
+      <li><strong>No wallet-equipped phone?</strong> Add <code>mock=1</code>
+        to the URL fragment — a built-in mock wallet answers with fabricated
+        demo data over the real CBOR/COSE/HPKE pipeline:
+        <a href="./demo/#mock=1&amp;submit=dry-run"><code>demo/#mock=1&amp;submit=dry-run</code></a></li>
+      <li><strong>The autofill pattern:</strong> the
+        <a href="./demo/autofill.html#mock=1">allergy-review example</a> shows a
+        provider form literally prefilled from the patient's app — request
+        USCDI data, populate the form inline, let the patient annotate.</li>
+      <li><strong>Everything is a URL.</strong> The whole configuration —
+        scenario or full request object, patient, FHIR target, return leg —
+        lives in the URL fragment, so any test case is a shareable link
+        (<a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar">grammar</a>).</li>
+    </ul>
+  </section>
 
-const outcome = await runCheckin({
-  request:  { scenario: "phq2-dayof" },
-  context:  { patient: "Patient/123" },
-  submit:   { fhirBase: "https://fhir.example.org/r4" },
-  complete: { returnUrl: "https://portal.example.org/checkin/next" },
-});</code></pre>
+  <section>
+    <h2>Quick start for EHRs and portals</h2>
+    <p>
+      Two integration shapes, both closed-loop — the response returns to
+      <em>your</em> page, and your backend only ever sees ordinary FHIR.
+    </p>
+    <p><strong>1. Drop-in: collect and submit to your FHIR server.</strong>
+      One script tag, one element; it launches the flow, verifies the
+      response, POSTs a transaction Bundle (with Provenance) to your server,
+      and sends the patient to your next step:</p>
+<pre><code>&lt;script type="module" src=".../element.js"&gt;&lt;/script&gt;
+
+&lt;smart-checkin
+  scenario="new-patient"
+  patient="Patient/123"
+  fhir-base="https://your-fhir-server.example.org/r4"
+  return-url="/checkin/payment"&gt;
+&lt;/smart-checkin&gt;</code></pre>
+    <p><strong>2. Autofill: just get the data back.</strong> Ask, await, and
+      use the validated response to prefill your own forms — no submission,
+      your code stays in control:</p>
+<pre><code>import { requestCheckin } from "@smart-health-checkin/provider-kit";
+
+const response = await requestCheckin({ scenario: "allergy-review" });
+// response.artifacts → populate your intake form inline</code></pre>
+    <p>
+      The full walkthrough — attributes, events, the JS API, auth wiring,
+      and the production checklist — is in the
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/docs/integrating.md">integration guide</a>.
+    </p>
   </section>
 
   <p class="status">
