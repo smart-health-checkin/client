@@ -30,8 +30,10 @@
     "@types/bun": "^1.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "marked": "^18.0.10",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "typedoc": "^0.28.20",
     "typescript": "^5.5.0"
   },
   "description": "Ask a patient's health app for what your visit needs, and get a verified answer back in your page (SMART Health Check-in).",

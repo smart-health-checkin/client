@@ -23,6 +23,7 @@ jobs:
       - run: bun install
       - run: bun run typecheck
       - run: bun test
+      - run: bun run build
       - run: scripts/build-pages.sh
       - uses: actions/upload-pages-artifact@v3
         with:

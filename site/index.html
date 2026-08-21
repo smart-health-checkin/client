@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>checkin-provider-kit</title>
+<title>checkin-client</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -114,7 +114,7 @@
 <main>
   <header>
     <div class="eyebrow">smart-health-checkin</div>
-    <h1>checkin-provider-kit</h1>
+    <h1>checkin-client</h1>
     <p class="lede">
       Ask the patient's health app for what your visit needs, and get a
       verified answer back in your own page — then do whatever your workflow
@@ -122,9 +122,10 @@
       inside the kit; you write one <code>await</code>.
     </p>
     <p class="lede">
-      It implements <a href="/spec/">SMART Health Check-in 1.0</a>, and you can
-      <a href="./demo/">try the whole flow in your browser right now</a> — no
-      phone or wallet app required.
+      It implements <a href="/spec/">SMART Health Check-in 1.0</a>. You can
+      <a href="./demo/">try the whole flow in your browser right now</a> (no
+      phone or wallet app required), or head to the
+      <a href="/docs/">docs</a> to install it.
     </p>
   </header>
 
@@ -213,7 +214,7 @@
       <li><strong>Everything is a URL.</strong> The whole configuration —
         scenario or full request object, patient, FHIR target, return leg —
         lives in the URL fragment, so any test case is a shareable link
-        (<a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar" target="_blank" rel="noreferrer">grammar</a>).</li>
+        (<a href="https://github.com/smart-health-checkin/checkin-client/tree/main/demo#url-grammar" target="_blank" rel="noreferrer">grammar</a>).</li>
     </ul>
   </section>
 
@@ -267,7 +268,7 @@ location.assign("/checkin/payment");</code></pre>
     <p>
       The full walkthrough — attributes, events, the JS API, auth wiring,
       and the production checklist — is in the
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/docs/integrating.md" target="_blank" rel="noreferrer">integration guide</a>.
+      <a href="https://github.com/smart-health-checkin/checkin-client/blob/main/docs/integrating.md" target="_blank" rel="noreferrer">integration guide</a>.
     </p>
   </section>
 
@@ -292,12 +293,12 @@ location.assign("/checkin/payment");</code></pre>
       <p>Apache-2.0. Contributions and issues welcome.</p>
     </div>
     <nav>
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit" target="_blank" rel="noreferrer">checkin-provider-kit</a>
+      <a href="https://github.com/smart-health-checkin/checkin-client" target="_blank" rel="noreferrer">checkin-client</a>
       <span>the toolkit on this page</span>
       <a href="https://github.com/smart-health-checkin/spec" target="_blank" rel="noreferrer">spec</a>
       <span>protocol, reference wallet, conformance fixtures</span>
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/docs/integrating.md" target="_blank" rel="noreferrer">integration guide</a>
-      <span>the API, auth, production checklist</span>
+      <a href="/docs/">docs &amp; API reference</a>
+      <span>install, guides, every export</span>
       <a href="/ktc/closing-the-loop/">Closing the Loop</a>
       <span>why this design, for the CMS workstream</span>
     </nav>

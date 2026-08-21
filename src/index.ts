@@ -26,14 +26,31 @@ export {
   validateResponseAgainstRequest,
   validateSmartCheckinRequest,
   validateSmartCheckinResponse,
+  type FhirCanonical,
+  type FhirProfileCollectionRef,
+  type FhirResourceType,
+  type FhirVersion,
   type SmartArtifact,
+  type SmartArtifactBase,
   type SmartCheckinContentSelector,
   type SmartCheckinItemStatus,
   type SmartCheckinRequest,
   type SmartCheckinRequestItem,
   type SmartCheckinResponse,
+  type SmartHealthCheckinAcceptedMediaType,
   type ValidationResult,
 } from "./model/index.js";
+
+// Protocol identifiers and the raw DC API argument shape, for callers that
+// inspect or construct wire material directly.
+export {
+  MDOC_DOC_TYPE,
+  MDOC_NAMESPACE,
+  PROTOCOL_ID,
+  SMART_REQUEST_INFO_KEY,
+  SMART_RESPONSE_ELEMENT_ID,
+  type OrgIsoMdocNavigatorArgument,
+} from "./wire/request.js";
 
 export {
   createBrowserLocalAuthority,
@@ -41,6 +58,7 @@ export {
   detectDcApiSupport,
   extractDcapiResponse,
   type CredentialCompletion,
+  type DcapiMdocResponse,
   type DcApiSupport,
   type PreparedCredentialRequest,
   type VerifierAuthority,

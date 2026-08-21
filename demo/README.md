@@ -1,6 +1,6 @@
 # Check-in demo
 
-The sample project for `checkin-provider-kit`: a standalone check-in page,
+The sample project for `checkin-client`: a standalone check-in page,
 configured entirely by URL, that runs the flow and submits results to a
 FHIR backend. Deploys to `/demo/` on the landing site.
 

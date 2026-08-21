@@ -1,4 +1,4 @@
-# checkin-provider-kit
+# checkin-client
 
 Provider-side toolkit for **SMART Health Check-in**. One call, one job:
 

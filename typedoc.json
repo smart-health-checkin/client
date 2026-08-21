@@ -1,0 +1,18 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts", "src/fhir/index.ts"],
+  "out": "docs-site/api",
+  "name": "checkin-client API",
+  "readme": "none",
+  "githubPages": false,
+  "hideGenerator": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "sort": ["source-order"],
+  "customCss": "site/docs/typedoc-theme.css",
+  "navigationLinks": {
+    "Docs home": "https://smart-health-checkin.org/docs/",
+    "Demo": "https://smart-health-checkin.org/demo/",
+    "Spec": "https://smart-health-checkin.org/spec/"
+  }
+}

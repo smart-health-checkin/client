@@ -1,7 +1,7 @@
-# checkin-provider-kit — complete product requirements & design
+# checkin-client — complete product requirements & design
 
 This document is self-contained: an engineer (human or AI) should be able to
-build the entire `checkin-provider-kit` deliverable — library code, demo app,
+build the entire `checkin-client` deliverable — library code, demo app,
 landing page, docs, tests, and CI/deployment — from this file plus the
 external authorities listed in §2, **without reading any pre-existing code,
 README, or notes in this repository**. Where this document and existing repo
@@ -65,7 +65,7 @@ Success criteria:
 
 ## 3. Repository identity and conventions
 
-- **GitHub**: org `smart-health-checkin`, repo `checkin-provider-kit`.
+- **GitHub**: org `smart-health-checkin`, repo `checkin-client`.
   Default branch `main`.
 - **License**: Apache-2.0 (`LICENSE` at root; `"license": "Apache-2.0"` in
   package.json).
@@ -446,7 +446,7 @@ add a missed allergy, and finalize.
 ## 13. Landing page (`site/`, deploys to `/`)
 
 Static, single file, no framework. Content: eyebrow `smart-health-checkin`;
-h1 `checkin-provider-kit`; one-paragraph value statement (embed a check-in
+h1 `checkin-client`; one-paragraph value statement (embed a check-in
 flow in any provider surface; response returns to that surface; plumbing
 stays inside the kit); action links (demo, GitHub repo, draft spec); a
 five-step flow diagram — `configure → launch → receive → submit → return`

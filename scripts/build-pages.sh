@@ -23,6 +23,21 @@ bun build src/index.ts --outdir _site/lib --format esm --minify
 mv _site/lib/index.js _site/lib/checkin.js
 bun build src/fhir/index.ts --outdir _site/lib --format esm --minify
 mv _site/lib/index.js _site/lib/fhir.js
+# docs: landing page, generated API reference, rendered guides
+mkdir -p _site/docs
+cp site/docs/index.html _site/docs/index.html
+bun run docs >/dev/null
+bun scripts/render-guides.ts >/dev/null
+cp -r docs-site/api _site/docs/api
+cp -r docs-site/guides _site/docs/guides
+
+# pinned copies of the hosted modules, so links can outlive a rebuild
+VERSION=$(bun -e 'console.log(require("./package.json").version)')
+mkdir -p "_site/lib/$VERSION"
+cp _site/lib/checkin.js "_site/lib/$VERSION/checkin.js"
+cp _site/lib/fhir.js "_site/lib/$VERSION/fhir.js"
+printf '{"version":"%s"}\n' "$VERSION" > _site/lib/version.json
+
 touch _site/.nojekyll
 # Custom domain: create site/CNAME (one line: the domain) once DNS points at
 # GitHub Pages. Until then the site stays on the *.github.io URL.

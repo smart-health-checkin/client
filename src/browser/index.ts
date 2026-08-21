@@ -183,3 +183,6 @@ export function extractDcapiResponse(credential: unknown): string | DcapiMdocRes
   }
   throw new Error("could not extract an org-iso-mdoc response from the credential object");
 }
+
+/** Re-exported for callers that inspect raw wallet responses. */
+export type { DcapiMdocResponse } from "../wire/response.js";

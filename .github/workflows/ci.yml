@@ -14,4 +14,27 @@ jobs:
       - run: bun install
       - run: bun run typecheck
       - run: bun test
+      - run: bun run build
       - run: scripts/build-pages.sh
+
+  install-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      # Install this checkout the way a consumer would, then import it.
+      - run: |
+          mkdir -p /tmp/consumer && cd /tmp/consumer
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE"
+          cat > check.mjs <<'JS'
+          import { buildRequest } from "@smart-health-checkin/checkin-client";
+          import { buildCheckinBundle } from "@smart-health-checkin/checkin-client/fhir";
+          const r = buildRequest({ purpose: "ci", items: [{ id: "x", title: "X",
+            content: { kind: "selection.fhir" }, accept: ["application/fhir+json"] }] });
+          if (r.type !== "smart-health-checkin-request") throw new Error("bad request");
+          if (typeof buildCheckinBundle !== "function") throw new Error("bad fhir subpath");
+          console.log("install smoke ok");
+          JS
+          node check.mjs
