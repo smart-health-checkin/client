@@ -58,7 +58,7 @@ Success criteria:
 
 | Authority | Location | Role |
 | --- | --- | --- |
-| SMART Health Check-in 1.0 draft spec | <https://joshuamandel.com/smart-health-checkin-mdoc/spec.html> (raw: `…/spec.md`) | Normative for the clinical model (§§5–6), the mdoc presentation flow (§8), trust (§7), and CDDL/schemas (Appendices B–C). Consult whenever this PRD's protocol summary is insufficient. |
+| SMART Health Check-in 1.0 draft spec | </spec/> (raw: `…/spec.md`) | Normative for the clinical model (§§5–6), the mdoc presentation flow (§8), trust (§7), and CDDL/schemas (Appendices B–C). Consult whenever this PRD's protocol summary is insufficient. |
 | Prototype repo | <https://github.com/jmandel/smart-health-checkin-mdoc> | Reference implementation (TypeScript verifier SDK under `rp-web/src/sdk/`, Android wallet, Python checkers). Port from it freely with attribution comments; do not import it as a dependency. |
 | Conformance fixtures | `fixtures/` in this repo (pinned copy of the prototype's corpus; see `fixtures/PROVENANCE.md`) | **The compatibility contract.** Byte-level oracles for requests, responses, transcripts, and crypto. All wire code is done only when fixture tests pass. |
 | Public HAPI FHIR server | `https://hapi.fhir.org/baseR4` | Default demo submission backend (open, CORS-enabled, periodically wiped, test data only). |

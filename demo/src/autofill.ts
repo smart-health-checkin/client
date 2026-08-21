@@ -1,7 +1,10 @@
 /**
- * Autofill POC: the provider's own data-collection form, prefilled by the
- * patient's app via `await requestCheckin(...)` — no FHIR submission, the
- * page keeps the response and populates its form inline.
+ * Autofill sketch: the provider's own form, prefilled by the patient's app
+ * via `await requestCheckin(...)`, which then asks only for what the shared
+ * record couldn't carry.
+ *
+ * Deliberately compact — this gestures at the capability rather than being a
+ * production intake form. Two taps fill a gap: a symptom chip and a severity.
  */
 
 import {
@@ -13,8 +16,6 @@ import {
   requestCheckin,
 } from "../../src/index.ts";
 
-// The request is defined inline, right where it's used — the kit fills in
-// the type/version/id boilerplate. This is the primary integration ergonomic.
 const ALLERGY_REVIEW = {
   purpose: "Review your allergy list before your visit",
   items: [
@@ -32,39 +33,31 @@ const ALLERGY_REVIEW = {
   ],
 };
 
-type AllergyRow = {
-  name: string;
-  /** What the app's record already said (empty when it said nothing). */
-  reportedReactions: string[];
-  criticality?: string;
-  decision: "confirm" | "update" | "remove";
-  symptoms: Set<string>;
-  severity: "" | "mild" | "moderate" | "severe";
-  note: string;
-  addedByPatient?: boolean;
-  /** Fields the shared record left blank — what this form is here to elicit. */
-  gaps: { reaction: boolean; severity: boolean };
-};
-
-/** US Core requires substance + clinical status; reaction and criticality are
- *  optional, so records routinely arrive without them. */
-function gapsFor(reactions: string[], criticality?: string): AllergyRow["gaps"] {
-  return {
-    reaction: reactions.length === 0,
-    severity: !criticality || criticality === "unable-to-assess",
-  };
-}
-
-/** Symptom vocabulary for the demo (severe ones flagged for the care team). */
+/** Severe tags are flagged so the care team sees them at a glance. */
 const SYMPTOM_TAGS: Array<{ label: string; severe?: boolean }> = [
-  { label: "Hives / rash" },
+  { label: "Rash" },
   { label: "Itching" },
   { label: "Swelling" },
-  { label: "Stomach upset" },
-  { label: "Wheezing", severe: true },
-  { label: "Trouble breathing", severe: true },
+  { label: "GI upset" },
+  { label: "Breathing", severe: true },
   { label: "Anaphylaxis", severe: true },
 ];
+
+const SEVERITIES = ["mild", "moderate", "severe"] as const;
+type Severity = (typeof SEVERITIES)[number] | "";
+
+type Row = {
+  name: string;
+  /** What the record already said (empty = the gap we're here to fill). */
+  reportedReactions: string[];
+  criticality?: string;
+  symptoms: Set<string>;
+  severity: Severity;
+  removed: boolean;
+  gaps: { reaction: boolean; severity: boolean };
+  /** Complete rows collapse; this reopens one. */
+  expanded?: boolean;
+};
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
 const params = new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -77,15 +70,27 @@ const credentialGetter =
     : wallet === "auto"
       ? createMockWalletCredentialGetter({ origin: location.origin })
       : undefined;
-const rows: AllergyRow[] = [];
+
+const rows: Row[] = [];
+let outputTab: "fhir" | "native" = "fhir";
+
+// US Core requires substance + clinical status; reaction and criticality are
+// optional, so records routinely arrive without them.
+const gapsFor = (reactions: string[], criticality?: string) => ({
+  reaction: reactions.length === 0,
+  severity: !criticality || criticality === "unable-to-assess",
+});
+
+const needsDetail = (row: Row): boolean =>
+  !row.removed &&
+  ((row.gaps.reaction && row.symptoms.size === 0) || (row.gaps.severity && !row.severity));
 
 function init(): void {
   const support = detectDcApiSupport();
   const note = el("status-note");
   const button = el("prefill") as HTMLButtonElement;
   if (wallet === "app") {
-    note.textContent =
-      "Demo wallet app: a wallet window opens where you choose what to share.";
+    note.textContent = "Demo wallet app: a wallet window opens where you choose what to share.";
   } else if (wallet === "auto") {
     note.textContent = "Automatic mock wallet — fabricated demo allergies, no consent screen.";
   } else if (support.state === "supported") {
@@ -96,8 +101,13 @@ function init(): void {
     button.disabled = true;
   }
   button.onclick = () => void prefill();
-  el("send").onclick = () => send();
-  el("add-allergy").onclick = () => addAllergy();
+  el("send").onclick = () => finalize();
+  for (const tab of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
+    tab.onclick = () => {
+      outputTab = tab.dataset.tab as "fhir" | "native";
+      renderOutput();
+    };
+  }
 }
 
 async function prefill(): Promise<void> {
@@ -121,28 +131,25 @@ async function prefill(): Promise<void> {
           name: codeText(resource) ?? "(unnamed allergy)",
           reportedReactions: reactions,
           criticality,
-          decision: "confirm",
-          // Pre-select tags matching what the record already says, so the
-          // patient confirms rather than starting from nothing.
           symptoms: new Set(
-            SYMPTOM_TAGS.filter((tag) =>
-              reactions.some((r) => matchesTag(tag.label, r)),
-            ).map((tag) => tag.label),
+            SYMPTOM_TAGS.filter((tag) => reactions.some((r) => matchesTag(tag.label, r))).map(
+              (tag) => tag.label,
+            ),
           ),
           severity: "",
-          note: "",
+          removed: false,
           gaps: gapsFor(reactions, criticality),
         });
       }
     }
-    renderRows();
-    const missing = rows.filter((r) => r.gaps.reaction || r.gaps.severity).length;
+    const missing = rows.filter(needsDetail).length;
     el("status-note").textContent = !rows.length
-      ? "Your app returned no allergy records — add any you know of below."
+      ? "Your app returned no allergy records."
       : missing
-        ? `Prefilled ${rows.length} allergies from your app. ${missing} ${missing === 1 ? "is" : "are"} missing detail your record doesn't carry — just those need you.`
-        : `Prefilled ${rows.length} allergies from your app — everything we need is already there. Confirm and you're done.`;
+        ? `${rows.length} allergies came from your app. ${missing} ${missing === 1 ? "is" : "are"} missing detail your record doesn't carry — only those need you.`
+        : `${rows.length} allergies came from your app, all complete.`;
     el("review-card").hidden = false;
+    render();
   } catch (e) {
     el("status-note").textContent =
       e instanceof CheckinFlowError && e.outcome.status === "declined"
@@ -154,224 +161,213 @@ async function prefill(): Promise<void> {
   }
 }
 
-function renderRows(): void {
+function render(): void {
   const list = el("allergy-list");
   list.innerHTML = "";
-
-  // What the record couldn't tell us comes first — that is the whole point
-  // of asking the patient at check-in.
+  // Incomplete rows first: that's the only part that needs the patient.
   const ordered = [...rows].sort((a, b) => Number(needsDetail(b)) - Number(needsDetail(a)));
 
   for (const row of ordered) {
     const index = rows.indexOf(row);
     const li = document.createElement("li");
-    li.dataset.rowIndex = String(index);
-    if (row.decision === "remove") li.className = "row-removed";
-    else if (needsDetail(row)) li.className = "row-gap";
+    li.className = row.removed ? "removed" : needsDetail(row) ? "gap" : "done";
 
     const head = document.createElement("div");
-    head.className = "allergy-head";
+    head.className = "line";
     const name = document.createElement("span");
-    name.className = "allergy-name";
+    name.className = "name";
     name.textContent = row.name;
-    head.append(name);
+    const said = document.createElement("span");
+    said.className = "said";
+    said.textContent = row.reportedReactions.length
+      ? row.reportedReactions.join(", ")
+      : "allergen only";
+    head.append(name, said);
 
-    const detail = document.createElement("span");
-    detail.className = "allergy-detail";
-    detail.textContent = row.addedByPatient
-      ? "added by you"
-      : row.reportedReactions.length
-        ? `your record says: ${row.reportedReactions.join(", ")}`
-        : "your record lists the allergy only";
-    head.append(detail);
+    const state = document.createElement("span");
+    state.className = "state";
+    if (row.removed) state.textContent = "removed";
+    else if (needsDetail(row)) state.textContent = "needs you";
+    else state.textContent = summaryOf(row) || (row.criticality ?? "");
+    head.append(state);
 
-    const badge = document.createElement("span");
-    badge.dataset.badge = "1";
-    head.append(badge);
+    const remove = document.createElement("button");
+    remove.className = "linkish";
+    remove.type = "button";
+    remove.textContent = row.removed ? "undo" : "not mine";
+    remove.onclick = () => {
+      rows[index]!.removed = !rows[index]!.removed;
+      render();
+    };
+    head.append(remove);
     li.append(head);
 
-    const decisionRow = document.createElement("div");
-    decisionRow.className = "review-row";
-    const decision = document.createElement("select");
-    for (const [value, label] of [
-      ["confirm", "Still accurate"],
-      ["update", "Needs an update"],
-      ["remove", "No longer an allergy"],
-    ] as const) {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = label;
-      decision.append(option);
-    }
-    decision.value = row.decision;
-    decision.onchange = () => {
-      rows[index]!.decision = decision.value as AllergyRow["decision"];
-      renderRows();
-    };
-    decisionRow.append(decision);
-    li.append(decisionRow);
+    // Controls appear only while a row needs input (or was reopened).
+    if (!row.removed && (needsDetail(row) || row.expanded)) {
+      const ask = document.createElement("div");
+      ask.className = "ask";
+      ask.textContent = row.gaps.reaction
+        ? "Record doesn't say what happens — tap what you get, and how bad:"
+        : "What happens, and how bad?";
+      const controls = document.createElement("div");
+      controls.className = "controls";
 
-    if (row.decision !== "remove") {
-      // Symptoms: asked prominently when the record has none, offered as a
-      // confirmation when it does.
-      const tagsLabel = document.createElement("div");
-      tagsLabel.className = row.gaps.reaction ? "field-label ask" : "field-label";
-      tagsLabel.textContent = row.gaps.reaction
-        ? "Your record doesn't say what happens when you're exposed. What do you get?"
-        : "What happens when you're exposed?";
-      const tags = document.createElement("div");
-      tags.className = "tags";
       for (const tag of SYMPTOM_TAGS) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "tag";
-        button.textContent = tag.label;
-        button.setAttribute("aria-pressed", String(row.symptoms.has(tag.label)));
-        if (tag.severe) button.dataset.severe = "1";
-        button.onclick = () => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = tag.label;
+        chip.setAttribute("aria-pressed", String(row.symptoms.has(tag.label)));
+        if (tag.severe) chip.dataset.severe = "1";
+        chip.onclick = () => {
           const set = rows[index]!.symptoms;
           if (set.has(tag.label)) set.delete(tag.label);
           else set.add(tag.label);
-          button.setAttribute("aria-pressed", String(set.has(tag.label)));
-          updateProgress();
+          render();
         };
-        tags.append(button);
+        controls.append(chip);
       }
-      li.append(tagsLabel, tags);
 
-      const severityLabel = document.createElement("div");
-      severityLabel.className = row.gaps.severity ? "field-label ask" : "field-label";
-      severityLabel.textContent = row.gaps.severity
-        ? "And how severe does it get? (your record doesn't say)"
-        : "How severe does it get?";
-      const severityRow = document.createElement("div");
-      severityRow.className = "review-row";
-      const severity = document.createElement("select");
-      for (const [value, label] of [
-        ["", "Choose…"],
-        ["mild", "Mild"],
-        ["moderate", "Moderate"],
-        ["severe", "Severe — needed urgent care"],
-      ] as const) {
-        const option = document.createElement("option");
-        option.value = value;
-        option.textContent = label;
-        severity.append(option);
+      const sev = document.createElement("span");
+      sev.className = "sev";
+      for (const level of SEVERITIES) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = level;
+        button.setAttribute("aria-pressed", String(row.severity === level));
+        button.onclick = () => {
+          rows[index]!.severity = rows[index]!.severity === level ? "" : level;
+          render();
+        };
+        sev.append(button);
       }
-      severity.value = row.severity;
-      severity.onchange = () => {
-        rows[index]!.severity = severity.value as AllergyRow["severity"];
-        updateProgress();
+      controls.append(sev);
+      li.append(ask, controls);
+    } else if (!row.removed && (row.symptoms.size || row.severity)) {
+      const change = document.createElement("button");
+      change.className = "linkish change";
+      change.type = "button";
+      change.textContent = "change";
+      change.onclick = () => {
+        rows[index]!.expanded = true;
+        render();
       };
-      const input = document.createElement("input");
-      input.placeholder = "Anything else your care team should know (optional)";
-      input.value = row.note;
-      input.oninput = () => (rows[index]!.note = input.value);
-      severityRow.append(severity, input);
-      li.append(severityLabel, severityRow);
+      li.append(change);
     }
 
     list.append(li);
   }
-  updateProgress();
-}
 
-/** A row still needs the patient when the record left a field blank and the
- *  patient hasn't supplied it yet. */
-function needsDetail(row: AllergyRow): boolean {
-  if (row.decision === "remove") return false;
-  if (row.gaps.reaction && row.symptoms.size === 0) return true;
-  if (row.gaps.severity && !row.severity) return true;
-  return false;
-}
-
-/** Reflect answers immediately: the flag clears as soon as a row is complete. */
-function refreshRowStates(): void {
-  for (const li of document.querySelectorAll<HTMLLIElement>("#allergy-list li")) {
-    const row = rows[Number(li.dataset.rowIndex)];
-    if (!row) continue;
-    const badge = li.querySelector<HTMLElement>("[data-badge]");
-    if (row.decision === "remove") {
-      li.className = "row-removed";
-    } else if (needsDetail(row)) {
-      li.className = "row-gap";
-    } else {
-      li.className = "";
-    }
-    if (!badge) continue;
-    if (needsDetail(row) && row.decision !== "remove") {
-      badge.className = "badge gap";
-      badge.textContent = "needs your input";
-    } else if (row.decision !== "remove" && (row.symptoms.size || row.severity)) {
-      badge.className = "badge done";
-      badge.textContent = "complete";
-    } else if (row.criticality && row.criticality !== "unable-to-assess") {
-      badge.className = `badge${row.criticality === "high" ? " high" : ""}`;
-      badge.textContent = `${row.criticality} risk`;
-    } else {
-      badge.className = "";
-      badge.textContent = "";
-    }
-  }
-}
-
-function updateProgress(): void {
-  refreshRowStates();
   const outstanding = rows.filter(needsDetail).length;
   const progress = el("progress");
-  progress.textContent = outstanding
-    ? `${outstanding} ${outstanding === 1 ? "allergy needs" : "allergies need"} a detail your record doesn't have.`
-    : rows.length
-      ? "Everything your care team asked for is filled in."
-      : "";
+  progress.textContent = !rows.length
+    ? ""
+    : outstanding
+      ? `${outstanding} still ${outstanding === 1 ? "needs" : "need"} a detail your record doesn't have.`
+      : "Everything the clinic asked for is filled in.";
   progress.className = outstanding ? "progress outstanding" : "progress";
+  renderOutput();
 }
 
-function addAllergy(): void {
-  const name = prompt("What are you allergic to?");
-  if (!name?.trim()) return;
-  rows.push({
-    name: name.trim(),
-    reportedReactions: [],
-    decision: "update",
-    symptoms: new Set(),
-    severity: "",
-    note: "",
-    addedByPatient: true,
-    gaps: { reaction: true, severity: true },
-  });
-  renderRows();
+function summaryOf(row: Row): string {
+  const parts = [...row.symptoms];
+  if (row.severity) parts.push(row.severity);
+  return parts.join(" · ");
 }
 
-function send(): void {
-  el("sent-card").hidden = false;
-  el("sent-json").textContent = JSON.stringify(
-    {
-      summary: "Patient-reviewed allergy list (prefilled from the patient's app)",
-      source: "SMART Health Check-in — requestCheckin()",
-      review: rows.map((row) => {
-        const supplied: string[] = [];
-        if (row.gaps.reaction && row.symptoms.size) supplied.push("symptoms");
-        if (row.gaps.severity && row.severity) supplied.push("severity");
-        return {
-          allergy: row.name,
-          origin: row.addedByPatient ? "added-by-patient" : "from-patient-app",
-          patientDecision: row.decision,
-          ...(row.decision !== "remove" && row.symptoms.size
-            ? { symptoms: [...row.symptoms] }
+// ---------------------------------------------------------------- output
+
+/**
+ * The same reviewed data in two shapes. Which one an EHR wants is entirely
+ * its own business: the check-in page is ordinary application code, so it can
+ * write standard FHIR, its own internal model, or both.
+ */
+function asFhir(): unknown {
+  return {
+    resourceType: "Bundle",
+    type: "transaction",
+    entry: rows
+      .filter((row) => !row.removed)
+      .map((row) => ({
+        resource: {
+          resourceType: "AllergyIntolerance",
+          clinicalStatus: {
+            coding: [
+              {
+                system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+                code: "active",
+              },
+            ],
+          },
+          code: { text: row.name },
+          ...(row.severity
+            ? { criticality: row.severity === "severe" ? "high" : "low" }
+            : row.criticality
+              ? { criticality: row.criticality }
+              : {}),
+          ...(row.symptoms.size
+            ? {
+                reaction: [
+                  {
+                    manifestation: [...row.symptoms].map((text) => ({ text })),
+                    ...(row.severity ? { severity: row.severity } : {}),
+                  },
+                ],
+              }
             : {}),
-          ...(row.severity ? { severity: row.severity } : {}),
-          ...(row.note ? { note: row.note } : {}),
-          // the value-add of asking at check-in: fields the shared record
-          // did not carry, now filled in by the person who knows
-          ...(supplied.length ? { newInformation: supplied } : {}),
-        };
-      }),
-    },
+        },
+        request: { method: "POST", url: "AllergyIntolerance" },
+      })),
+  };
+}
+
+function asNative(): unknown {
+  return {
+    checkinPacket: "ALLERGY_REVIEW",
+    encounter: "ENC-88213",
+    reviewedBy: "PATIENT",
+    items: rows.map((row) => ({
+      allergen: row.name,
+      status: row.removed ? "REMOVED_BY_PT" : "CONFIRMED_BY_PT",
+      reactions: [...row.symptoms].map((s) => s.toUpperCase().replace(/ /g, "_")),
+      severity: row.severity ? row.severity.slice(0, 3).toUpperCase() : null,
+      ptSupplied: [
+        ...(row.gaps.reaction && row.symptoms.size ? ["REACTION"] : []),
+        ...(row.gaps.severity && row.severity ? ["SEVERITY"] : []),
+      ],
+      needsNurseReview: row.symptoms.has("Anaphylaxis") || row.severity === "severe",
+    })),
+  };
+}
+
+function renderOutput(): void {
+  if (el("sent-card").hidden) return;
+  for (const tab of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
+    tab.setAttribute("aria-pressed", String(tab.dataset.tab === outputTab));
+  }
+  el("sent-json").textContent = JSON.stringify(
+    outputTab === "fhir" ? asFhir() : asNative(),
     null,
     2,
   );
-  el("sent-card").scrollIntoView({ behavior: "smooth", block: "start" });
+  el("tab-note").textContent =
+    outputTab === "fhir"
+      ? "Standard FHIR: reaction manifestations and criticality populated from what the patient just told you, ready to POST."
+      : "Or the EHR's own model — same review, native codes, routing flags. The check-in page decides; the protocol never sees this.";
+}
+
+function finalize(): void {
+  el("sent-card").hidden = false;
+  renderOutput();
+  el("sent-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---------------------------------------------------------------- helpers
+
+function matchesTag(tagLabel: string, reactionText: string): boolean {
+  const tag = tagLabel.toLowerCase();
+  const reaction = reactionText.toLowerCase();
+  return reaction.includes(tag) || tag.includes(reaction.split(" ")[0]!);
 }
 
 function extractResources(value: unknown): Array<Record<string, unknown>> {
@@ -382,19 +378,12 @@ function extractResources(value: unknown): Array<Record<string, unknown>> {
       .map((entry) => (entry as { resource?: unknown }).resource)
       .filter((r): r is Record<string, unknown> => !!r && typeof r === "object");
   }
-  if (typeof v.resourceType === "string") return [v];
-  return [];
+  return typeof v.resourceType === "string" ? [v] : [];
 }
 
 function codeText(resource: Record<string, unknown>): string | undefined {
   const code = resource.code as { text?: unknown } | undefined;
   return typeof code?.text === "string" ? code.text : undefined;
-}
-
-function matchesTag(tagLabel: string, reactionText: string): boolean {
-  const tag = tagLabel.toLowerCase();
-  const reaction = reactionText.toLowerCase();
-  return tag.split(" / ").some((word) => reaction.includes(word.split(" ")[0]!));
 }
 
 function reactionTexts(resource: Record<string, unknown>): string[] {

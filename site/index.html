@@ -66,24 +66,6 @@
     text-wrap: balance;
   }
   .lede { font-size: 1.08rem; color: var(--muted); max-width: 60ch; margin: 0.75rem 0 0; }
-  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-  .actions a {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    color: var(--ink);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    background: var(--surface);
-  }
-  .actions a.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--bg);
-  }
-  .actions a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   section h2 {
     font-size: 1.05rem;
     font-weight: 600;
@@ -113,12 +95,17 @@
   }
   .snippet .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   p { margin: 0.4rem 0; }
-  .status {
-    border-left: 3px solid var(--accent);
-    padding: 0.35rem 1rem;
-    color: var(--muted);
-    font-size: 0.92rem;
+  footer { border-top: 1px solid var(--line); margin-top: 1.5rem; background: var(--surface); }
+  .footer-inner {
+    max-width: 46rem; margin: 0 auto; padding: 2rem 1.25rem 2.5rem;
+    display: flex; flex-wrap: wrap; gap: 1.5rem 3rem; justify-content: space-between;
+    font-size: 0.9rem;
   }
+  .footer-inner p { color: var(--muted); margin: 0.2rem 0 0; }
+  .footer-inner nav {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 0.9rem; align-items: baseline;
+  }
+  .footer-inner nav span { color: var(--muted); font-size: 0.85rem; }
   a { color: var(--accent); }
 </style>
 </head>
@@ -129,18 +116,18 @@
     <div class="eyebrow">smart-health-checkin</div>
     <h1>checkin-provider-kit</h1>
     <p class="lede">
-      Embed a SMART Health Check-in flow in any provider web surface, receive
-      the patient's response right there, submit it to your FHIR server, and
-      return the patient to the rest of check-in. The Digital Credentials API
-      plumbing stays inside the kit.
+      Ask the patient's health app for what your visit needs, and get a
+      verified answer back in your own page — then do whatever your workflow
+      does next. The Digital Credentials API plumbing (CBOR, COSE, HPKE) stays
+      inside the kit; you write one <code>await</code>.
+    </p>
+    <p class="lede">
+      It implements <a href="/spec/">SMART Health Check-in 1.0</a>, and you can
+      <a href="./demo/">try the whole flow in your browser right now</a> — no
+      phone or wallet app required.
     </p>
   </header>
 
-  <div class="actions">
-    <a class="primary" href="./demo/">Open the demo</a>
-    <a href="https://github.com/smart-health-checkin/checkin-provider-kit">GitHub</a>
-    <a href="https://joshuamandel.com/smart-health-checkin-mdoc/spec.html">Draft spec</a>
-  </div>
 
   <section>
     <h2>How a check-in runs</h2>
@@ -226,7 +213,7 @@
       <li><strong>Everything is a URL.</strong> The whole configuration —
         scenario or full request object, patient, FHIR target, return leg —
         lives in the URL fragment, so any test case is a shareable link
-        (<a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar">grammar</a>).</li>
+        (<a href="https://github.com/smart-health-checkin/checkin-provider-kit/tree/main/demo#url-grammar" target="_blank" rel="noreferrer">grammar</a>).</li>
     </ul>
   </section>
 
@@ -244,7 +231,7 @@
       in control:</p>
 <pre><code>&lt;script type="module"&gt;
   import { requestCheckin }
-    from "<span class="computed-url" data-file="./kit.js"></span>";
+    from "<span class="computed-url" data-file="./lib/checkin.js"></span>";
 
   const response = await requestCheckin({
     purpose: "Review your allergy list before your visit",
@@ -265,7 +252,7 @@
       next screen. Writing records is ordinary code you already own; an
       optional helper is there if you want the mapping done for you:</p>
 <pre><code>import { buildCheckinBundle, postCheckinBundle }
-  from "<span class="computed-url" data-file="./fhir.js"></span>";
+  from "<span class="computed-url" data-file="./lib/fhir.js"></span>";
 
 const bundle = buildCheckinBundle({ request, response,
   context: { patient: "Patient/123", appointment: "Appointment/456" } });
@@ -280,21 +267,42 @@ location.assign("/checkin/payment");</code></pre>
     <p>
       The full walkthrough — attributes, events, the JS API, auth wiring,
       and the production checklist — is in the
-      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/docs/integrating.md">integration guide</a>.
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/docs/integrating.md" target="_blank" rel="noreferrer">integration guide</a>.
     </p>
   </section>
 
-  <p class="status">
-    Status: working draft. The core flow — request construction,
-    SessionTranscript, HPKE, COSE verification, FHIR submission — is
-    implemented and byte-verified against real Chrome/Android captures from
-    the <a href="https://github.com/jmandel/smart-health-checkin-mdoc">spec
-    prototype</a>'s conformance fixtures. The
-    <a href="https://github.com/smart-health-checkin/checkin-provider-kit#readme">README</a>
-    is the API contract; the demo runs end-to-end today (use
-    <code>mock=1</code> if you don't have a wallet-equipped phone handy).
-  </p>
+  <section>
+    <h2>Status</h2>
+    <p>
+      Working draft. Request construction, SessionTranscript, HPKE, and COSE
+      signature verification are implemented and byte-verified against real
+      Chrome/Android captures in the
+      <a href="https://github.com/smart-health-checkin/spec/tree/main/fixtures" target="_blank" rel="noreferrer">conformance fixtures</a>,
+      and the demo runs end-to-end against a public test FHIR server today.
+      Still open: a server-owned key-custody reference, production trust
+      anchors, and iOS/Safari support for the underlying browser API.
+    </p>
+  </section>
 </main>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <strong>SMART Health Check-in</strong>
+      <p>Apache-2.0. Contributions and issues welcome.</p>
+    </div>
+    <nav>
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit" target="_blank" rel="noreferrer">checkin-provider-kit</a>
+      <span>the toolkit on this page</span>
+      <a href="https://github.com/smart-health-checkin/spec" target="_blank" rel="noreferrer">spec</a>
+      <span>protocol, reference wallet, conformance fixtures</span>
+      <a href="https://github.com/smart-health-checkin/checkin-provider-kit/blob/main/docs/integrating.md" target="_blank" rel="noreferrer">integration guide</a>
+      <span>the API, auth, production checklist</span>
+      <a href="/ktc/closing-the-loop/">Closing the Loop</a>
+      <span>why this design, for the CMS workstream</span>
+    </nav>
+  </div>
+</footer>
 <script>
   for (const span of document.querySelectorAll(".computed-url")) {
     span.textContent = new URL(span.dataset.file, location.href).href;

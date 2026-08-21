@@ -14,7 +14,7 @@ opinion about.
 
 Under the hood the patient interaction rides the W3C Digital Credentials API
 (direct `org-iso-mdoc`, per the [SMART Health Check-in 1.0 draft
-spec](https://joshuamandel.com/smart-health-checkin-mdoc/spec.html)) — CBOR,
+spec](/spec/)) — CBOR,
 COSE, HPKE, MSO digests and all. The kit exists so integrators never touch
 that plumbing.
 
@@ -130,7 +130,7 @@ contract between the two.
 
 1. ~~**M1 — `model` + `wire` ports**, fixture-verified.~~ ✅ (all fixture oracles green, plus new issuerAuth/deviceSignature verification)
 2. ~~**M2 — `submit` + demo wired end-to-end** against public HAPI; dry-run mode; mock wallet for phone-free testing.~~ ✅
-3. ~~**M3 — hosted `kit.js` + integrator docs** ("integrate in an afternoon"), plus a demo wallet web app so the flow runs without a platform wallet.~~ ✅
+3. ~~**M3 — hosted `lib/checkin.js` + integrator docs** ("integrate in an afternoon"), plus a demo wallet web app so the flow runs without a platform wallet.~~ ✅
 4. **M4 — server-owned authority reference** (keys server-side, audit trail).
 5. **M5 — demonstration script** for testing events.
 

@@ -8,7 +8,7 @@ server. This guide adds a working SMART Health Check-in flow to that page.
 ```html
 <script type="module">
   import { requestCheckin }
-    from "https://smart-health-checkin.org/kit.js";
+    from "https://smart-health-checkin.org/lib/checkin.js";
   // (bundler users: import from the kit source or a vendored build instead)
 
   const response = await requestCheckin({
@@ -38,7 +38,7 @@ anywhere unless you ask for it (§3).
 consent screen) and a non-interactive mock:
 
 ```js
-import { createWebWalletCredentialGetter } from ".../kit.js";
+import { createWebWalletCredentialGetter } from ".../lib/checkin.js";
 await requestCheckin(myRequest, {
   getCredential: createWebWalletCredentialGetter({ walletUrl: "/wallet.html" }),
 });
@@ -53,7 +53,7 @@ entirely:
 ```html
 <script type="module">
   import { requestCheckin, CheckinFlowError }
-    from "https://smart-health-checkin.org/kit.js";
+    from "https://smart-health-checkin.org/lib/checkin.js";
   // (bundler users: import from the kit source / a vendored build instead)
 
   try {
@@ -98,7 +98,7 @@ before adopting a protocol library.
 Use your own FHIR client, or the optional helper that ships alongside:
 
 ```ts
-import { buildCheckinBundle, postCheckinBundle } from ".../fhir.js";
+import { buildCheckinBundle, postCheckinBundle } from ".../lib/fhir.js";
 
 const bundle = buildCheckinBundle({
   request, response,
