@@ -23,7 +23,8 @@ string, so patient identifiers and request payloads never reach server logs.
 | `fhir` | Target FHIR base URL. Defaults to the preconfigured demo backend. |
 | `post` | `none` (default — the response stays in the page), `transaction`, or `individual`. Posting uses the optional `fhir` helper, not the kit. |
 | `returnUrl` | Where the patient lands after completion — the closed-loop return leg. |
-| `wallet` | `platform` (default, the browser's DC API), `app` (demo wallet web app with a real consent screen), or `auto` (instant mock, no consent screen). Both demo responders run real CBOR/COSE/HPKE over fabricated records. |
+| `wallet` | Which responder answers: `platform` (default, the device's own wallet), the `id` of any wallet in the registry (`demo`, `evergreen`, …), or `mock`. The legacy values `app` and `auto` still map to `demo` and `mock`. |
+| `wallets` | URL of a wallet registry to offer, replacing `./wallets.json`. |
 
 Precedence: `request=` beats `scenario=` beats the default scenario. Unknown
 params are ignored.

@@ -13,6 +13,7 @@ cp site/index.html _site/index.html
 [ -d site/ktc ] && mkdir -p _site/ktc && cp -r site/ktc/closing-the-loop _site/ktc/
 cp demo/index.html _site/demo/index.html
 cp demo/wallet.html _site/demo/wallet.html
+cp demo/wallets.json _site/demo/wallets.json
 cp demo/autofill.html _site/demo/autofill.html
 cp demo/react.html _site/demo/react.html
 cp demo/angular.html _site/demo/angular.html

@@ -14,10 +14,10 @@ import {
   SCENARIOS,
   CheckinFlowError,
   createBrowserLocalAuthority,
-  createMockWalletCredentialGetter,
-  createWebWalletCredentialGetter,
-  detectDcApiSupport,
+  credentialGetterFor,
   requestCheckin,
+  resolveResponders,
+  type Responder,
   type SmartCheckinRequest,
   type SmartCheckinResponse,
 } from "../../src/index.js";
@@ -30,7 +30,20 @@ const DEMO_PATIENT = "Patient/example";
 const DEMO_PATIENT_NAME = "Jordan Reyes (demo)";
 const DEMO_APPOINTMENT = "Appointment/demo-visit";
 
-type WalletMode = "platform" | "app" | "auto";
+/**
+ * The relying party declares what it accepts; the kit resolves it into the
+ * list this page renders. `wallets=<url>` swaps in a different registry.
+ */
+async function loadResponders(registryUrl: string | null): Promise<Responder[]> {
+  return resolveResponders({
+    platform: true,
+    webWallets: registryUrl ?? "./wallets.json",
+    mock: true,
+    origin: location.origin,
+  });
+}
+
+type WalletMode = string;
 type AfterMode = "none" | PostMode;
 
 type Settings = {
@@ -68,7 +81,7 @@ function readSettings(): Settings {
   return {
     request: passthrough ?? SCENARIOS[scenarioKey!]!.request,
     scenarioKey,
-    wallet: walletParam === "app" || walletParam === "auto" ? walletParam : "platform",
+    wallet: walletParam ?? "platform",
     after: after === "transaction" || after === "individual" ? after : "none",
     patient: p.get("patient") ?? DEMO_PATIENT,
     appointment: p.get("appointment") ?? DEMO_APPOINTMENT,
@@ -85,10 +98,13 @@ function setParam(key: string, value: string, dropWhen?: string): void {
   location.hash = `#${p.toString()}`;
 }
 
-function credentialGetter(wallet: WalletMode): ((o: unknown) => Promise<unknown>) | undefined {
-  if (wallet === "app") return createWebWalletCredentialGetter({ walletUrl: "./wallet.html" });
-  if (wallet === "auto") return createMockWalletCredentialGetter({ origin: location.origin });
-  return undefined;
+let RESPONDERS: Responder[] = [];
+
+function responderFor(id: WalletMode): Responder | undefined {
+  // back-compat with the old ?wallet=app / auto values
+  const aliases: Record<string, string> = { app: "demo", auto: "mock" };
+  const wanted = aliases[id] ?? id;
+  return RESPONDERS.find((r) => r.id === wanted);
 }
 
 function hostOf(url: string): string {
@@ -186,10 +202,6 @@ function render(): void {
     location.hash = `#${p.toString()}`;
   };
 
-  const walletSelect = el("wallet-select") as HTMLSelectElement;
-  walletSelect.value = s.wallet;
-  walletSelect.onchange = () => setParam("wallet", walletSelect.value, "platform");
-
   const afterSelect = el("submit-select") as HTMLSelectElement;
   afterSelect.value = s.after;
   afterSelect.onchange = () => setParam("post", afterSelect.value, "none");
@@ -204,6 +216,7 @@ function render(): void {
   bind("appointment-input", "appointment", s.appointment, DEMO_APPOINTMENT);
   bind("fhir-input", "fhir", s.fhirBase, DEFAULT_FHIR_BASE);
   bind("return-input", "returnUrl", s.returnUrl, "");
+  bind("registry-input", "wallets", params().get("wallets") ?? "", "./wallets.json");
 
   const copyLink = el("copy-link") as HTMLButtonElement;
   copyLink.onclick = () => {
@@ -273,32 +286,65 @@ function render(): void {
       : `Caution: this page will post shared data to ${hostOf(s.fhirBase)}. Only proceed with test data and a server you recognize.`;
   }
 
-  const support = detectDcApiSupport();
+  const responder = responderFor(s.wallet);
   const statusNote = el("status-note");
   const start = el("start") as HTMLButtonElement;
   const updateStart = (): void => {
-    start.disabled = running || (needsAck && !ack.checked);
+    start.disabled = running || (needsAck && !ack.checked) || !responder?.available;
   };
-  if (s.wallet === "app") {
+
+  if (!responder) {
+    statusNote.textContent = "No responder selected.";
+  } else if (!responder.available) {
+    statusNote.textContent = `${responder.name} isn't available here${responder.reason ? ` (${responder.reason})` : ""}. Pick another from the button's menu.`;
+  } else if (responder.kind === "platform") {
     statusNote.textContent =
-      "Demo wallet app: opens in a new tab where you choose what to share. Real CBOR/COSE/HPKE over fabricated records — no phone needed.";
-    updateStart();
-  } else if (s.wallet === "auto") {
+      "Your device's own health app will answer, through the Digital Credentials API.";
+  } else if (responder.kind === "mock") {
     statusNote.textContent =
-      "Automatic mock wallet: answers instantly with fabricated data and no consent screen — for scripted testing.";
-    updateStart();
-  } else if (support.state === "supported") {
-    statusNote.textContent =
-      "Your browser supports the Digital Credentials API — a health app on this device can answer. No wallet here? Switch the responder in Demo controls.";
-    updateStart();
+      "Simulated response: fabricated data, instantly, with no consent screen. Development only.";
   } else {
-    statusNote.textContent = `Digital Credentials API not available here (${support.reason}). Switch the responder in Demo controls to run the flow anyway.`;
-    start.disabled = true;
+    statusNote.textContent = `${responder.name} will open in a tab, where you choose what to share.`;
   }
+  updateStart();
   ack.onchange = updateStart;
+  start.textContent = responder && responder.kind !== "platform"
+    ? `Check in with ${responder.name}`
+    : "Check in with your health app";
+  renderResponderMenu(s, responder);
 
   start.onclick = () => void checkIn(s);
   el("outcome-section").hidden = true;
+}
+
+/**
+ * A split button: the primary action uses the current responder, the caret
+ * opens the rest. The list comes from the kit; the rendering is ours.
+ */
+function renderResponderMenu(s: Settings, current: Responder | undefined): void {
+  const menu = el("responder-menu");
+  menu.innerHTML = "";
+  for (const responder of RESPONDERS) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "responder-item";
+    item.disabled = !responder.available;
+    item.setAttribute("aria-current", String(responder.id === current?.id));
+    const name = document.createElement("strong");
+    name.textContent = responder.name;
+    const note = document.createElement("span");
+    note.textContent = responder.available
+      ? (responder.description ?? "")
+      : `Not available here${responder.reason ? ` — ${responder.reason}` : ""}`;
+    item.append(name, note);
+    item.onclick = () => {
+      el("responder-menu").hidden = true;
+      (el("responder-toggle") as HTMLButtonElement).setAttribute("aria-expanded", "false");
+      setParam("wallet", responder.id, "platform");
+    };
+    menu.append(item);
+  }
+  void s;
 }
 
 // -------------------------------------------------------------------- flow
@@ -311,7 +357,8 @@ async function checkIn(s: Settings): Promise<void> {
 
   try {
     // 1. Ask, and await the validated response. This is the entire kit API.
-    const getCredential = credentialGetter(s.wallet);
+    const chosen = responderFor(s.wallet);
+    const getCredential = chosen ? credentialGetterFor(chosen, { origin: location.origin }) : undefined;
     const response = await requestCheckin(s.request, {
       authority: createBrowserLocalAuthority({ origin: location.origin }),
       ...(getCredential ? { getCredential } : {}),
@@ -434,5 +481,21 @@ toggle.onclick = () => {
   toggle.setAttribute("aria-expanded", String(open));
 };
 
+const toggleMenu = el("responder-toggle") as HTMLButtonElement;
+toggleMenu.onclick = () => {
+  const menu = el("responder-menu");
+  const open = menu.hidden;
+  menu.hidden = !open;
+  toggleMenu.setAttribute("aria-expanded", String(open));
+};
+document.addEventListener("click", (event) => {
+  if (!(event.target as HTMLElement).closest(".start-group")) {
+    el("responder-menu").hidden = true;
+    toggleMenu.setAttribute("aria-expanded", "false");
+  }
+});
+
 window.addEventListener("hashchange", render);
+
+RESPONDERS = await loadResponders(params().get("wallets"));
 render();

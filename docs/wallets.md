@@ -4,6 +4,72 @@ Something has to answer the request. By default that's the browser's Digital
 Credentials API handing it to a wallet the patient has installed — but you can
 substitute any mediator, which is what makes this testable without a phone.
 
+## Declaring who may answer
+
+A platform wallet is chosen by the operating system. A *web* wallet is a site,
+so somebody has to decide which one to open — and that decision belongs to
+the relying party, not to this library.
+
+State what you accept, and get back the list to render:
+
+```ts
+import { resolveResponders, credentialGetterFor } from "@smart-health-checkin/checkin-client";
+
+const responders = await resolveResponders({
+  platform: true,                      // the device's own wallet
+  webWallets: "/config/wallets.json",  // wallets this deployment recognizes
+  mock: import.meta.env.DEV,           // development only
+});
+```
+
+Each entry is renderable as-is — `id`, `name`, `description`, `iconUrl`, and
+`available` with a `reason` when this browser can't use it (an unavailable
+platform wallet is *listed and disabled*, not hidden, so people can see why).
+When the person picks one:
+
+```ts
+const response = await requestCheckin(myRequest, {
+  getCredential: credentialGetterFor(chosen),
+});
+```
+
+With one web wallet configured you get a two-item list; with several you get
+a menu. The [clinic demo](https://smart-health-checkin.org/demo/) renders it
+as a split button — primary action on the left, the rest behind a caret —
+which is a good shape when there's a sensible default.
+
+### The wallet registry
+
+`webWallets` takes an inline array, a registry object, or a URL to fetch JSON
+from — so the list can be deployment configuration rather than code:
+
+```json
+{
+  "source": "example deployment list",
+  "wallets": [
+    {
+      "id": "demo",
+      "name": "Demo Health Wallet",
+      "walletUrl": "https://smart-health-checkin.org/demo/wallet.html",
+      "description": "This project's reference wallet, with fabricated records.",
+      "homepage": "https://smart-health-checkin.org/demo/",
+      "iconUrl": "https://…/icon.png",
+      "target": "tab"
+    }
+  ]
+}
+```
+
+A fetched list is validated before use, and a malformed one throws rather
+than silently falling back — "which wallet are we sending people to" is not a
+question to answer by accident. `webWallets: true` uses the built-in list of
+one (this project's demo wallet), which is the default a deployment starts
+from before it recognizes anyone else's.
+
+Treat the registry as a trust decision: every entry is a site you're willing
+to hand a check-in request to, and the response comes back bound to *your*
+origin, so a wallet you list can see what you asked for.
+
 ## The three mediators
 
 ```ts

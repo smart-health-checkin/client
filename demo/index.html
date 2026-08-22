@@ -169,6 +169,29 @@
     border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
   }
   button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .start-group { position: relative; display: inline-flex; margin-top: 0.85rem; }
+  .start-group .primary { margin-top: 0; }
+  .start-group #start { border-radius: 8px 0 0 8px; }
+  .start-group .caret {
+    border-radius: 0 8px 8px 0; border-left: 1px solid rgba(255,255,255,0.35);
+    padding: 0.7rem 0.75rem; font-size: 0.8rem;
+  }
+  .responder-menu {
+    position: absolute; top: calc(100% + 0.4rem); left: 0; z-index: 20;
+    min-width: 20rem; max-width: min(26rem, 90vw);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10); padding: 0.35rem; display: flex; flex-direction: column;
+  }
+  .responder-item {
+    font: inherit; text-align: left; background: none; border: none; cursor: pointer;
+    border-radius: 7px; padding: 0.5rem 0.65rem; display: flex; flex-direction: column; gap: 0.1rem;
+    color: var(--ink);
+  }
+  .responder-item:hover:not([disabled]) { background: var(--code-bg); }
+  .responder-item[aria-current="true"] { background: var(--code-bg); box-shadow: inset 2px 0 0 var(--accent); }
+  .responder-item[disabled] { opacity: 0.5; cursor: not-allowed; }
+  .responder-item strong { font-size: 0.92rem; font-weight: 500; }
+  .responder-item span { font-size: 0.82rem; color: var(--muted); }
   button.primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.88rem; color: var(--muted); margin-top: 0.85rem; }
@@ -245,11 +268,7 @@
   <div class="wrap">
     <div class="control-grid">
       <label class="control"><span>Scenario</span><select id="scenario-select"></select></label>
-      <label class="control"><span>Responder</span><select id="wallet-select">
-        <option value="platform">platform wallet (DC API)</option>
-        <option value="app">demo wallet app</option>
-        <option value="auto">automatic mock</option>
-      </select></label>
+      <label class="control"><span>Wallet registry</span><input id="registry-input" placeholder="./wallets.json"></label>
       <label class="control"><span>After the response</span><select id="submit-select">
         <option value="none">keep it in the page</option>
         <option value="transaction">post to FHIR (transaction)</option>
@@ -292,7 +311,12 @@
     <p class="muted" style="font-size:0.88rem">
       You choose what to share. Your care team only receives what you approve.
     </p>
-    <button id="start" class="primary" disabled>Check in with your health app</button>
+    <div class="start-group">
+      <button id="start" class="primary" disabled>Check in with your health app</button>
+      <button id="responder-toggle" class="primary caret" aria-expanded="false"
+              aria-haspopup="menu" aria-label="Choose who answers">▾</button>
+      <div id="responder-menu" class="responder-menu" role="menu" hidden></div>
+    </div>
     <p class="note" id="status-note"></p>
     <p class="note" id="backend-note" hidden></p>
     <label class="ack" id="backend-ack-wrap" hidden>

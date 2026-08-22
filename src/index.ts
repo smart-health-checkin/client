@@ -76,6 +76,24 @@ export {
   type ParsedWalletRequest,
 } from "./kit/mock-wallet.js";
 
+export type { FetchLike } from "./fetch-like.js";
+
+export {
+  DEMO_WALLET_REGISTRY,
+  findWallet,
+  loadWalletRegistry,
+  validateWalletRegistry,
+  type WalletRegistry,
+  type WebWalletEntry,
+} from "./kit/wallet-registry.js";
+
+export {
+  credentialGetterFor,
+  resolveResponders,
+  type Responder,
+  type ResponderPolicy,
+} from "./kit/responders.js";
+
 export {
   createWebWalletCredentialGetter,
   WalletDeclinedError,

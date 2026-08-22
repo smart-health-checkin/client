@@ -61,6 +61,23 @@ export const API_GROUPS: ApiGroup[] = [
     ],
   },
   {
+    title: "Choose who answers",
+    blurb: "Declare which responders you accept; the kit resolves them into a list your page can render.",
+    module: "checkin",
+    entries: [
+      { name: "resolveResponders", what: "Turn a policy (platform? which web wallets? mock?) into the concrete options, with unavailable ones marked." },
+      { name: "credentialGetterFor", what: "The mediator for a chosen responder — pass it straight to requestCheckin." },
+      { name: "ResponderPolicy", what: "What this relying party accepts: platform, a web-wallet list or URL, and mock." },
+      { name: "Responder", what: "One renderable option: id, name, description, icon, and whether it works here." },
+      { name: "loadWalletRegistry", what: "Resolve a wallet list from an inline array, an object, or a URL." },
+      { name: "validateWalletRegistry", what: "Shape-check a registry before trusting it." },
+      { name: "findWallet", what: "Look a registry entry up by id." },
+      { name: "DEMO_WALLET_REGISTRY", what: "The built-in list of one: this project's demo wallet." },
+      { name: "WalletRegistry", what: "A list of web wallets, plus where it came from." },
+      { name: "WebWalletEntry", what: "One wallet: id, name, walletUrl, and presentation details." },
+    ],
+  },
+  {
     title: "Build a wallet (the responder side)",
     blurb: "What the demo wallet uses; useful if you're implementing one.",
     module: "checkin",

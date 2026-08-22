@@ -1,0 +1,9 @@
+{
+  "source": "example deployment list",
+  "wallets": [
+    { "id": "demo", "name": "Demo Health Wallet", "walletUrl": "./wallet.html",
+      "description": "This project's reference wallet, with fabricated records." },
+    { "id": "evergreen", "name": "Evergreen Patient App", "walletUrl": "./wallet.html?brand=evergreen",
+      "description": "A second entry, to show a multi-wallet picker." }
+  ]
+}

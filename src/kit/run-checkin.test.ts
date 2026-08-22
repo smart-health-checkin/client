@@ -4,6 +4,7 @@ import { createMockWalletCredentialGetter } from "./mock-wallet.js";
 import { createBrowserLocalAuthority, type VerifierAuthority } from "../browser/index.js";
 import type { SmartCheckinResponse } from "../model/index.js";
 
+import type { FetchLike } from "../fetch-like.js";
 const ORIGIN = "http://localhost:3010";
 
 function localAuthority(): VerifierAuthority {
@@ -269,5 +270,64 @@ describe("server authority", () => {
         },
       ),
     ).rejects.toThrow(/handledByServer/);
+  });
+});
+
+describe("responder policy", () => {
+  test("resolves platform + web wallets + mock into a renderable list", async () => {
+    const { resolveResponders, credentialGetterFor } = await import("./responders.js");
+    const responders = await resolveResponders(
+      {
+        platform: true,
+        webWallets: [
+          { id: "demo", name: "Demo Health Wallet", walletUrl: "/demo/wallet.html" },
+          { id: "other", name: "Other Wallet", walletUrl: "https://other.example/w", target: "popup" },
+        ],
+        mock: true,
+        origin: ORIGIN,
+      },
+      { detectSupport: () => ({ state: "unsupported", reason: "no DC API in this test" }) },
+    );
+
+    expect(responders.map((r) => [r.id, r.kind, r.available])).toEqual([
+      ["platform", "platform", false],
+      ["demo", "web", true],
+      ["other", "web", true],
+      ["mock", "mock", true],
+    ]);
+    // an unavailable platform option is listed with a reason, not hidden
+    expect(responders[0]!.reason).toBe("no DC API in this test");
+
+    expect(credentialGetterFor(responders[0]!, { origin: ORIGIN })).toBeUndefined();
+    expect(typeof credentialGetterFor(responders[1]!, { origin: ORIGIN })).toBe("function");
+    expect(typeof credentialGetterFor(responders[3]!, { origin: ORIGIN })).toBe("function");
+  });
+
+  test("a malformed registry throws instead of falling back", async () => {
+    const { loadWalletRegistry, validateWalletRegistry } = await import("./wallet-registry.js");
+    expect(validateWalletRegistry({ wallets: [] }).ok).toBe(false);
+    expect(validateWalletRegistry({ wallets: [{ id: "a", name: "A" }] }).ok).toBe(false);
+    expect(
+      validateWalletRegistry({
+        wallets: [
+          { id: "a", name: "A", walletUrl: "/w" },
+          { id: "a", name: "B", walletUrl: "/w2" },
+        ],
+      }).ok,
+    ).toBe(false);
+    await expect(loadWalletRegistry([{ id: "x" } as never])).rejects.toThrow(/invalid wallet registry/);
+  });
+
+  test("fetches a registry from a URL", async () => {
+    const { loadWalletRegistry } = await import("./wallet-registry.js");
+    const registry = await loadWalletRegistry("https://example.org/wallets.json", {
+      fetchImpl: (async () =>
+        new Response(
+          JSON.stringify({ wallets: [{ id: "w", name: "W", walletUrl: "/w" }] }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        )) as FetchLike,
+    });
+    expect(registry.wallets).toHaveLength(1);
+    expect(registry.source).toBe("https://example.org/wallets.json");
   });
 });

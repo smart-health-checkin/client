@@ -25,8 +25,8 @@ import { base64UrlEncodeUtf8 } from "../wire/bytes.js";
 
 export type PostMode = "transaction" | "individual";
 
-/** Minimal fetch signature so tests and hosts can inject their own. */
-export type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+export type { FetchLike } from "../fetch-like.js";
+import type { FetchLike } from "../fetch-like.js";
 
 export type CheckinBundleContext = {
   patient?: string;

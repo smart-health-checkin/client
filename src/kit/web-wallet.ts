@@ -25,7 +25,10 @@ export type WebWalletResponseMessage =
   | { type: typeof WEB_WALLET_RESPONSE_MESSAGE_TYPE; requestId?: string; outcome: "error"; message: string };
 
 export type WebWalletOptions = {
-  /** URL of the wallet web app (same-origin or any origin you trust). */
+  /**
+   * URL of the wallet web app (same-origin or any origin you trust). Usually
+   * comes from a registry entry — see `resolveResponders`.
+   */
   walletUrl: string;
   /**
    * How to open the wallet. "tab" (default) opens a normal browser tab, which
