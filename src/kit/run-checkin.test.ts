@@ -234,3 +234,40 @@ describe("mock wallet specification", () => {
     expect(fabricated.artifacts.length).toBeGreaterThan(0);
   });
 });
+
+describe("server authority", () => {
+  const authority = (completion: unknown): VerifierAuthority => ({
+    kind: "server-owned-test",
+    async prepareCredentialRequest() {
+      return { handle: "h", navigatorArgument: {} as never };
+    },
+    async completeCredentialRequest() {
+      return completion as never;
+    },
+  });
+
+  test("a server that keeps the data yields a reference, not a response", async () => {
+    const outcome = await runCheckin(
+      { scenario: "insurance-only" },
+      {
+        authority: authority({ handledByServer: true, reference: "encounter-1/checkin-2" }),
+        getCredential: async () => ({ data: { response: "sealed" } }),
+      },
+    );
+    expect(outcome.status).toBe("completed");
+    expect(outcome.response).toBeUndefined();
+    expect(outcome.serverReference).toBe("encounter-1/checkin-2");
+  });
+
+  test("requestCheckin refuses that mode with an explanation", async () => {
+    await expect(
+      requestCheckin(
+        { scenario: "insurance-only" },
+        {
+          authority: authority({ handledByServer: true }),
+          getCredential: async () => ({ data: { response: "sealed" } }),
+        },
+      ),
+    ).rejects.toThrow(/handledByServer/);
+  });
+});

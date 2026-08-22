@@ -45,6 +45,12 @@ export const GUIDES: Guide[] = [
     blurb: "Key custody, trust policy, identity, fallback, pinning.",
   },
   {
+    file: "docs/server-authority.md",
+    slug: "server-authority",
+    title: "Server-held keys",
+    blurb: "The two-call seam between your page and your server, if you hold the verifier key there.",
+  },
+  {
     file: "docs/security-notes.md",
     slug: "security-notes",
     title: "Security notes",

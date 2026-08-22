@@ -45,15 +45,36 @@ export type PreparedCredentialRequest = {
   navigatorArgument: OrgIsoMdocNavigatorArgument;
 };
 
-export type CredentialCompletion = {
-  /** Opened, wire-verified SMART response (still needs §6.6 cross-validation upstream when no request was supplied at prepare time). */
-  smartResponse: SmartCheckinResponse;
-  presentation: {
-    origin: string;
-    /** DeviceResponse bytes for audit/debug. */
-    deviceResponseHex: string;
-  };
+export type PresentationContext = {
+  origin: string;
+  /** DeviceResponse bytes, for audit or debugging. */
+  deviceResponseHex?: string;
 };
+
+/**
+ * The result of opening a wallet response. Two shapes, because there are two
+ * reasons to hold keys on a server:
+ *
+ * - `smartResponse` — the server opened and verified it and hands the data
+ *   back, so the page can still prefill forms. Key custody and an audit
+ *   point, without giving up the in-page workflow.
+ * - `handledByServer` — the server keeps the data; the page learns only that
+ *   it succeeded. For deployments where the page must not hold PHI. In-page
+ *   prefill is not possible in this mode, by construction.
+ */
+export type CredentialCompletion =
+  | {
+      /** Opened and wire-verified; the caller still cross-checks it against the request. */
+      smartResponse: SmartCheckinResponse;
+      presentation: PresentationContext;
+      handledByServer?: false;
+    }
+  | {
+      handledByServer: true;
+      /** Optional server-side handle for what it stored (an encounter id, a queue entry). */
+      reference?: string;
+      presentation?: PresentationContext;
+    };
 
 /**
  * The key-custody seam.
@@ -126,9 +147,21 @@ export function createBrowserLocalAuthority(options: { origin?: string } = {}): 
 }
 
 /**
- * HTTP client for a server-owned authority implementing the two-call
- * contract: POST {request} → {handle, navigatorArgument};
- * POST {credential} → completion. The M4 reference server implements it.
+ * HTTP client for a server-owned authority. Two calls, JSON both ways:
+ *
+ *   POST {base}/credential-requests
+ *     → { "request": SmartCheckinRequest }
+ *     ← { "handle": string, "navigatorArgument": {...} }
+ *
+ *   POST {base}/credential-requests/{handle}/complete
+ *     → { "credential": <what navigator.credentials.get returned> }
+ *     ← { "smartResponse": {...}, "presentation": {...} }
+ *       or { "handledByServer": true, "reference"?: string }
+ *
+ * Requests carry the page's credentials (`credentials: "include"`), so the
+ * server can bind a check-in to the authenticated session. The full contract,
+ * including what the server must store and verify, is in
+ * docs/server-authority.md.
  */
 export function createServerAuthority(baseUrl: string): VerifierAuthority {
   const base = baseUrl.replace(/\/$/, "");
@@ -139,6 +172,7 @@ export function createServerAuthority(baseUrl: string): VerifierAuthority {
       const res = await fetch(`${base}/credential-requests`, {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ request }),
       });
       if (!res.ok) throw new Error(`prepare failed: HTTP ${res.status}`);
@@ -149,6 +183,7 @@ export function createServerAuthority(baseUrl: string): VerifierAuthority {
       const res = await fetch(`${base}/credential-requests/${encodeURIComponent(handle)}/complete`, {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ credential }),
       });
       if (!res.ok) throw new Error(`complete failed: HTTP ${res.status}`);

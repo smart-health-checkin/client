@@ -46,6 +46,7 @@ the same pages live in this repo, so they read here too.
 | [Wallets and browser support](docs/wallets.md) | Platform API, wallet web app, mock, key custody |
 | [Writing FHIR](docs/fhir.md) | The optional mapping helper — and when not to use it |
 | [Production checklist](docs/production.md) | Trust policy, identity, fallback, pinning |
+| [Server-held keys](docs/server-authority.md) | The two-call seam, if your server holds the verifier key |
 | [API reference](docs/api/index.md) | Generated from source; every export |
 
 ## Install

@@ -118,7 +118,8 @@ for prefill to work, and a browser-only client means nobody has to port
 CBOR/COSE/HPKE to their backend language. A `{ server }` authority is there
 for deployments that deliberately don't want the page to hold the response —
 implement the two-call contract (`prepareCredentialRequest` /
-`completeCredentialRequest`) or pass your own `VerifierAuthority`. See
-[Production checklist](production.md).
+`completeCredentialRequest`) or pass your own `VerifierAuthority`. The seam
+is specified in [Server-held keys](server-authority.md); the reasoning is in
+the [Production checklist](production.md).
 
 Next: [Writing FHIR](fhir.md) · [Production checklist](production.md)

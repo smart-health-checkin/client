@@ -59,8 +59,16 @@ export type CheckinOutcome = {
   status: "completed" | "declined" | "unsupported" | "error";
   /** The request as sent (scenario/init resolved). */
   request: SmartCheckinRequest;
-  /** Present iff the flow completed; always validated against the request. */
+  /**
+   * The validated response — present whenever your code receives the data.
+   * Absent only when a server-owned authority kept it (see `serverReference`).
+   */
   response?: SmartCheckinResponse;
+  /**
+   * Set when a server authority reported `handledByServer`: it holds the
+   * data, and this is whatever handle it gave you for it.
+   */
+  serverReference?: string;
   error?: {
     stage: "prepare" | "credential" | "open" | "validate";
     message: string;
@@ -149,6 +157,11 @@ export async function runCheckin(
     return outcomeError(request, "open", e);
   }
 
+  // The server kept the data; there is nothing for this page to validate.
+  if (completion.handledByServer) {
+    return { status: "completed", request, serverReference: completion.reference };
+  }
+
   // Authorities are expected to validate, but never trust a custom one:
   // re-run the §6.6 cross-checks before handing anything to the caller.
   const crossCheck = validateResponseAgainstRequest(request, completion.smartResponse);
@@ -195,6 +208,12 @@ export async function requestCheckin(
   options: CheckinOptions = {},
 ): Promise<SmartCheckinResponse> {
   const outcome = await runCheckin(input, options);
+  if (outcome.status === "completed" && !outcome.response) {
+    throw new Error(
+      "the authority kept the response server-side (handledByServer), so there is " +
+        "nothing to return here — use runCheckin and read outcome.serverReference",
+    );
+  }
   if (outcome.status !== "completed" || !outcome.response) {
     throw new CheckinFlowError(outcome);
   }

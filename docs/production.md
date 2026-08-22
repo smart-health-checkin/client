@@ -31,7 +31,8 @@ A `{ server }` authority exists for the narrow case where a deployment
 specifically does *not* want the page to hold the response — a kiosk you
 don't control, or a policy that says PHI may only be decrypted server-side.
 Understand the trade: you lose in-page prefill, and you take on a service to
-build and maintain in your own language. Most deployments should not.
+build and maintain in your own language. Most deployments should not. If you
+do, [Server-held keys](server-authority.md) specifies the seam.
 
 Whichever you choose, the ordinary browser rules still apply: serve over
 HTTPS, keep the page free of third-party scripts you don't trust, and treat
