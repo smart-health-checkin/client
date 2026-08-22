@@ -13,11 +13,156 @@ import {
   WEB_WALLET_READY_MESSAGE_TYPE,
   WEB_WALLET_REQUEST_MESSAGE_TYPE,
   WEB_WALLET_RESPONSE_MESSAGE_TYPE,
-  fabricateResponse,
+  buildMockResponse,
   parseWalletRequest,
   sealWalletResponse,
+  type MockItemSpec,
   type SmartCheckinRequest,
+  type SmartCheckinRequestItem,
+  type SmartCheckinResponse,
 } from "../../src/index.js";
+
+/**
+ * Two demo wallets, holding different records, so a registry with more than
+ * one entry means something: pick a different wallet and different data comes
+ * back. `?brand=` selects one.
+ */
+type Brand = {
+  id: string;
+  name: string;
+  tagline: string;
+  accent: string;
+  allergies: Array<{ substance: string; reactions?: string[]; criticality?: string }>;
+  medications: string[];
+  conditions: string[];
+};
+
+const BRANDS: Record<string, Brand> = {
+  demo: {
+    id: "demo",
+    name: "Demo Health Wallet",
+    tagline: "holds your records on this device",
+    accent: "#6aa8ff",
+    allergies: [
+      { substance: "Penicillin", reactions: ["Hives"], criticality: "high" },
+      { substance: "Peanut", reactions: ["Oral itching"], criticality: "low" },
+      { substance: "Sulfa drugs (sulfonamides)" },
+      { substance: "Latex", criticality: "unable-to-assess" },
+    ],
+    medications: ["Lisinopril 10 mg — once daily", "Metformin 500 mg — twice daily"],
+    conditions: ["Hypertension", "Type 2 diabetes"],
+  },
+  evergreen: {
+    id: "evergreen",
+    name: "Evergreen Patient App",
+    tagline: "your records from Evergreen Family Health",
+    accent: "#3ac2aa",
+    allergies: [
+      { substance: "Amoxicillin", reactions: ["Rash"], criticality: "low" },
+      { substance: "Shellfish" },
+    ],
+    medications: ["Atorvastatin 20 mg — nightly", "Levothyroxine 75 mcg — each morning"],
+    conditions: ["Hyperlipidaemia"],
+  },
+};
+
+const brand =
+  BRANDS[new URLSearchParams(location.search).get("brand") ?? "demo"] ?? BRANDS.demo!;
+
+/** Answer each requested item out of this wallet's own records. */
+function respond(request: SmartCheckinRequest): SmartCheckinResponse {
+  const items: Record<string, MockItemSpec> = {};
+  for (const item of request.items) {
+    items[item.id] = specFor(item);
+  }
+  return buildMockResponse(request, { items });
+}
+
+function specFor(item: SmartCheckinRequestItem): MockItemSpec {
+  const hints = `${item.title} ${item.summary ?? ""} ${JSON.stringify(item.content)}`.toLowerCase();
+  const bundle = (resources: Record<string, unknown>[]): MockItemSpec => ({
+    fhir: { resourceType: "Bundle", type: "collection", entry: resources.map((resource) => ({ resource })) },
+  });
+  const subject = { display: `${brand.name} demo patient` };
+
+  if (item.content.kind === "form.fhir") {
+    return {
+      fhir: {
+        resourceType: "QuestionnaireResponse",
+        status: "completed",
+        ...(item.content.questionnaireCanonical
+          ? { questionnaire: item.content.questionnaireCanonical }
+          : {}),
+        item: [
+          {
+            linkId: "demo-1",
+            text: item.title,
+            answer: [{ valueString: `Answered in ${brand.name}` }],
+          },
+        ],
+      },
+    };
+  }
+
+  if (hints.includes("allerg")) {
+    return bundle(
+      brand.allergies.map((allergy) => ({
+        resourceType: "AllergyIntolerance",
+        clinicalStatus: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+              code: "active",
+            },
+          ],
+        },
+        code: { text: allergy.substance },
+        ...(allergy.criticality ? { criticality: allergy.criticality } : {}),
+        ...(allergy.reactions
+          ? { reaction: [{ manifestation: allergy.reactions.map((text) => ({ text })) }] }
+          : {}),
+        patient: subject,
+      })),
+    );
+  }
+
+  if (hints.includes("medication")) {
+    return bundle(
+      brand.medications.map((text) => ({
+        resourceType: "MedicationRequest",
+        status: "active",
+        intent: "order",
+        medicationCodeableConcept: { text },
+        subject,
+      })),
+    );
+  }
+
+  if (hints.includes("carin") || hints.includes("coverage") || hints.includes("insurance")) {
+    return bundle([
+      {
+        resourceType: "Coverage",
+        status: "active",
+        type: { text: `${brand.name} plan` },
+        subscriberId: brand.id === "demo" ? "DEMO-4417" : "EVG-9082",
+        beneficiary: subject,
+      },
+    ]);
+  }
+
+  return bundle(
+    brand.conditions.map((text) => ({
+      resourceType: "Condition",
+      clinicalStatus: {
+        coding: [
+          { system: "http://terminology.hl7.org/CodeSystem/condition-clinical", code: "active" },
+        ],
+      },
+      code: { text },
+      subject,
+    })),
+  );
+}
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
 
@@ -91,7 +236,7 @@ function renderConsent(request: Pending): void {
     request.smartRequest.purpose ?? "This site is asking for health information.";
 
   // Preview what this wallet would actually return, per item.
-  const preview = fabricateResponse(request.smartRequest);
+  const preview = respond(request.smartRequest);
   const previewByItem = new Map<string, string>();
   for (const artifact of preview.artifacts) {
     for (const itemId of artifact.fulfills) {
@@ -173,7 +318,15 @@ async function share(request: Pending): Promise<void> {
         .filter((input) => input.checked)
         .map((input) => input.dataset.itemId!),
     );
-    const smartResponse = fabricateResponse(request.smartRequest, (id) => selected.has(id));
+    const full = respond(request.smartRequest);
+    // honour per-item consent: drop what wasn't selected
+    const smartResponse: SmartCheckinResponse = {
+      ...full,
+      artifacts: full.artifacts.filter((a) => a.fulfills.some((id) => selected.has(id))),
+      requestStatus: full.requestStatus.map((status) =>
+        selected.has(status.item) ? status : { item: status.item, status: "declined" as const },
+      ),
+    };
     const credential = await sealWalletResponse({
       smartResponse,
       encryptionInfoBytes: request.encryptionInfoBytes,
@@ -188,6 +341,14 @@ async function share(request: Pending): Promise<void> {
     shareButton.textContent = "Share selected";
   }
 }
+
+// Brand this wallet instance.
+document.title = brand.name;
+const nameEl = document.querySelector(".wallet-name");
+if (nameEl) nameEl.textContent = brand.name;
+const tagEl = document.querySelector(".wallet-tag");
+if (tagEl) tagEl.textContent = brand.tagline;
+document.documentElement.style.setProperty("--accent", brand.accent);
 
 // Tell the opener we're ready for a request.
 if (window.opener) {
