@@ -331,3 +331,46 @@ describe("responder policy", () => {
     expect(registry.source).toBe("https://example.org/wallets.json");
   });
 });
+
+describe("wallet registry input forms", () => {
+  const ENTRIES = [
+    { id: "a", name: "Wallet A", walletUrl: "/a" },
+    { id: "b", name: "Wallet B", walletUrl: "/b" },
+  ];
+
+  test("array, registry object, URL, and the built-in default all resolve alike", async () => {
+    const { loadWalletRegistry, DEMO_WALLET_REGISTRY } = await import("./wallet-registry.js");
+
+    const fromArray = await loadWalletRegistry(ENTRIES);
+    const fromObject = await loadWalletRegistry({ source: "inline", wallets: ENTRIES });
+    const fromUrl = await loadWalletRegistry("https://example.org/wallets.json", {
+      fetchImpl: (async () =>
+        new Response(JSON.stringify({ wallets: ENTRIES }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })) as FetchLike,
+    });
+    const fallback = await loadWalletRegistry();
+
+    for (const registry of [fromArray, fromObject, fromUrl]) {
+      expect(registry.wallets.map((w) => w.id)).toEqual(["a", "b"]);
+    }
+    expect(fallback).toEqual(DEMO_WALLET_REGISTRY);
+  });
+
+  test("resolveResponders accepts the same forms", async () => {
+    const { resolveResponders } = await import("./responders.js");
+    const detectSupport = () => ({ state: "unsupported" as const, reason: "test" });
+
+    const viaArray = await resolveResponders({ platform: false, webWallets: ENTRIES }, { detectSupport });
+    const viaObject = await resolveResponders(
+      { platform: false, webWallets: { wallets: ENTRIES } },
+      { detectSupport },
+    );
+    const viaBuiltIn = await resolveResponders({ platform: false, webWallets: true }, { detectSupport });
+
+    expect(viaArray.map((r) => r.id)).toEqual(["a", "b"]);
+    expect(viaObject.map((r) => r.id)).toEqual(["a", "b"]);
+    expect(viaBuiltIn.map((r) => r.id)).toEqual(["demo"]);
+  });
+});

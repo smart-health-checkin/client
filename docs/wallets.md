@@ -40,8 +40,18 @@ which is a good shape when there's a sensible default.
 
 ### The wallet registry
 
-`webWallets` takes an inline array, a registry object, or a URL to fetch JSON
-from — so the list can be deployment configuration rather than code:
+`webWallets` takes any of four things:
+
+```ts
+webWallets: true                      // the built-in list of one (the demo wallet)
+webWallets: "/config/wallets.json"    // a URL — fetched and validated
+webWallets: { wallets: [ … ] }        // a registry object: exactly the JSON file's shape
+webWallets: [ … ]                     // just the array of entries
+```
+
+The object form and the file form are the same structure, so you can inline
+during development and move the identical JSON to a config endpoint later
+without touching anything else:
 
 ```json
 {
@@ -60,8 +70,8 @@ from — so the list can be deployment configuration rather than code:
 }
 ```
 
-A fetched list is validated before use, and a malformed one throws rather
-than silently falling back — "which wallet are we sending people to" is not a
+Every form is validated the same way — inline mistakes fail as loudly as
+fetched ones — and a malformed list throws rather than silently falling back — "which wallet are we sending people to" is not a
 question to answer by accident. `webWallets: true` uses the built-in list of
 one (this project's demo wallet), which is the default a deployment starts
 from before it recognizes anyone else's.
