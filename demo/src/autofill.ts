@@ -99,7 +99,7 @@ function init(): void {
     note.textContent = "Automatic mock wallet — fabricated demo allergies, no consent screen.";
   } else if (support.state === "supported") {
     note.textContent =
-      "Your browser supports the Digital Credentials API. (No wallet here? Add #wallet=app for the demo wallet tab.)";
+      "Your own wallet can answer — on a desktop the browser offers a QR code to scan with your phone. (Add #wallet=app to use the demo wallet tab instead.)";
   } else {
     note.textContent = `Digital Credentials API not available here (${support.reason}). Add #wallet=app to run with the demo wallet tab.`;
     button.disabled = true;

@@ -299,7 +299,7 @@ function render(): void {
     statusNote.textContent = `${responder.name} isn't available here${responder.reason ? ` (${responder.reason})` : ""}. Pick another from the button's menu.`;
   } else if (responder.kind === "platform") {
     statusNote.textContent =
-      "Your device's own health app will answer, through the Digital Credentials API.";
+      "Your own health app answers through the Digital Credentials API — on a desktop, the browser offers a QR code to scan with your phone.";
   } else if (responder.kind === "mock") {
     statusNote.textContent =
       "Simulated response: fabricated data, instantly, with no consent screen. Development only.";

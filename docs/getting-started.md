@@ -115,10 +115,15 @@ design: check-in is an accelerator on top of your existing intake, not a
 replacement that strands people when it isn't available. Prefer
 `runCheckin(...)` if you'd rather branch on `outcome.status` than catch.
 
-## Running it without a phone
+## Running it without a wallet
 
-Most development machines have no wallet. Pass a different mediator and the
-whole flow — real CBOR, COSE signatures, HPKE encryption — runs locally:
+On a phone the platform path opens the installed wallet; on a desktop, a
+browser that supports the API shows a QR code to scan, and the phone answers
+— so a laptop is a perfectly good place to offer real check-in.
+
+For development, or where the API isn't available at all, pass a different
+mediator and the whole flow — real CBOR, COSE signatures, HPKE encryption —
+runs locally:
 
 ```ts
 import { createWebWalletCredentialGetter } from "@smart-health-checkin/checkin-client";

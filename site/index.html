@@ -154,7 +154,7 @@
         <span>A wallet opens in a tab with a real consent screen. Works in any browser.</span>
       </button>
       <button type="button" data-wallet="platform">
-        <strong>Your device's wallet</strong>
+        <strong>Your own wallet</strong>
         <span id="platform-note">The real Digital Credentials API — checking this browser…</span>
       </button>
       <button type="button" data-wallet="auto">
@@ -351,7 +351,8 @@ location.assign("/checkin/payment");</code></pre>
   const platformButton = document.querySelector('[data-wallet="platform"]');
   const note = document.getElementById("platform-note");
   if (support.state === "supported") {
-    note.textContent = "The real Digital Credentials API — your browser supports it.";
+    note.textContent =
+      "The real Digital Credentials API. On a desktop your browser offers a QR code to scan with your phone.";
   } else {
     note.textContent = `Not available in this browser (${support.reason.replace(/\s*\(.*\)/, "")}).`;
     platformButton.disabled = true;

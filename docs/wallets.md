@@ -83,7 +83,9 @@ origin, so a wallet you list can see what you asked for.
 ## The three mediators
 
 ```ts
-// 1. Platform wallet (the default) — nothing to pass.
+// 1. The person's own wallet (the default) — nothing to pass. On a phone it
+//    opens the installed wallet; on a desktop the browser offers a QR code
+//    to scan, and the phone answers.
 await requestCheckin(myRequest);
 
 // 2. A wallet web app in a tab: a real consent screen, any browser.
@@ -156,10 +158,17 @@ if (support.state === "unsupported") {
 `runCheckin` does this for you and returns `status: "unsupported"` without
 ever prompting the patient — nobody sees a button that can't work.
 
-As of this writing the platform API is available in recent Chrome on Android
-and Safari 26; elsewhere you'll get `unsupported`. That's precisely why the
-fallback matters, and why the web-wallet mediator exists: it needs nothing but
-`window.open` and `postMessage`.
+**Desktop is not a dead end.** Where the browser supports the API — recent
+Chrome, Safari 26 — a desktop check-in is still worth offering: the browser
+runs a *cross-device* flow, showing a QR code the person scans with their
+phone. The wallet on the phone shows the consent screen and answers, and the
+response comes back to the page on the desktop, which is where the patient
+was already working. So "on a laptop" is a reason to offer the platform
+option, not to hide it.
+
+Where the API is genuinely absent you'll get `unsupported` with a reason to
+show. That's what the fallback is for, and why the web-wallet mediator exists:
+it needs nothing but `window.open` and `postMessage`.
 
 ## The web wallet in a bit more detail
 

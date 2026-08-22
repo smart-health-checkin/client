@@ -23,9 +23,11 @@ import {
 
 export type ResponderPolicy = {
   /**
-   * Offer the device's own wallet through the Digital Credentials API.
-   * Default true. It is listed as unavailable, not hidden, when the browser
-   * can't reach one — people should be able to see why.
+   * Offer the person's own wallet through the Digital Credentials API.
+   * Default true, and worth keeping on desktop: browsers that support the API
+   * offer a cross-device flow — a QR code the person scans with their phone,
+   * whose wallet answers, with the response returning to this page. It is
+   * listed as unavailable, not hidden, when the browser can't reach one.
    */
   platform?: boolean;
   /**
@@ -80,8 +82,9 @@ export async function resolveResponders(
     responders.push({
       id: "platform",
       kind: "platform",
-      name: "Your device's health app",
-      description: "Whatever wallet you already use on this device.",
+      name: "Your own health app",
+      description:
+        "The wallet on this device — or, on a desktop, scan a QR code with your phone and answer there.",
       available: support.state === "supported",
       ...(support.state === "unsupported" ? { reason: support.reason } : {}),
     });

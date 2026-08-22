@@ -32,7 +32,7 @@ export function detectDcApiSupport(): DcApiSupport {
   if (!w.DigitalCredential && !w.IdentityCredential) {
     return {
       state: "unsupported",
-      reason: "no DigitalCredential / IdentityCredential support (need Chrome 141+ or Safari 26+)",
+      reason: "this browser has no Digital Credentials API (need Chrome 141+ or Safari 26+)",
     };
   }
   return { state: "supported" };
