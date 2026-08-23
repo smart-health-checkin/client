@@ -2,7 +2,17 @@
 
 Something has to answer the request. By default that's the browser's Digital
 Credentials API handing it to a wallet the patient has installed — but you can
-substitute any mediator, which is what makes this testable without a phone.
+substitute any credential getter, which is what makes this testable without a
+phone.
+
+Three words this guide uses precisely:
+
+- a **responder** is whoever answers: the platform wallet, a web wallet, or the mock;
+- a **policy** (`ResponderPolicy`) is what your page accepts, and which responder leads;
+- a **credential getter** is the function `requestCheckin` calls to get the
+  wallet's sealed answer — `getCredential` in its options. The default is
+  `navigator.credentials.get`; every other responder is a different one, and
+  `credentialGetterFor(responder)` returns it.
 
 ## Configure the list of responding wallets
 
@@ -35,13 +45,21 @@ Each entry is renderable as-is — `id`, `name`, `description`, `iconUrl`, and
 platform wallet is *listed and disabled*, not hidden, so people can see why).
 Exactly one entry has `isDefault: true`: the one you named, if it's available
 here, otherwise the first available one — so a page that prefers the platform
-wallet still leads with a working option on a browser that has none. When the
-person picks one:
+wallet still leads with a working option on a browser that has none.
+
+Render one control per entry. The one the person clicks is the responder you
+pass back:
 
 ```ts
-const response = await requestCheckin(myRequest, {
-  getCredential: credentialGetterFor(chosen),
-});
+for (const responder of responders) {
+  const button = document.createElement("button");
+  button.textContent = responder.name;
+  button.disabled = !responder.available;
+  button.onclick = () => requestCheckin(myRequest, {
+    getCredential: credentialGetterFor(responder),
+  }).then(prefillMyForm);
+  menu.append(button);
+}
 ```
 
 With one web wallet configured you get a two-item list; with several you get
@@ -52,8 +70,8 @@ which is a good shape when there's a sensible default.
 ### Where the library stops and your UI starts
 
 The library never draws a button. It turns your policy into data, and turns
-the person's choice back into a mediator; everything between those two calls
-is your page.
+the person's choice back into a credential getter; everything between those
+two calls is your page.
 
 ```
   your page                            the client library
@@ -83,8 +101,8 @@ is your page.
   5  getCredential  ◄─────────────────┘
 
   6  requestCheckin(request,
-       { getCredential }) ────────────►  build the mdoc request, run the
-                                         mediator, decrypt, verify, cross-check
+       { getCredential }) ────────────►  build the mdoc request, call the
+                                         getter, decrypt, verify, cross-check
   7  response  ◄─────────────────────┘
 ```
 
@@ -138,10 +156,10 @@ Treat the registry as a trust decision: every entry is a site you're willing
 to hand a check-in request to, and the response comes back bound to *your*
 origin, so a wallet you list can see what you asked for.
 
-## Using a mediator directly
+## Using a credential getter directly
 
-The policy above is the convenient path. The three mediators it resolves to
-are exported too, for pages that only ever use one:
+The policy above is the convenient path. The three credential getters it
+resolves to are exported too, for pages that only ever use one:
 
 ```ts
 // 1. The platform wallet (the default) — nothing to pass. On a phone it
@@ -163,8 +181,8 @@ await requestCheckin(myRequest, {
 ```
 
 All three produce byte-identical wire traffic: real CBOR, real COSE
-signatures, real HPKE encryption, verified the same way. Only the mediator
-differs — so a flow proven against the web wallet is proven against the
+signatures, real HPKE encryption, verified the same way. Only the credential
+getter differs — so a flow proven against the web wallet is proven against the
 protocol.
 
 The demo wallet's own source is worth reading if you're building a responder:
@@ -234,7 +252,8 @@ was already working. So "on a laptop" is a reason to offer the platform
 option, not to hide it.
 
 Where the API is genuinely absent you'll get `unsupported` with a reason to
-show. That's what the fallback is for, and why the web-wallet mediator exists:
+show. That's what the fallback is for, and why the web-wallet credential
+getter exists:
 it needs nothing but `window.open` and `postMessage`.
 
 ## How the web wallet hand-off works

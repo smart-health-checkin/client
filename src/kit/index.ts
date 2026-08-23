@@ -47,7 +47,8 @@ export type CheckinOptions = {
    */
   authority?: "browser-local" | { server: string } | VerifierAuthority;
   /**
-   * Override the mediator. Defaults to the platform Digital Credentials API;
+   * The credential getter: how the flow gets the wallet's sealed answer.
+   * Defaults to the platform Digital Credentials API;
    * pass a web-wallet or mock getter to run without a platform wallet.
    */
   getCredential?: (options: unknown) => Promise<unknown>;

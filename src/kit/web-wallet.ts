@@ -7,7 +7,7 @@
  * This exists so the whole flow — including a real consent screen where the
  * person chooses what to share — can be demonstrated on any browser, with no
  * platform wallet and no phone. The wire format is identical to the platform
- * Digital Credentials API path; only the mediator differs.
+ * Digital Credentials API path; only the credential getter differs.
  *
  * Message types match the web-wallet sketch in the spec prototype so the two
  * implementations stay compatible.

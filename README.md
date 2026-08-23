@@ -94,7 +94,7 @@ the shared record couldn't carry.
 | `src/model` | The transport-neutral request/response model and validators (spec §§5–6). |
 | `src/wire` | The mdoc binding as pure byte functions: CBOR, SessionTranscript, HPKE, COSE verification. No DOM. |
 | `src/browser` | Digital Credentials API invocation and the key-custody seam. |
-| `src/kit` | The facade — `requestCheckin` / `runCheckin`, scenarios, wallet mediators. |
+| `src/kit` | The facade — `requestCheckin` / `runCheckin`, scenarios, responders and their credential getters. |
 | `src/fhir` | **Optional companion**, never imported by the rest: response → transaction Bundle, plus a posting helper. |
 | `demo/` | The clinic demo, the demo wallet app, the autofill example, React and Angular examples. |
 

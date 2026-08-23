@@ -172,9 +172,17 @@ Three kinds of responder can answer a request:
 - a **web wallet** — a site that opens in a tab and answers there;
 - the **mock** — fabricated data, instantly, for development and tests.
 
-The platform wallet needs no configuration. To offer the others too, state a
-policy and render the list it gives you; which one leads is part of the
-policy:
+Under the hood there is one moving part. `requestCheckin` builds the request,
+then calls a single function — `getCredential` — to get the wallet's sealed
+answer, then opens and checks it. The default `getCredential` is the browser's
+own `navigator.credentials.get`, which is the platform wallet. Every other
+responder is just a different `getCredential`: one that opens a web wallet in
+a tab, or one that fabricates an answer. The library calls these **credential
+getters**, and `credentialGetterFor(responder)` hands you the right one.
+
+So offering a choice is three steps: state a **policy** (what you accept, and
+which leads), render the **responders** it resolves to, and when the person
+clicks one, pass its credential getter to the call:
 
 ```ts
 import {
@@ -185,20 +193,26 @@ const responders = await resolveResponders({
   platform: true,                 // the wallet installed on the device
   webWallets: "/wallets.json",    // web wallets you recognize
   mock: import.meta.env.DEV,      // development only
-  default: "platform",            // the primary action
+  default: "platform",            // the one to lead with
 });
-// render one control per responder; disable the unavailable; lead with isDefault
 
-// …or whichever one the person clicked
-const chosen = responders.find((r) => r.isDefault)!;
-const response = await requestCheckin(myRequest, {
-  getCredential: credentialGetterFor(chosen),
-});
+for (const responder of responders) {
+  const button = document.createElement("button");
+  button.textContent = responder.name;
+  button.disabled = !responder.available;     // e.g. no platform wallet in this browser
+  button.onclick = async () => {
+    const response = await requestCheckin(myRequest, {
+      getCredential: credentialGetterFor(responder),
+    });
+    prefillMyForm(response);
+  };
+  menu.append(button);
+}
 ```
 
-The library never draws the control. It turns a policy into data and a choice
-into a mediator; [Wallets and browser support](wallets.md) has the hand-off
-sketch, the registry format, and the mock's per-item specification for tests.
+The library never draws the control; the list is data, and the click is yours.
+[Wallets and browser support](wallets.md) has the hand-off sketch, the registry
+format, and the mock's per-item specification for tests.
 
 Whichever answers, the wire is the same — real CBOR, COSE signatures, HPKE —
 so a flow proven against the web wallet is proven against the protocol.

@@ -58,7 +58,7 @@ button.onclick = () => answerHandoff(mailbox, sessionId, envelope);
 
 `answerHandoff` calls `navigator.credentials.get` with the kiosk's argument
 and posts back what the wallet returned. It takes an optional `getCredential`
-— the same mediators as everywhere, so `credentialGetterFor(responder)` lets
+— the same credential getters as everywhere, so `credentialGetterFor(responder)` lets
 the demo wallet or the mock answer on the phone too. The demo's hand-off page
 offers the usual [responder list](wallets.md) with the platform wallet leading.
 

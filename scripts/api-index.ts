@@ -44,7 +44,7 @@ export const API_GROUPS: ApiGroup[] = [
   },
   {
     title: "Run without a platform wallet",
-    blurb: "Mediators that let the whole flow run in any browser, or in a test.",
+    blurb: "Credential getters — the function the flow calls to get the wallet's answer — that let it run in any browser, or in a test.",
     module: "checkin",
     entries: [
       { name: "createWebWalletCredentialGetter", what: "Hand the request to a wallet web app in a tab — a real consent screen." },
@@ -62,11 +62,11 @@ export const API_GROUPS: ApiGroup[] = [
   },
   {
     title: "Configure responding wallets",
-    blurb: "State which wallets may answer; the library resolves that into a list your page renders, and turns the chosen one back into a mediator.",
+    blurb: "State which wallets may answer; the library resolves that into a list your page renders, and turns the one the person picks back into a credential getter.",
     module: "checkin",
     entries: [
       { name: "resolveResponders", what: "Turn a policy (platform? which web wallets? mock? which leads?) into the concrete options, with the unavailable ones and the default marked." },
-      { name: "credentialGetterFor", what: "The mediator for a chosen responder — pass it straight to requestCheckin." },
+      { name: "credentialGetterFor", what: "The credential getter for the responder the person picked — pass it straight to requestCheckin." },
       { name: "ResponderPolicy", what: "What this relying party accepts — platform, a web-wallet list or URL, mock — and which one is the default." },
       { name: "Responder", what: "One renderable option: id, name, description, icon, whether it works here, and whether it is the default." },
       { name: "loadWalletRegistry", what: "Resolve a wallet list from an inline array, an object, or a URL." },
@@ -85,7 +85,7 @@ export const API_GROUPS: ApiGroup[] = [
       { name: "createHandoff", what: "Everything a kiosk passes to runCheckin: an authority for the hand-off page's origin, and a getCredential that posts, shows the QR, and waits." },
       { name: "createHandoffCredentialGetter", what: "Just the getCredential half, if you build the authority yourself." },
       { name: "fetchHandoff", what: "Phone side, step one: pick the request up and recover what it asks for." },
-      { name: "answerHandoff", what: "Phone side, step two: ask the wallet (or a mediator) and send the sealed credential — or a decline — back." },
+      { name: "answerHandoff", what: "Phone side, step two: ask the wallet (or any credential getter) and send the sealed credential — or a decline — back." },
       { name: "handoffUrlFor", what: "The URL the QR code carries: the hand-off page plus the session id." },
       { name: "sessionIdFromHash", what: "Read that session id back on the phone." },
       { name: "HandoffMailbox", what: "The seam you implement: post / fetch / answer / waitForAnswer, over any transport both devices reach." },
