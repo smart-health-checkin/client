@@ -17,6 +17,15 @@ import { BASE, OUT_ROOT } from "./site-base.ts";
 
 const OUT = `${OUT_ROOT}/docs`;
 
+// Getting started is the section's front page — /client/, not a page under
+// /client/docs/ — so the nav, the rail, and the first guide all agree on
+// where "start here" is.
+const ROOT_SLUG = "getting-started";
+const hrefFor = (slug: string): string => (slug === ROOT_SLUG ? `${BASE}/` : `${BASE}/docs/${slug}.html`);
+const mdPathFor = (slug: string): string => (slug === ROOT_SLUG ? "/index.md" : `/docs/${slug}.md`);
+const outFor = (slug: string, ext: "html" | "md"): string =>
+  slug === ROOT_SLUG ? join(OUT_ROOT, `index.${ext}`) : join(OUT, `${slug}.${ext}`);
+
 const DOCS_STYLE = `
   * { box-sizing: border-box; }
   body {
@@ -75,6 +84,11 @@ const DOCS_STYLE = `
   .pager { display:flex; justify-content:space-between; gap:var(--space-4); margin-top:var(--space-7); padding-top:var(--space-4); border-top:1px solid var(--border); font-size:var(--fs-sm); }
   .pager span { color:var(--fg-3); }
   .lede { font-family:var(--font-serif); color:var(--fg-2); font-size:var(--fs-md); max-width:62ch; line-height:1.55; }
+  figure.flow { margin:var(--space-5) 0 0; }
+  figure.flow svg { max-width:100%; height:auto; color:var(--fg-1); display:block; }
+  figure.flow .mono { font-family:var(--font-mono); }
+  figure.flow .sans { font-family:var(--font-sans); }
+  figure.flow figcaption { font-size:var(--fs-sm); color:var(--fg-3); margin-top:var(--space-3); max-width:62ch; }
   .api-group { margin:var(--space-7) 0 0; }
   .api-group h2 { margin:0 0 var(--space-1); }
   .api-group p.blurb { color:var(--fg-3); font-size:var(--fs-sm); margin:0 0 var(--space-3); }
@@ -97,14 +111,14 @@ const DOCS_STYLE = `
 function rail(slug: string): string {
   const here = (s: string) => (s === slug ? ' aria-current="page"' : "");
   const guides = GUIDES.filter((g) => existsSync(g.file))
-    .map((g) => `<li><a href="${BASE}/docs/${g.slug}.html"${here(g.slug)}>${g.title}</a></li>`)
+    .map((g) => `<li><a href="${hrefFor(g.slug)}"${here(g.slug)}>${g.title}</a></li>`)
     .join("");
   const api = API_GROUPS.map((g) => g.module)
     .filter((m, i, all) => all.indexOf(m) === i)
     .map((m) => `<li><a href="${BASE}/docs/api/${m}.html"${here(`api-${m}`)}>${m}</a></li>`)
     .join("");
   return `<nav class="rail" aria-label="Documentation">
-    <h4><a href="${BASE}/docs/"${here("index")}>Guides</a></h4>
+    <h4>Guides</h4>
     <ul>${guides}</ul>
     <h4><a href="${BASE}/docs/api/"${here("api-index")}>API reference</a></h4>
     <ul>${api}</ul>
@@ -112,7 +126,7 @@ function rail(slug: string): string {
 }
 
 function crumb(title: string, isApi: boolean): string {
-  return `<p class="crumb"><a href="${BASE}/docs/">Docs</a>${isApi ? ` <span>/</span> <a href="${BASE}/docs/api/">API reference</a>` : ""} <span>/</span> ${title}</p>`;
+  return `<p class="crumb"><a href="${BASE}/">JavaScript client</a>${isApi ? ` <span>/</span> <a href="${BASE}/docs/api/">API reference</a>` : ""} <span>/</span> ${title}</p>`;
 }
 
 function pager(slug: string): string {
@@ -122,8 +136,8 @@ function pager(slug: string): string {
   const prev = list[i - 1];
   const next = list[i + 1];
   return `<div class="pager">
-    <span>${prev ? `← <a href="${BASE}/docs/${prev.slug}.html">${prev.title}</a>` : ""}</span>
-    <span>${next ? `<a href="${BASE}/docs/${next.slug}.html">${next.title}</a> →` : ""}</span>
+    <span>${prev ? `← <a href="${hrefFor(prev.slug)}">${prev.title}</a>` : ""}</span>
+    <span>${next ? `<a href="${hrefFor(next.slug)}">${next.title}</a> →` : ""}</span>
   </div>`;
 }
 
@@ -153,6 +167,7 @@ function rewriteLinks(html: string): string {
     .replace(/href="(?:\.\.\/)?api\/index\.md"/g, `href="${BASE}/docs/api/"`)
     .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
     .replace(/href="\.\.\/demo\/README\.md"/g, `href="${BASE}/docs/demo.html"`)
+    .replace(/href="(?:\.\.\/)?getting-started\.md"/g, `href="${BASE}/"`)
     .replace(/href="\.\.\/([a-z-]+)\.md"/g, `href="${BASE}/docs/$1.html"`)
     .replace(/href="([a-z-]+)\.md"/g, `href="${BASE}/docs/$1.html"`);
 }
@@ -200,11 +215,11 @@ mkdirSync(join(OUT, "api"), { recursive: true });
 for (const guide of GUIDES) {
   if (!existsSync(guide.file)) continue;
   const md = readFileSync(guide.file, "utf8");
-  const html = crumb(guide.title, false) + render(md) + pager(guide.slug);
-  writeFileSync(join(OUT, `${guide.slug}.md`), md);
+  const html = (guide.slug === ROOT_SLUG ? "" : crumb(guide.title, false)) + render(md) + pager(guide.slug);
+  writeFileSync(outFor(guide.slug, "md"), md);
   writeFileSync(
-    join(OUT, `${guide.slug}.html`),
-    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html, `${BASE}/docs/${guide.slug}.md`),
+    outFor(guide.slug, "html"),
+    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html, `${BASE}${mdPathFor(guide.slug)}`),
   );
 }
 
@@ -260,7 +275,7 @@ writeFileSync(
   shell(
     "API reference — SMART Health Check-in",
     "api-index",
-    `<p class="crumb"><a href="${BASE}/docs/">Docs</a> <span>/</span> API reference</p>
+    `<p class="crumb"><a href="${BASE}/">JavaScript client</a> <span>/</span> API reference</p>
 <h1>API reference</h1>
 <p class="lede">
   Every export, grouped by what you'd be doing. Signatures and types are
@@ -272,7 +287,7 @@ writeFileSync(
   and — only if you want the FHIR mapping —
   <a href="${BASE}/docs/api/fhir.html#buildcheckinbundle"><code>buildCheckinBundle</code></a>.
   For explanation rather than signatures, start with
-  <a href="${BASE}/docs/getting-started.html">Getting started</a>.
+  <a href="${BASE}/">Getting started</a>.
 </p>
 ${groupsHtml}
 <div class="pager">
@@ -281,20 +296,13 @@ ${groupsHtml}
   ),
 );
 
-// --- docs landing -----------------------------------------------------
-const cards = GUIDES.filter((g) => existsSync(g.file))
-  .map(
-    (g) => `      <a class="card smart-panel" href="${BASE}/docs/${g.slug}.html">
-        <strong>${g.title}</strong><span>${g.blurb}</span>
-      </a>`,
-  )
-  .join("\n");
-
-const landingBody = readFileSync("site/docs/body.html", "utf8").replace("<!--GUIDE-CARDS-->", cards);
-writeFileSync(
-  join(OUT, "index.html"),
-  shell("Docs — SMART Health Check-in", "index", landingBody),
-);
+// --- the old doors: /docs/ and /docs/getting-started.html lead to the front page
+const redirect = (to: string): string => `<!doctype html>
+<meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${to}">
+<link rel="canonical" href="${to}"><title>Moved</title>
+<p>Moved to <a href="${to}">${to}</a>.</p>
+`;
+for (const stale of ["index.html", "getting-started.html"]) writeFileSync(join(OUT, stale), redirect(`${BASE}/`));
 
 console.log(
   `docs rendered: ${GUIDES.length} guides, API index (${runtimeExports.size} exports checked) -> ${OUT}`,
@@ -318,7 +326,7 @@ writeFileSync(
     "> The provider side of SMART Health Check-in as one `await`: ask the patient's health app for what the visit needs and get a verified response back in the page. Install from git (`npm install github:smart-health-checkin/client`) or import the hosted ES module.",
     "",
     "## Guides",
-    ...guides.map((g) => `- [${g.title}](${abs(`/docs/${g.slug}.md`)}): ${g.blurb}`),
+    ...guides.map((g) => `- [${g.title}](${abs(mdPathFor(g.slug))}): ${g.blurb}`),
     "",
     "## API reference",
     ...apiModules.map((m) => `- [${m}](${abs(`/docs/api/${m}.md`)})`),
@@ -334,6 +342,6 @@ const section = (url: string, body: string): string => `\n\n---\n\n<!-- ${url} -
 writeFileSync(
   join(OUT_ROOT, "llms-full.txt"),
   "# SMART Health Check-in — JavaScript client\n" +
-    guides.map((g) => section(abs(`/docs/${g.slug}.md`), readFileSync(g.file, "utf8"))).join("") +
+    guides.map((g) => section(abs(mdPathFor(g.slug)), readFileSync(g.file, "utf8"))).join("") +
     apiModules.map((m) => section(abs(`/docs/api/${m}.md`), readFileSync(join("docs/api", `${m}.md`), "utf8"))).join(""),
 );

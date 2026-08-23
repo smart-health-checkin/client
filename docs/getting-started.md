@@ -15,6 +15,53 @@ The important word is *back*. The patient never leaves for a third-party app
 and hopes to find their way home; you keep the thread of the visit, and can
 still collect the copay, show the consent form, and route them onward.
 
+<figure class="flow">
+      <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the awaited response lands back in your own code, where forms, FHIR, payment and routing happen in any order.">
+        <defs>
+          <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="4" y="20" width="150" height="38" rx="6"/>
+          <rect x="245" y="20" width="150" height="38" rx="6"/>
+          <line x1="154" y1="39" x2="239" y2="39" marker-end="url(#arr)"/>
+          <line x1="395" y1="39" x2="470" y2="39" marker-end="url(#arr)"/>
+          <path d="M470 39 H 560 V 78" marker-end="url(#arr)"/>
+        </g>
+        <g class="mono" fill="currentColor" font-size="12" text-anchor="middle">
+          <text x="79" y="43">your page asks</text>
+          <text x="320" y="43">wallet answers</text>
+        </g>
+        <g class="sans" fill="currentColor" font-size="10" text-anchor="middle" opacity="0.65">
+          <text x="79" y="72">a check-in request</text>
+          <text x="320" y="72">patient consents per item</text>
+        </g>
+        <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 3">
+          <rect x="4" y="88" width="632" height="70" rx="8"/>
+        </g>
+        <g class="mono" fill="currentColor" font-size="12">
+          <text x="20" y="110">await → you have the data, in your own code</text>
+        </g>
+        <g class="sans" fill="currentColor" font-size="10.5" opacity="0.75">
+          <text x="20" y="132">prefill your forms · write FHIR · take payment · ask follow-ups · route the patient</text>
+          <text x="20" y="148">…whatever your workflow needs, whenever it needs it — you never left your page.</text>
+        </g>
+      </svg>
+      <figcaption>
+        Two steps, then you're back in your own code with the response in hand.
+        Everything after that — prefilling forms, writing FHIR, payment, next
+        screens — is ordinary application logic, in whatever order you want.
+        On a desktop the browser offers a QR code, so the phone's wallet answers
+        and the data still lands in the page the patient was using.
+      </figcaption>
+    </figure>
+
+Try it before installing anything: the [clinic demo](demo/) opens with a demo
+wallet in a tab, the [kiosk](demo/kiosk.html) hands the request to a phone,
+and the [allergy autofill](demo/autofill.html) prefills a form and asks only
+for what the record didn't carry.
+
 ## Install
 
 There's no npm registry involved — install from git, pinning a branch or a

@@ -20,7 +20,7 @@ export function shallowFooter(): string {
   <div class="smart-footer-fine">
     <span>This is a demo, with fabricated data.</span>
     <span class="spacer"></span>
-    <span><a href="/client/docs/">Docs</a> · <a href="/spec/">Spec</a> · <a href="/">Overview</a></span>
+    <span><a href="/client/">JS client</a> · <a href="/spec/">Spec</a> · <a href="/">Overview</a></span>
   </div>
 </footer>`;
 }

@@ -7,7 +7,6 @@ OUT="${OUT_DIR:-_site}"
 rm -rf "$OUT"
 mkdir -p "$OUT/demo"
 
-cp site/index.html $OUT/index.html
 # The design system and chrome are served from the apex by the site build
 # (smart-health-checkin/smart-health-checkin.github.io), which is what deploys smart-health-checkin.org.
 # Standalone, copy them from a sibling checkout so a local build is styled.
