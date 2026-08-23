@@ -1,19 +1,22 @@
 # Getting started
 
-You have a web page — a patient portal, a kiosk screen, a link you text
-people before their visit. This guide gets a working check-in on it.
+This guide takes you from nothing to a working check-in on a page you own: a
+patient portal, a kiosk screen, a link you text people before their visit.
 
 ## What it does
 
-Your page asks the patient's health app for specific things (an insurance
-card, a medication list, a questionnaire). The browser hands that request to
-whatever wallet app the patient has, the patient chooses what to share, and
-the answer comes back **to your page** — verified, validated, in your own
-JavaScript.
+A check-in is a short exchange between your page and the patient's health
+app. Your page sends a request that names the things the visit needs: an
+insurance card, a medication list, a questionnaire. The browser passes that
+request to the health app — the protocol calls the app a *wallet*. The
+patient sees each item and chooses what to share. The app sends back the data
+it agreed to share, encrypted so that only your page can read it, and your
+page receives it as ordinary JavaScript objects.
 
-The important word is *back*. The patient never leaves for a third-party app
-and hopes to find their way home; you keep the thread of the visit, and can
-still collect the copay, show the consent form, and route them onward.
+The patient never leaves your page. They are not sent to another site and
+asked to find their way back. That matters for the rest of the visit: after
+the check-in you can still collect a copay, show a consent form, or move the
+patient to the next screen, because you are still in control of the page.
 
 <figure class="flow">
       <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the awaited response lands back in your own code, where forms, FHIR, payment and routing happen in any order.">
@@ -57,22 +60,26 @@ still collect the copay, show the consent form, and route them onward.
       </figcaption>
     </figure>
 
-Try it before installing anything: the [clinic demo](demo/) opens with a demo
-wallet in a tab, the [kiosk](demo/kiosk.html) hands the request to a phone,
-and the [allergy autofill](demo/autofill.html) prefills a form and asks only
-for what the record didn't carry.
+You can try this before installing anything. The [clinic demo](demo/) is a
+fictional clinic's check-in page; it opens with a demo health app in a second
+tab, so it works in any browser. The [kiosk demo](demo/kiosk.html) shows a
+screen with no health app of its own handing the request to a phone. The
+[allergy example](demo/autofill.html) fills a form from the response and then
+asks the patient only for what the record did not contain.
 
 ## Install
 
-There's no npm registry involved — install from git, pinning a branch or a
-commit:
+The library is not on npm. Install it from its git repository; you can pin a
+branch or a specific commit:
 
 ```sh
 npm install github:smart-health-checkin/client
 bun add github:smart-health-checkin/client      # or bun/pnpm/yarn
 ```
 
-Or skip the build step entirely and import the hosted module:
+The install step compiles the TypeScript, so you get JavaScript and type
+declarations. If you would rather not install anything, the same code is
+hosted as an ES module that a page can import directly:
 
 ```html
 <script type="module">
@@ -82,8 +89,9 @@ Or skip the build step entirely and import the hosted module:
 
 ## Your first request
 
-A request is a list of *items* — each one a thing you want, described in
-terms the patient's app can act on and the patient can understand.
+A request is a list of items. Each item describes one thing you want in two
+ways at once: a title the patient will read, and a description the health app
+can act on.
 
 ```ts
 import { requestCheckin } from "@smart-health-checkin/client";
@@ -107,14 +115,21 @@ const response = await requestCheckin({
 });
 ```
 
-You wrote `purpose` and `items`; the library filled in the protocol boilerplate
-(`type`, `version`, a unique `id`, `fhirVersions`). `purpose` and each
-`title` are shown to the patient, so write them for a person, not a chart.
+You wrote `purpose` and `items`. The library fills in the rest of the request:
+the protocol's `type` and `version` fields, a unique `id`, and the FHIR
+versions you accept. The patient sees `purpose` and each `title`, so write
+them the way you would say them to a person.
 
-See [Request model](requests.md) for the full vocabulary of
-selectors.
+`content` says what data you are asking for. The kind `selection.fhir` means
+"records the app already has that match these FHIR profiles". `accept` lists
+the formats you can handle. [Request model](requests.md) covers all the
+options.
 
 ## What you get back
+
+`requestCheckin` resolves with a response. It has two parts: `artifacts`, the
+data the patient shared, and `requestStatus`, one entry per item saying what
+happened to that item.
 
 ```ts
 for (const artifact of response.artifacts) {
@@ -128,18 +143,23 @@ for (const status of response.requestStatus) {
 }
 ```
 
-By the time you see it, the response has been decrypted, its signatures
-verified, and its contents cross-checked against what you asked for. A
-response that doesn't match the request never reaches your code.
-
-[Response model](responses.md) covers artifacts, per-item statuses,
-and the prefill patterns worth copying.
+Before the response reaches your code, the library has decrypted it, checked
+its signatures, and confirmed that it answers the request you sent — the same
+request id, and only formats you said you accept. If any of that fails,
+`requestCheckin` throws instead of returning. [Response model](responses.md)
+explains artifacts and statuses in detail and shows how to use them to
+prefill a form.
 
 ## Declined, unsupported, and errors
 
-Three things happen in the real world besides "it worked". (In every sample
-from here on, names starting with `my` are yours — the request you built, the
-form you already have.)
+Three things can happen besides success. The patient can decline, either for
+the whole request or by closing the health app. The browser may not support
+the Digital Credentials API, which is the browser feature this protocol runs
+on. Or something can fail along the way. `requestCheckin` reports all three
+by throwing a `CheckinFlowError`, and `e.outcome.status` says which it was.
+
+In every sample from here on, names that start with `my` are yours: the
+request you built, the form you already have.
 
 ```ts
 import { requestCheckin, CheckinFlowError } from "@smart-health-checkin/client";
@@ -159,33 +179,41 @@ try {
 }
 ```
 
-**Every one of these falls back to the form you already have.** That's the
-design: check-in is an accelerator on top of your existing intake, not a
-replacement that strands people when it isn't available. `runCheckin` is the
-same call returning an outcome to branch on instead of throwing, if you prefer
-that shape.
+Plan for all three paths to end at the form you already have. A check-in saves
+the patient typing when it works; when it does not, the visit still has to
+happen, so your ordinary intake form stays the fallback.
+
+If you would rather not use exceptions, `runCheckin` does the same work and
+returns an object with a `status` field instead of throwing.
 
 ## Who answers the request
 
-Three kinds of responder can answer a request:
+Three kinds of thing can answer a request. The library calls them
+*responders*:
 
-- the **platform wallet** — the app installed on the device, reached through
-  the Digital Credentials API; on a desktop the browser shows a QR code, the
-  phone's wallet answers, and the response still lands in the desktop page;
-- a **web wallet** — a site that opens in a tab and answers there;
-- the **mock** — fabricated data, instantly, for development and tests.
+- The **platform wallet** is a health app installed on the patient's device.
+  The browser reaches it through the Digital Credentials API. On a desktop,
+  the browser shows a QR code; the patient scans it with their phone, the app
+  on the phone answers, and the response arrives in the desktop page.
+- A **web wallet** is a health app that is a website. It opens in a new tab,
+  the patient chooses what to share there, and the tab sends the answer back.
+- The **mock** is a stand-in that answers immediately with made-up data. It
+  exists for development and automated tests.
 
-Under the hood there is one moving part. `requestCheckin` builds the request,
-then calls a single function — `getCredential` — to get the wallet's sealed
-answer, then opens and checks it. The default `getCredential` is the browser's
-own `navigator.credentials.get`, which is the platform wallet. Every other
-responder is just a different `getCredential`: one that opens a web wallet in
-a tab, or one that fabricates an answer. The library calls these **credential
-getters**, and `credentialGetterFor(responder)` hands you the right one.
+Inside the library these differ in exactly one place. `requestCheckin` builds
+the request, then calls one function to get the health app's sealed answer,
+then decrypts and checks that answer. That one function is called
+`getCredential`. By default it is the browser's own `navigator.credentials.get`,
+which reaches the platform wallet. To use a web wallet or the mock, you pass a
+different `getCredential`. The library calls these functions *credential
+getters*, and it provides them; you do not write them.
 
-So offering a choice is three steps: state a **policy** (what you accept, and
-which leads), render the **responders** it resolves to, and when the person
-clicks one, pass its credential getter to the call:
+To let the patient choose, you do three things. You state a **policy**: which
+kinds of responder your page accepts, and which one to present first. The
+library turns the policy into a list of responders, each marked with whether
+it works in this browser. You render that list — one button per responder is
+enough — and when the patient clicks one, you pass that responder's
+credential getter to `requestCheckin`:
 
 ```ts
 import {
@@ -213,30 +241,34 @@ for (const responder of responders) {
 }
 ```
 
-The library never draws the control; the list is data, and the click is yours.
-[Wallets and browser support](wallets.md) has the hand-off sketch, the registry
-format, and the mock's per-item specification for tests.
+The library does not render anything; the list is data, and the buttons are
+yours. [Wallets and browser support](wallets.md) explains the policy options,
+where the list of web wallets comes from, and how to make the mock return
+exactly the data a test needs.
 
-Whichever answers, the same sealed, signed response comes back and goes
-through the same checks — so a flow proven against the web wallet or the mock
-is proven against the protocol.
-[The demo](https://smart-health-checkin.org/client/demo/) opens with this
-project's demo wallet in a tab: a real consent screen, no phone needed.
+Whichever responder answers, the response is encrypted and signed the same way
+and goes through the same checks. A flow you have tested against the web
+wallet or the mock is the same flow that will run against a real health app.
+The [clinic demo](https://smart-health-checkin.org/client/demo/) opens with the
+demo web wallet selected, so you can watch the whole exchange in any browser.
 
 ## After the response
 
-Whatever your workflow does. The library's job ends with the response in
-your hand; it has no idea a FHIR server exists. If you want the results written as
-FHIR, [there's an optional helper](fhir.md) — or use your own client, your
-own auth, your own model.
+Once `requestCheckin` has returned, the library is finished. It does not know
+about your FHIR server, your forms, or your payment step; what you do with the
+response is ordinary application code. If you want to write the response to a
+FHIR server, the library includes an optional module for that, described in
+[Writing FHIR](fhir.md). You can equally well use your own client and your
+own data model.
 
 ## From React or Angular
 
-The core is a plain async function, so a binding owns only three things: the
-responder list, the one call, and its state. A
+`requestCheckin` is a plain async function, so a framework binding is small.
+It has to do three things: hold the list of responders, make the call, and
+track the state of the call. A
 [React hook](https://smart-health-checkin.org/client/demo/react.html) and an
 [Angular service](https://smart-health-checkin.org/client/demo/angular.html)
-show exactly that, live on this site, with their source in
+that do exactly that are live on this site, with their source in
 `demo/src/frameworks/`.
 
 Next: [Request model](requests.md) ·

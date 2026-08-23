@@ -1,16 +1,15 @@
 # Server-held keys
 
-Most deployments should keep the verifier key in the page — see
-[Production checklist](production.md) for why that's the design rather than a
-shortcut. This page is for the narrower case where you want your server to
-hold it: you need an audit point outside the browser, or policy says PHI is
-only decrypted server-side.
+Most deployments should keep the key that opens the response in the page;
+the [Production checklist](production.md) explains why. This page is for the
+narrower case where your server must hold it: you need an audit point
+outside the browser, or policy says PHI may only be decrypted on a server.
 
-The seam is deliberately small: **two JSON calls**, and the server owns one
-short-lived piece of state. Nothing here is protocol — the wire format
-between page and wallet is unchanged. This is a contract between *your* page
-and *your* server, and you can implement it in any language. The wire terms
-below (DeviceRequest, SessionTranscript, MSO) are the spec's; §8 of the
+The contract between your page and your server is small: two JSON calls, and
+one short-lived record on the server. Nothing on the wire between the page
+and the health app changes. You can implement the server side in any
+language. The names used below for wire-level things — DeviceRequest,
+SessionTranscript, MSO — are the spec's; section 8 of the
 [draft](https://smart-health-checkin.org/spec/) defines them.
 
 ## The two calls
@@ -38,11 +37,14 @@ below (DeviceRequest, SessionTranscript, MSO) are the spec's; §8 of the
      │        …or { handledByServer: true } │
 ```
 
-The page never sees the private key. It does still hold the *sealed*
-response for the moment between the wallet returning it and the POST — that's
-unavoidable in a browser flow, and it's ciphertext the page cannot open.
+The page never holds the private key. It does hold the encrypted response
+for the moment between the health app returning it and the page posting it
+to the server. That is unavoidable in a browser flow, and it is ciphertext
+the page cannot open.
 
 ## Call 1 — prepare
+
+The page asks the server to prepare a request:
 
 ```http
 POST /credential-requests
@@ -50,6 +52,9 @@ Content-Type: application/json
 
 { "request": { "type": "smart-health-checkin-request", "version": "1", ... } }
 ```
+
+The server answers with a handle and the argument the page will pass to the
+browser:
 
 ```json
 {
@@ -62,23 +67,30 @@ Content-Type: application/json
 }
 ```
 
-The server:
+On this call the server does four things.
 
-1. **Decides what to ask for.** Take the page's `request` as a suggestion, or
-   ignore it and build the request server-side from the appointment. The
-   latter is stronger: a compromised page then can't widen the ask.
-2. Builds the wire material — `buildOrgIsoMdocRequest(request, { origin })`
-   in this library, or the equivalent in your language.
-3. Stores, keyed by an unguessable `handle`: the HPKE private key, the
-   request as sent, the origin used, the authenticated user/session, and a
-   short expiry (a few minutes).
-4. Returns the handle and the navigator argument. Both are public material.
+1. It decides what to ask for. It can take the page's `request` as a
+   suggestion, or ignore it and build the request itself from what it knows
+   about the appointment. Building it on the server is stronger: a
+   compromised page then cannot widen what is asked.
+2. It builds the wire material: the DeviceRequest and the encryption
+   information, including a fresh keypair. In this library that is
+   `buildOrgIsoMdocRequest(request, { origin })`; in another language it is
+   the equivalent.
+3. It stores, under an unguessable handle: the private key, the request as
+   sent, the origin it used, the authenticated user or session, and an expiry
+   a few minutes out.
+4. It returns the handle and the navigator argument. Both are safe to give to
+   the page.
 
-The `origin` must be **your** page's origin, taken from configuration — not
-from the request body. It goes into the SessionTranscript, and both sides
-must compute the same one or the response won't open.
+The `origin` must be your page's origin, taken from the server's own
+configuration, never from the request body. It becomes part of the
+SessionTranscript, and the health app and the server have to compute the
+same one or the response will not decrypt.
 
 ## Call 2 — complete
+
+After the browser returns the health app's response, the page posts it back:
 
 ```http
 POST /credential-requests/8f2c…/complete
@@ -87,21 +99,24 @@ Content-Type: application/json
 { "credential": { "protocol": "org-iso-mdoc", "data": { "response": "<base64url>" } } }
 ```
 
-The server:
+On this call the server does five things.
 
-1. Looks up the handle; rejects if unknown, expired, already used, or
-   belonging to a different session than the caller's.
-2. HPKE-opens the response with the stored key and the SessionTranscript
-   recomputed from the stored origin and encryptionInfo.
-3. Verifies the mdoc: issuer signature, device signature, MSO digests.
-4. Cross-checks the payload against the **stored** request —
-   `validateResponseAgainstRequest` — never against anything the page sent
-   with this call.
-5. Deletes the stored key. A handle is single-use.
+1. It looks up the handle, and rejects the call if the handle is unknown,
+   expired, already used, or belongs to a different session than the caller.
+2. It decrypts the response with the stored key, using the SessionTranscript
+   recomputed from the stored origin and encryption information.
+3. It verifies the response: the issuer's signature, the device's signature,
+   and the digests. In this library that is `openWalletResponse` followed by
+   `verifyDeviceResponseSignatures`.
+4. It checks the decrypted data against the request it stored — with
+   `validateResponseAgainstRequest` — and never against anything the page
+   sent in this call.
+5. It deletes the stored key. A handle is used once.
 
 Then it answers in one of two ways.
 
-**Return the data** — key custody and an audit trail, page still prefills:
+If the page is allowed to see the data, the server returns it, and the page
+can prefill as usual:
 
 ```json
 {
@@ -110,17 +125,17 @@ Then it answers in one of two ways.
 }
 ```
 
-**Keep the data** — for deployments where the page must not hold PHI:
+If the page must not hold PHI, the server keeps the data and returns only a
+reference:
 
 ```json
 { "handledByServer": true, "reference": "encounter-8821/checkin-3" }
 ```
 
-In this mode `runCheckin` resolves with `status: "completed"`, no `response`,
-and your `reference` in `outcome.serverReference`. `requestCheckin` throws,
-since it exists to hand you the response. **In-page prefill is impossible
-here by construction** — that's the trade you're making, not a limitation to
-work around.
+In the second case `runCheckin` resolves with `status: "completed"`, no
+`response`, and your reference in `outcome.serverReference`. `requestCheckin`
+throws, because its purpose is to hand you the response. Prefilling the page
+is impossible in this mode by design; that is the trade you are making.
 
 ## Using it from the page
 
@@ -137,39 +152,39 @@ if (outcome.status === "completed") {
 }
 ```
 
-The built-in client posts with `credentials: "include"`, so your session
-cookie rides along and the server can bind a check-in to the signed-in
-patient. If you need headers instead — a bearer token, a CSRF token — pass
-your own object implementing `VerifierAuthority` rather than
-`{ server }`; it's two methods.
+The built-in client posts with `credentials: "include"`, so the browser sends
+your session cookie and the server can tie the check-in to the signed-in
+patient. If your server wants a header instead — a bearer token, a CSRF
+token — pass an object of your own that implements `VerifierAuthority`. It
+has two methods, one per call.
 
 ## Security requirements
 
-- **Handles are capability tokens.** Unguessable (≥128 bits of entropy),
-  single-use, short-lived, and bound to the session that created them.
-- **Never take the origin from the client.** Configuration only.
-- **Never re-validate against a client-supplied request.** The stored one is
-  the truth; that's the whole reason to hold state.
-- **Rate-limit prepare.** Each call mints a keypair and a stored record.
-- **Decide what you log.** The opened response is PHI. An audit trail that
-  records *that* a check-in happened, with the request id and the item
-  statuses, is usually enough; logging artifact bodies rarely is.
-- Everything in [Production checklist](production.md) still applies —
-  especially trust policy, which stays yours whichever side opens the
-  response.
+- Treat handles as secrets. Make them unguessable (at least 128 bits of
+  randomness), single-use, short-lived, and tied to the session that created
+  them.
+- Never take the origin from the client. It comes from configuration.
+- Never validate against a request the client supplied. The stored request
+  is the truth; holding it is the reason the server has state at all.
+- Rate-limit the prepare call. Each one creates a keypair and a stored
+  record.
+- Decide what you log. The decrypted response is PHI. Recording that a
+  check-in happened, with the request id and each item's status, is usually
+  enough; recording the data itself rarely is.
+- Everything in the [Production checklist](production.md) still applies, and
+  trust policy in particular stays yours whichever side opens the response.
 
 ## Reference implementation
 
-There isn't a blessed one yet — the seam is small enough that the contract
-above is the specification, and each stack will want its own storage and
-session handling. If you build one, the pieces you need from this library
-are exported: `buildOrgIsoMdocRequest`, `buildDcapiSessionTranscript`,
-`openWalletResponse`, `verifyDeviceResponseSignatures`, and
-`validateResponseAgainstRequest`. In a non-JavaScript stack, the
+There is no reference server yet. The contract above is the specification;
+each stack will want its own storage and session handling. The functions a server in this language needs are exported:
+`buildOrgIsoMdocRequest`, `buildDcapiSessionTranscript`, `openWalletResponse`,
+`verifyDeviceResponseSignatures`, and `validateResponseAgainstRequest`. For a
+server in another language, the
 [conformance fixtures](https://github.com/smart-health-checkin/spec/tree/main/fixtures)
-are the oracle to build against — they include a real Chrome/Android capture
-with a published test key, so you can verify your HPKE-open and signature
-checks byte for byte before you trust them.
+are what to build against: they include a real capture from Chrome on
+Android with a published test key, so you can confirm your decryption and
+signature checks byte for byte before you trust them.
 
 See also: [Wallets and browser support](wallets.md) ·
 [Production checklist](production.md)

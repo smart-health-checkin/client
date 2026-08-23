@@ -1,32 +1,40 @@
 # Wallets and browser support
 
-Something has to answer the request. By default that's the browser's Digital
-Credentials API handing it to a wallet the patient has installed — but you can
-substitute any credential getter, which is what makes this testable without a
-phone.
+Something has to answer a check-in request. By default it is a health app
+installed on the patient's device, which the browser reaches through the
+Digital Credentials API. This guide explains the alternatives, how to offer
+the patient a choice, and how to run the whole flow on a machine with no
+health app at all.
 
-Three words this guide uses precisely:
+Three words this guide uses with fixed meanings:
 
-- a **responder** is whoever answers: the platform wallet, a web wallet, or the mock;
-- a **policy** (`ResponderPolicy`) is what your page accepts, and which responder leads;
-- a **credential getter** is the function `requestCheckin` calls to get the
-  wallet's sealed answer — `getCredential` in its options. The default is
-  `navigator.credentials.get`; every other responder is a different one, and
-  `credentialGetterFor(responder)` returns it.
+- A **responder** is whatever answers the request: the platform wallet, a web
+  wallet, or the mock.
+- A **policy** (the `ResponderPolicy` type) is what your page accepts and
+  which responder it presents first.
+- A **credential getter** is the function `requestCheckin` calls to obtain the
+  health app's sealed answer. It is the `getCredential` option. The default is
+  `navigator.credentials.get`, which reaches the platform wallet. Every other
+  responder is reached through a different credential getter, and
+  `credentialGetterFor(responder)` returns the right one.
 
 ## Configure the list of responding wallets
 
-The three kinds of responder, concretely:
+The three kinds of responder:
 
-- the **platform wallet** — whatever the operating system offers through the
-  Digital Credentials API; on a desktop, a QR code the phone scans;
-- a **web wallet** — a site that opens in a tab and answers there;
-- the **mock** — instant fabricated data, for development and tests.
+- The **platform wallet** is a health app installed on the device. The
+  operating system decides which app that is; your page does not choose. On a
+  desktop, the browser shows a QR code for the patient's phone to scan, and
+  the app on the phone answers.
+- A **web wallet** is a health app that runs as a website. It opens in a tab,
+  the patient chooses what to share there, and the tab sends the answer back.
+- The **mock** answers immediately with made-up data. It is for development
+  and automated tests.
 
-The platform wallet needs no configuration; the OS chooses it. A web wallet
-is a site, so somebody has to decide which sites are acceptable, and that
-decision belongs to you, not to this library. You state it as a policy and
-get back a list your page can render:
+The platform wallet needs no configuration. A web wallet is a website, so
+someone has to decide which websites your page is willing to send a request
+to, and that decision is yours. You express it as a policy, and the library
+gives you back a list of responders to show the patient:
 
 ```ts
 import { resolveResponders, credentialGetterFor } from "@smart-health-checkin/client";
@@ -39,15 +47,17 @@ const responders = await resolveResponders({
 });
 ```
 
-Each entry is renderable as-is — `id`, `name`, `description`, `iconUrl`, and
-`available` with a `reason` when this browser can't use it (an unavailable
-platform wallet is *listed and disabled*, not hidden, so people can see why).
-Exactly one entry has `isDefault: true`: the one you named, if it's available
-here, otherwise the first available one — so a page that prefers the platform
-wallet still leads with a working option on a browser that has none.
+Each entry in the list has what a button needs: `id`, `name`, `description`,
+`iconUrl`, and `available`. When this browser cannot use a responder —
+usually because it has no Digital Credentials API — `available` is false and
+`reason` says why. The entry is still in the list, so you can show it disabled
+rather than hiding it. Exactly one entry has `isDefault: true`: the one you
+named in the policy if it is available, otherwise the first available one.
+That way a page that prefers the platform wallet still leads with a working
+option on a browser that has none.
 
-Render one control per entry. The one the person clicks is the responder you
-pass back:
+Render one control per entry. When the patient clicks one, pass that entry to
+`credentialGetterFor`:
 
 ```ts
 for (const responder of responders) {
@@ -61,16 +71,15 @@ for (const responder of responders) {
 }
 ```
 
-With one web wallet configured you get a two-item list; with several you get
-a menu. The [clinic demo](https://smart-health-checkin.org/client/demo/) renders it
-as a split button — primary action on the left, the rest behind a caret —
-which is a good shape when there's a sensible default.
+With one web wallet configured you get a two-item list; with several, a menu.
+The [clinic demo](https://smart-health-checkin.org/client/demo/) renders the
+list as a split button: the default on the left, the others behind a caret.
 
 ### Where the library stops and your UI starts
 
-The library never draws a button. It turns your policy into data, and turns
-the person's choice back into a credential getter; everything between those
-two calls is your page.
+The library never draws a button. It turns your policy into a list, and it
+turns the responder the patient picked into a credential getter. Everything
+between those two calls is your page.
 
 ```
   your page                            the client library
@@ -105,17 +114,16 @@ two calls is your page.
   7  response  ◄─────────────────────┘
 ```
 
-Two seams, both plain data: the `Responder` list going out (step 2) and one
-chosen `Responder` coming back (step 4). Nothing about your rendering is
-visible to the library, and nothing about the wire is visible to your
-rendering. The clinic demo's split button is one implementation —
-[`demo/src/main.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/main.ts):
-`renderResponderMenu` draws from the list, and the click handler is the few
-lines around `credentialGetterFor`.
+Two things cross the boundary, both plain data: the list of responders going
+out, and the one the patient chose coming back. The library never sees how
+you rendered the list, and your rendering never sees the wire. The clinic
+demo's split button is one way to render it; see `renderResponderMenu` in
+[`demo/src/main.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/main.ts).
 
 ### The wallet registry
 
-`webWallets` takes any of four things:
+The list of web wallets your page recognizes is called the registry. The
+`webWallets` policy option accepts it in four forms:
 
 ```ts
 webWallets: true                      // the built-in list of one (the demo wallet)
@@ -124,9 +132,9 @@ webWallets: { wallets: [ … ] }        // a registry object: exactly the JSON f
 webWallets: [ … ]                     // just the array of entries
 ```
 
-The object form and the file form are the same structure, so you can inline
-during development and move the identical JSON to a config endpoint later
-without touching anything else:
+A registry object and a registry file have the same shape, so you can start
+with an inline list during development and move the same JSON to a
+configuration endpoint later:
 
 ```json
 {
@@ -145,21 +153,21 @@ without touching anything else:
 }
 ```
 
-Every form is validated the same way, and a malformed list throws rather
-than silently falling back: which wallet you send people to is not a question
-to answer by accident. `webWallets: true` uses the built-in list of one, this
-project's demo wallet — where a deployment starts before it recognizes anyone
-else's.
+Every form is validated the same way. A malformed list throws an error rather
+than being silently ignored, because which website you send patients to
+should never be decided by accident. `webWallets: true` uses the built-in
+list, which contains only this project's demo wallet.
 
-Treat the registry as a trust decision: every entry is a site you're willing
-to hand a check-in request to, and the response comes back bound to *your*
-origin, so a wallet you list can see what you asked for.
+Treat the registry as a trust decision. Each entry is a website you are
+willing to hand a check-in request to. The response comes back encrypted to
+your page, so a web wallet cannot read the answer, but it can see what you
+asked for.
 
 ## Using a credential getter directly
 
-The policy above is the convenient path. For a page that only ever uses one
-responder, the getters are there to call directly — and the platform wallet is
-what you get by passing nothing:
+The policy is the convenient path. If your page only ever uses one
+responder, you can call its credential getter directly. Passing no
+`getCredential` at all uses the platform wallet:
 
 ```ts
 // 1. The platform wallet (the default) — nothing to pass. On a phone it
@@ -180,22 +188,23 @@ await requestCheckin(myRequest, {
 });
 ```
 
-All three produce the same wire traffic — the same encoding, the same
-signatures, the same encryption — verified the same way. Only the credential
-getter differs — so a flow proven against the web wallet is proven against the
-protocol.
+All three produce the same kind of response — encoded, signed, and encrypted
+the same way — and the library checks all three the same way. Only the
+credential getter differs. That is why a flow you have tested with the web
+wallet or the mock is the same flow that runs against a real health app.
 
-The demo wallet's own source is worth reading if you're building a responder:
+If you are building a web wallet, the demo wallet is a complete, small
+example:
 [`demo/wallet.html`](https://github.com/smart-health-checkin/client/blob/main/demo/wallet.html)
-plus [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts).
-It parses the request off the wire, shows the requesting origin and a
-per-item consent screen, and signs and seals a response bound to that origin.
+and [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts).
+It decodes the request, shows which page is asking and a consent screen with
+one checkbox per item, then signs and encrypts a response for that page.
 
 ## Specify what the mock returns
 
-Fabricated data is fine for a smoke test and useless for a real one. The mock
-wallet takes a specification per request item, so a test can state precisely
-what comes back — including the unhappy paths:
+Made-up data is enough for a smoke test and useless for a real one. A test
+usually needs to know exactly what comes back. The mock takes a specification
+per request item, so you can state the data, or the failure, for each:
 
 ```ts
 import { createMockWalletCredentialGetter } from "@smart-health-checkin/client";
@@ -215,21 +224,26 @@ const getCredential = createMockWalletCredentialGetter({
 });
 ```
 
-That drives the whole real pipeline — CBOR, COSE signing, HPKE sealing, and
-verification on the way back in — so you're testing your integration, not a
-stub. When you only want the response object and none of the wire work,
-`buildMockResponse(request, { items, fallback })` returns it directly.
+The mock still runs the whole pipeline — the response is encoded, signed,
+encrypted, and then decrypted and verified on the way back — so a test
+exercises your integration, not a stub. If you want only the response object
+and none of the wire work, `buildMockResponse(request, { items, fallback })`
+returns it directly.
 
-Two shapes a real wallet produces are spelled the same way: a list of specs
-returns several artifacts for one item (a signed card *and* the same facts as
-FHIR), and `alsoFulfills` lets one artifact answer several items (a clinical
-summary that already contains the allergy list). Left to fabricate, the mock
-does both where the request invites them.
+Two shapes that real health apps produce have their own spelling. A list of
+specifications for one item returns several artifacts for that item — a
+signed card and the same facts as plain FHIR, for instance. `alsoFulfills`
+on one specification lets one artifact answer several items — a clinical
+summary that already contains the allergy list. When you leave the mock to
+invent data, it produces both shapes where the request invites them.
 
-For full control, `respond: (request) => SmartCheckinResponse` hands you the
-request and takes whatever you build.
+For complete control, pass `respond: (request) => SmartCheckinResponse` and
+build the whole response yourself.
 
 ## Check browser support first
+
+Not every browser has the Digital Credentials API. You can ask before
+offering a check-in:
 
 ```ts
 import { detectDcApiSupport } from "@smart-health-checkin/client";
@@ -240,58 +254,59 @@ if (support.state === "unsupported") {
 }
 ```
 
-`runCheckin` (the non-throwing form of `requestCheckin`) does this for you
-and returns `status: "unsupported"` without ever prompting the patient — nobody sees a button that can't work.
+`runCheckin` (the form of `requestCheckin` that returns a status instead of
+throwing) does this check for you and returns `status: "unsupported"` without
+prompting the patient, so nobody sees a button that cannot work.
 
-**Desktop is not a dead end.** Where the browser supports the API — recent
-Chrome, Safari 26 — a desktop check-in is still worth offering: the browser
-runs a *cross-device* flow, showing a QR code the person scans with their
-phone. The wallet on the phone shows the consent screen and answers, and the
-response comes back to the page on the desktop, which is where the patient
-was already working. So "on a laptop" is a reason to offer the platform
-option, not to hide it.
+A desktop browser is not a dead end. Where the browser supports the API —
+recent Chrome, and Safari 26 — it runs a cross-device flow: the browser shows
+a QR code, the patient scans it with their phone, the app on the phone shows
+the consent screen and answers, and the response arrives in the page on the
+desktop. The patient ends up where they started. So "the patient is on a
+laptop" is a reason to offer the platform wallet, not to hide it.
 
-Where the API is genuinely absent you'll get `unsupported` with a reason to
-show. That's what the fallback is for, and why the web-wallet credential
-getter exists:
-it needs nothing but `window.open` and `postMessage`.
+Where the API is absent, you get `unsupported` with a reason you can show.
+That is what the fallback to your own form is for. It is also why the web
+wallet exists: it needs nothing from the browser beyond `window.open` and
+`postMessage`.
 
 ## How the web wallet hand-off works
 
 `createWebWalletCredentialGetter({ walletUrl, target, timeoutMs })` opens the
-wallet (a tab by default; `target: "popup"` for a window), waits for it to
-announce readiness, posts the request, and resolves with the sealed response.
-Closing the tab or declining rejects as a decline, which `runCheckin` reports
-as `status: "declined"`.
+wallet page in a tab (or, with `target: "popup"`, a window), waits for the
+wallet to say it is ready, sends it the request, and resolves with the sealed
+response the wallet sends back. If the patient declines or closes the tab,
+the getter rejects, and `runCheckin` reports that as `status: "declined"`.
 
-One wrinkle worth knowing: the wallet can't observe your page's origin from
-inside its own tab, so the request message carries `verifierOrigin`
-explicitly. Both sides bind the session transcript to it, and a mismatch makes
-the response fail to open — which is the intended behavior, not a bug to work
-around.
+One detail to know: a page cannot see the web origin of the page that opened
+it, so the request message carries your page's origin explicitly. Both sides
+then bind the response to that origin. If they disagree, the response will
+not decrypt. That is deliberate: a response meant for one page cannot be
+opened by another.
 
-Because the opener must be a genuine user gesture, call `requestCheckin` from
-a click handler. Automated tests need synthesized input events (a scripted
-`.click()` won't do) or the non-interactive mock.
+Browsers only allow a page to open a tab in response to a real click, so call
+`requestCheckin` from a click handler. Automated tests need either a
+synthesized input event (a scripted `.click()` is not enough) or the mock,
+which opens nothing.
 
 ## Key custody
 
-The *authority* is the part of the flow that holds the private key and opens
-the response — the `authority` option decides where it lives:
+Part of the flow holds the private key the response is encrypted to, and uses
+it to open the response. The library calls that part the *authority*, and the
+`authority` option decides where it lives:
 
 ```ts
 await requestCheckin(myRequest, { authority: "browser-local" });        // default
 await requestCheckin(myRequest, { authority: { server: "/checkin-api" } });
 ```
 
-`browser-local` keeps the ephemeral, single-use HPKE key in page memory, and
-that's the intended arrangement: the response must be readable by the page
-for prefill to work, and a browser-only client means nobody has to port
-CBOR/COSE/HPKE to their backend language. A `{ server }` authority is there
-for deployments that deliberately don't want the page to hold the response —
-implement the two-call contract (`prepareCredentialRequest` /
-`completeCredentialRequest`) or pass your own `VerifierAuthority`. The seam
-is specified in [Server-held keys](server-authority.md); the reasoning is in
-the [Production checklist](production.md).
+`browser-local` keeps the key in the page's memory. The key is created for one
+request and discarded afterwards. This is the intended arrangement, for two
+reasons: the page has to read the response to prefill anything, and a library
+that only runs in the browser means nobody has to port the cryptography to
+their server's language. The `{ server }` option is for deployments that
+specifically do not want the page to hold the response. It is described in
+[Server-held keys](server-authority.md), and the reasoning behind the
+default is in the [Production checklist](production.md).
 
 Next: [Kiosk and front-desk check-in](kiosk.md) · [Writing FHIR](fhir.md)

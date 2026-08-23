@@ -1,108 +1,111 @@
 # Production checklist
 
-The demo is honest about being a demo. Here's what changes when real people
-and real charts are involved — most of it is deliberately *yours*, because
-these are deployment policy rather than protocol.
+The demo is a demo: it accepts any health app, matches no patients, and keeps
+nothing. This page lists what changes when real patients and real charts are
+involved. Most of it is yours to decide, because it is deployment policy, not
+protocol.
 
 ## Key custody
 
-The keypair the response is sealed to is generated in the page, used for
-exactly one exchange, and discarded. That is the intended arrangement, not a stepping
-stone to something server-side.
+Each check-in encrypts the response to a key that your page creates for that
+one request and throws away afterwards. The key lives in the page's memory
+for the few seconds the exchange takes. That is the intended design, not a
+shortcut, for two reasons.
 
-It has to be, for two reasons:
+First, the page is supposed to read the response. Prefilling a form, showing
+the patient what came back, asking only for what is missing — none of that is
+possible if the response is decrypted on a server the page cannot see into.
 
-- **The page is supposed to see the data.** Prefilling a form, showing the
-  patient what came back, asking only for what's missing — none of that
-  works if the response is opened on a server the page can't see into. The
-  autofill pattern *is* the product.
-- **One implementation, every stack.** A browser-only client means there is
-  no per-language server SDK to write and maintain — no Java, .NET, Python,
-  Ruby ports of CBOR/COSE/HPKE for each EHR's backend. The web platform is
-  the common denominator, and that's what makes this cheap to adopt.
+Second, it keeps the library to one implementation. Because the whole flow
+runs in the browser, nobody has to write and maintain a server-side version
+in Java, .NET, Python, or Ruby for each EHR backend. The browser is the one
+platform every deployment has.
 
-What the key protects is the hop from the wallet to *this page*: the response
-is encrypted to a key only this page holds, bound to this request and this
-origin, so it can't be read in transit or replayed at another site. Keeping
-that key in page memory is appropriate — it is ephemeral, single-use, and
-guards a payload the page is entitled to read anyway.
+What the key protects is the hop from the health app to this page. The
+response is encrypted to a key only this page holds and is tied to this
+request and this page's origin, so it cannot be read in transit or replayed
+at another site. The page was going to read the plaintext anyway, so keeping
+the key in the page's memory does not widen what the page can see.
 
-A `{ server }` authority — the `authority` option names the part of the flow
-that holds the key and opens the response — exists for the narrow case where a deployment
-specifically does *not* want the page to hold the response — a kiosk you
-don't control, or a policy that says PHI may only be decrypted server-side.
-Understand the trade: you lose in-page prefill, and you take on a service to
-build and maintain in your own language. Most deployments should not. If you
-do, [Server-held keys](server-authority.md) specifies the seam.
+The library also supports a server-held key, through the `authority` option
+— the authority being the part of the flow that holds the key and opens the
+response. It is for the narrow case where a deployment does not want the page
+to hold the response at all: a kiosk you do not control, or a policy that
+allows PHI to be decrypted only on a server. The cost is real: no prefill in
+the page, and a service to build and maintain in your own language. Most
+deployments should not choose it. If yours does, [Server-held keys](server-authority.md)
+specifies the contract.
 
-Whichever you choose, the ordinary browser rules still apply: serve over
-HTTPS, keep the page free of third-party scripts you don't trust, and treat
-XSS on a check-in page as what it is — a data breach.
+Whichever you choose, the ordinary rules for a page that handles health data
+still apply: serve it over HTTPS, keep third-party scripts you do not trust
+off it, and treat cross-site scripting on it as the data breach it would be.
 
 ## Trust policy
 
-The library verifies that a response is internally consistent: signatures check
-out against the certificate the wallet presented, the digests match, and the
-session binding is correct. It hands you the certificate chain. It does not
-decide **which** wallets or issuers you're willing to believe — the demo
-accepts self-attested wallets, which is right for a demo and wrong for a
-chart.
+The library verifies that a response is internally consistent: the
+signatures check against the certificate the health app presented, the
+digests match the data, and the response is bound to your page and your
+request. It gives you the certificate chain. It does not decide which health
+apps or which issuers you are willing to believe. The demo accepts any app,
+including one that vouches for itself; that is fine for a demo and wrong for
+a chart.
 
-Decide explicitly: which chains do you accept, what do you do with a
-self-attested one (accept but flag for review?), and where is that policy
-written down.
+Decide this explicitly, and write it down: which certificate chains you
+accept, and what you do with a response from an app that only vouches for
+itself — reject it, or accept it and flag it for review.
 
 ## Patient identity
 
-Nothing here matches a share to a chart. `context` is stamped exactly as you
-provide it, and the page must be bound to an authenticated patient session
-before you trust that binding. Treat an unauthenticated check-in page as
-producing unattributed data.
+Nothing in the library matches a response to a patient record. The `context`
+you pass to the FHIR module is written exactly as you gave it. Before you
+rely on that, the page must be tied to an authenticated patient session.
+Treat data from an unauthenticated check-in page as data with no known
+patient attached.
 
 ## Where the data goes
 
-Patient-supplied data isn't clinician-entered data, and the difference should
-survive the write. Whatever the destination — a staging queue, a reconciliation
-worklist, a chart section for review — make sure a human can see the
-provenance and that someone owns reviewing it. The `Provenance` the
-[FHIR helper](fhir.md) writes is a starting point, not a substitute for a
-review workflow.
+Data the patient supplied is not the same as data a clinician entered, and
+that difference should survive wherever the data is written: a staging
+queue, a reconciliation worklist, a chart section marked for review. Make
+sure a person can see where each item came from, and that someone is
+responsible for reviewing it. The `Provenance` resource the
+[FHIR module](fhir.md) writes records the origin; it does not create the
+review step.
 
-Decide retention too: how long does a raw response live, in logs or a queue,
+Decide retention as well: how long a raw response is kept in logs or queues,
 and who can read it there.
 
 ## Configuration in the URL fragment
 
-The demo carries its configuration in the URL **fragment**, never the query
-string, so patient references and request payloads never reach a server log or
-a referrer header. Keep that property. And never accept credentials, tokens,
-or FHIR auth material through a URL.
+The demo keeps its configuration in the URL fragment (the part after `#`),
+never in the query string. Fragments are not sent to servers, so patient
+references and request payloads never appear in server logs or in referrer
+headers. Keep that property in your own pages. Never accept credentials,
+tokens, or FHIR authorization material through a URL at all.
 
 ## Availability and fallback
 
-The Digital Credentials API isn't everywhere yet (see
-[Wallets and browser support](wallets.md)), the patient may decline, and the
-wallet may return nothing useful. Every one of those paths must land on the
-form you already have. If check-in being unavailable blocks the visit, the
-integration is wrong — it's an accelerator on top of your intake, not a
-replacement for it.
+The Digital Credentials API is not in every browser yet (see
+[Wallets and browser support](wallets.md)). The patient may decline. The
+health app may return nothing useful. Each of those paths has to end at the
+intake form you already have. A check-in saves the patient typing when it
+works; if its being unavailable can block a visit, the integration is wrong.
 
 ## Pin your dependencies
 
-Install from a commit rather than a branch, and use the versioned hosted
-module (`/client/lib/<version>/checkin.js`) rather than the moving one, so a
-deployment you validated stays the deployment you're running. Better still,
-vendor a build you control — this is code running on a page where a patient is
-sharing health data.
+Install from a specific commit rather than a branch, and if you use the
+hosted module, use the versioned URL (`/client/lib/<version>/checkin.js`)
+rather than the one that moves with each release. Then the code you validated
+is the code you are running. Better still, build and host a copy yourself:
+this is code that runs on a page where a patient is sharing health data.
 
 ## Before you go live
 
-- [ ] Decided key custody deliberately (browser-local unless you have a
-      specific reason, and know what you give up if not)
-- [ ] A written trust policy for wallet certificates
-- [ ] Authenticated patient session bound to the page
-- [ ] Provenance preserved to the destination, with a review path
-- [ ] Fallback to your existing form on declined / unsupported / error
-- [ ] Pinned dependency, ideally vendored
+- [ ] Key custody decided on purpose: browser-local unless you have a
+      specific reason, and you know what you give up otherwise
+- [ ] A written trust policy for health-app certificates
+- [ ] The page tied to an authenticated patient session
+- [ ] Provenance preserved wherever the data is written, with a review step
+- [ ] Fallback to your existing form on declined, unsupported, and error
+- [ ] Dependency pinned, ideally self-hosted
 - [ ] Retention decided for responses and logs
-

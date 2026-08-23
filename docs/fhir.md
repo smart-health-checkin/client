@@ -1,18 +1,20 @@
 # Writing FHIR (optional)
 
-The check-in client has no idea a FHIR server exists. That's deliberate: where
-patient-supplied data lands, under whose authorization, and who reviews it are
-deployment decisions, and a protocol library that made them would be one more
-thing you'd have to audit before adopting it.
+The check-in library does not write anything to a FHIR server. Where
+patient-supplied data should go, who is allowed to put it there, and who
+reviews it before it reaches a chart are decisions for each deployment, and a
+library that made them for you would be one more thing to audit before you
+could use it.
 
-If you want the mapping done for you anyway, there's a separate module:
+If you do want a FHIR transaction built from the response, the library
+includes a separate module for it:
 
 ```ts
 import { buildCheckinBundle, postCheckinBundle } from "@smart-health-checkin/client/fhir";
 ```
 
-It's a different import path on purpose — nothing in the check-in path pulls
-it in, and you can ignore it entirely and use your own client.
+It has its own import path so that nothing in the check-in flow depends on
+it. If you use your own FHIR client, you never load it.
 
 ## Build, inspect, then send
 
@@ -31,29 +33,32 @@ plan.entries;  // the same entries, with the artifact each came from
 await postCheckinBundle(plan, { fhirBase: "https://fhir.example.org/r4" });
 ```
 
-`buildCheckinBundle` is pure: no network, no globals, deterministic apart from
-generated UUIDs. That matters — you can diff it in a test, show it to a
+`buildCheckinBundle` makes no network calls and reads no global state. Given
+the same input it produces the same output, apart from the UUIDs it
+generates. That means you can compare its output in a test, show it to a
 reviewer, or hand it to your own authenticated client instead of calling
-`postCheckinBundle` at all.
+`postCheckinBundle`.
 
 ## What the mapping does
 
-- **`application/fhir+json` artifacts** → each resource (or each Bundle entry)
-  becomes a `POST` entry in one transaction Bundle.
-- **`application/smart-health-card` artifacts** → a `DocumentReference`
-  holding the JWS, so the issuer's signature survives. Unpacking it into loose
-  FHIR would discard the one thing that made it verifiable.
-- **A `Provenance`** accompanies the writes: patient-supplied, timestamped,
-  pointing at everything created, carrying the check-in request id and your
-  configured patient/appointment as identifier entities.
+- Each `application/fhir+json` artifact becomes one `POST` entry per resource
+  (or per Bundle entry) in a single transaction Bundle.
+- Each `application/smart-health-card` artifact becomes a `DocumentReference`
+  that holds the signed token. The token is kept whole because it carries the
+  issuer's signature; splitting it into loose FHIR resources would lose that.
+- A `Provenance` resource is added. It records that the data was supplied by
+  the patient, when, and through which check-in request, and it points at
+  every resource the transaction creates. The patient and appointment you pass
+  in `context` are recorded on it as identifiers.
 
-The appointment rides as an *identifier entity*, not a `Provenance.target`
-reference, because a target reference must resolve on the destination server
-and a demo appointment id won't. Identifiers travel; references don't.
+The appointment is recorded as an identifier rather than as a reference to an
+Appointment resource. A reference has to resolve on the server that receives
+it, and the appointment may not exist there; an identifier can be recorded
+regardless.
 
-**No patient matching happens, ever.** Whatever you pass as `context` is what
-gets stamped. Matching a share to a chart is your system's job, with your
-identity rules.
+The module never matches the patient. Whatever you pass as `context` is what
+it writes. Deciding which chart a share belongs to is your system's job,
+under your rules.
 
 ## Modes
 
@@ -63,22 +68,24 @@ await postCheckinBundle(plan, { fhirBase, mode: "individual" });   // one POST p
 await postCheckinBundle(plan, { fhirBase, fetchImpl: myAuthedFetch });
 ```
 
-`individual` exists for servers with weak transaction support; it posts each
-resource, then rewrites the Provenance's `urn:uuid` references to the
-server-assigned locations before sending it. There's no "dry run" mode,
-because not sending is just not calling this function.
+The default mode sends one transaction Bundle. The `individual` mode exists
+for servers that do not handle transactions well: it posts each resource on
+its own, then rewrites the Provenance so that its references point at the
+locations the server assigned, and posts that last. There is no dry-run mode,
+because not sending is simply not calling `postCheckinBundle`.
 
-Pass `fetchImpl` to attach your session credentials, retries, tracing, or
-whatever your stack does.
+`fetchImpl` lets you supply your own `fetch`, so the request can carry your
+session credentials, go through your retry logic, or be traced the way the
+rest of your application is.
 
 ## Writing FHIR yourself
 
-The response is ordinary data. Writing it into your own model is often the
-better answer — and the check-in page is ordinary application code, so nothing
-about the protocol constrains that choice. The
+The response is ordinary data, and writing it into your own data model is
+often the better choice. Nothing in the protocol constrains what you do after
+the response arrives. The
 [allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
-shows the same reviewed data rendered both as standard FHIR and as an
-EHR-native packet with routing flags, precisely to make the point that this is
-your decision.
+shows the same reviewed data rendered two ways — as standard FHIR, and as a
+packet shaped for one EHR with routing flags — to make the point that this
+choice is yours.
 
 Next: [Production checklist](production.md)

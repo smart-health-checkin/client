@@ -1,8 +1,9 @@
 # Response model
 
-A response has two parts: **artifacts** (the data) and **requestStatus** (what
-happened to each thing you asked for). Read both — an empty artifact list with
-a `declined` status is a perfectly normal, successful exchange.
+A response has two parts. `artifacts` is the data the patient shared.
+`requestStatus` has one entry per item in your request and says what happened
+to that item. Read both: a response with no artifacts and a `declined` status
+is a normal, successful exchange — the patient was asked, and said no.
 
 ```ts
 const response = await requestCheckin(myRequest);
@@ -13,20 +14,24 @@ response.requestStatus;  // [{ item: "allergies", status: "fulfilled" }]
 
 ## What the library has verified
 
-Before your code sees a response, the library has:
+By the time `requestCheckin` returns, the library has done three things to
+the response.
 
-- HPKE-decrypted it using a key bound to **this** request and **your** page's
-  origin, so a response captured elsewhere cannot be replayed at you;
-- verified the issuer's signature and the device's signature over the session
-  transcript — the binding to your page's origin — and re-hashed every element
-  against the signed digests;
-- confirmed the response answers *this* request: matching request id, every
-  `fulfills` pointing at a real item, every artifact's media type in that
-  item's `accept` list, and exactly one status per item.
+It has decrypted it. The response was encrypted to a key your page created
+for this one request, and the encryption is tied to your page's web origin. A
+response captured from another page, or replayed later, will not decrypt.
 
-What it has **not** done is judge the clinical content. A conformant response
-can still contain a medication list that's a year stale. Protocol validity is
-not data quality — that judgment stays yours.
+It has checked the signatures. The health app signs the response, and the
+data it carries is signed by whoever issued it. The library verifies both and
+checks every piece of data against the signed digests.
+
+It has matched the response to the request. The response names the request it
+answers; every artifact points at a real item; every artifact's format is one
+that item accepted; and there is exactly one status per item.
+
+What the library has not done is judge the content. A response can pass every
+check and still carry a medication list that is a year out of date. Whether
+the data is correct and current is for you and the clinician to decide.
 
 ## Per-item status
 
@@ -39,8 +44,9 @@ not data quality — that judgment stays yours.
 | `unsupported` | The app can't handle this kind of ask |
 | `error` | Something went wrong on the wallet side |
 
-Per-item declines are ordinary. Show the patient what came through, and offer
-your own form for the rest rather than treating a partial share as a failure.
+Declined and partial items are normal. Show the patient what did come through,
+and offer your own form for the rest. Do not treat a partial share as a
+failure of the whole check-in.
 
 ```ts
 const byItem = new Map(response.requestStatus.map((s) => [s.item, s.status]));
@@ -52,8 +58,12 @@ for (const item of myRequest.items) {
 
 ## Reading artifacts
 
-Artifacts point back at the items they satisfy — one artifact can cover
-several items, and one item can be covered by several artifacts.
+Each artifact lists the items it satisfies in `fulfills`. One artifact can
+satisfy several items — a clinical summary can cover both "problems" and
+"allergies" — and one item can be satisfied by several artifacts.
+
+For a FHIR artifact, `value` is a single resource or a Bundle. This helper
+returns the resources for one item:
 
 ```ts
 function resourcesFor(response, itemId) {
@@ -71,18 +81,20 @@ const allergies = resourcesFor(response, "allergies")
   .filter((r) => r.resourceType === "AllergyIntolerance");
 ```
 
-SMART Health Card artifacts carry `value.verifiableCredential` — an array of
-JWS strings. Keep the JWS if you store them: it's the only thing that carries
-the issuer's signature. Unpacking it into plain FHIR throws that away.
+A SMART Health Card artifact carries `value.verifiableCredential`, an array of
+signed tokens (JWS strings). If you store health cards, store the tokens as
+they are. The token is what carries the issuer's signature; unpack it into
+plain FHIR and the signature is gone.
 
 ## Prefill, then ask only for what's missing
 
-The interesting move isn't dumping the response into a chart. It's using it to
-*shorten what you ask the patient*.
+The most useful thing to do with a response is to shorten what you ask the
+patient.
 
-US Core requires an allergy's substance and clinical status, but reaction and
-criticality are optional — so real records routinely arrive as "Latex, and
-nothing else." Your form knows what's missing and can ask only for that:
+Records often arrive incomplete. US Core requires an allergy record to name
+the substance and the clinical status, but not the reaction or how serious it
+is, so many records say only "Latex". Your form can look at what arrived and
+ask only for the missing parts:
 
 ```ts
 const rows = allergies.map((a) => ({
@@ -96,26 +108,25 @@ const needsDetail = rows.filter(
 );
 ```
 
-Then the patient confirms what's known and supplies only what isn't — and you
-can mark which fields *they* contributed, which is exactly the information a
-nurse wants when reconciling. The
+The patient then confirms what the record already said and adds what it did
+not. Record which fields the patient typed and which came from the app; a
+nurse reconciling the list later will want to know. The
 [allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
-implements this end to end, including a manual-entry path that lands in the
-same review.
+does this end to end, including a path for patients who type everything in.
 
-Two things that follow from doing it this way:
+Two rules follow:
 
-- **Always offer the manual path too.** Prefill is an accelerant; typing it in
-  must stay available and land in the same review flow.
-- **Track provenance.** "Came from the app," "typed by the patient," and
-  "typed and then confirmed by the app" are different facts, and they matter
-  downstream.
+- Keep the manual path. The patient must always be able to type the
+  information in, and it must land in the same review as the prefilled data.
+- Keep the provenance. "From the app", "typed by the patient", and "from the
+  app, confirmed by the patient" are different facts, and they matter later.
 
 ## Storing the response
 
-The library stops here on purpose — see [Writing FHIR](fhir.md) for the optional
-helper, or write it however your system wants. What matters is that patient-
-supplied data is *labelled* as such wherever it lands, so a human can tell it
-apart from what a clinician entered.
+The library does not store the response or write it anywhere; that part is
+yours. If you want to write it to a FHIR server, [Writing FHIR](fhir.md)
+describes an optional module that does. Whatever you do with it, mark the
+data as supplied by the patient wherever it ends up, so that anyone reading it
+later can tell it apart from what a clinician entered.
 
 Next: [Wallets and browser support](wallets.md) · [Writing FHIR](fhir.md)
