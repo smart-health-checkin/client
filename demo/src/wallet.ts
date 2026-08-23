@@ -27,14 +27,33 @@ import {
  * one entry means something: pick a different wallet and different data comes
  * back. `?brand=` selects one.
  */
+/**
+ * The records are coded the way US Core expects — SNOMED CT / RxNorm for
+ * allergy substances, RxNorm for medications, CVX for vaccines, SNOMED CT for
+ * problems — with a human `text` alongside every coding.
+ */
+type Coding = { system: string; code: string; display: string };
+
+const SCT = "http://snomed.info/sct";
+const RXNORM = "http://www.nlm.nih.gov/research/umls/rxnorm";
+const CVX = "http://hl7.org/fhir/sid/cvx";
+
 type Brand = {
   id: string;
   name: string;
   tagline: string;
   accent: string;
-  allergies: Array<{ substance: string; reactions?: string[]; criticality?: string }>;
-  medications: string[];
-  conditions: string[];
+  prescriber: string;
+  allergies: Array<{
+    substance: string;
+    coding: Coding;
+    reactions?: Array<{ text: string; coding?: Coding }>;
+    criticality?: string;
+  }>;
+  medications: Array<{ text: string; coding: Coding; dosage: string; authoredOn: string }>;
+  immunizations: Array<{ vaccine: string; coding: Coding; date: string }>;
+  conditions: Array<{ text: string; coding: Coding }>;
+  coverage: { plan: string; payor: string; subscriberId: string; group: string };
 };
 
 const BRANDS: Record<string, Brand> = {
@@ -43,26 +62,150 @@ const BRANDS: Record<string, Brand> = {
     name: "Demo Health Wallet",
     tagline: "holds your records on this device",
     accent: "#6aa8ff",
+    prescriber: "Demo Primary Care",
     allergies: [
-      { substance: "Penicillin", reactions: ["Hives"], criticality: "high" },
-      { substance: "Peanut", reactions: ["Oral itching"], criticality: "low" },
-      { substance: "Sulfa drugs (sulfonamides)" },
-      { substance: "Latex", criticality: "unable-to-assess" },
+      {
+        substance: "Penicillin",
+        coding: { system: SCT, code: "373270004", display: "Penicillin antibacterial" },
+        reactions: [
+          { text: "Hives", coding: { system: SCT, code: "126485001", display: "Urticaria" } },
+        ],
+        criticality: "high",
+      },
+      {
+        substance: "Peanut",
+        coding: { system: SCT, code: "256349002", display: "Peanut - dietary" },
+        reactions: [{ text: "Oral itching" }],
+        criticality: "low",
+      },
+      {
+        substance: "Sulfa drugs (sulfonamides)",
+        coding: { system: SCT, code: "387406002", display: "Sulfonamide" },
+      },
+      {
+        substance: "Latex",
+        coding: { system: SCT, code: "111088007", display: "Latex" },
+        criticality: "unable-to-assess",
+      },
     ],
-    medications: ["Lisinopril 10 mg — once daily", "Metformin 500 mg — twice daily"],
-    conditions: ["Hypertension", "Type 2 diabetes"],
+    medications: [
+      {
+        text: "Lisinopril 10 mg — once daily",
+        coding: { system: RXNORM, code: "314076", display: "lisinopril 10 MG Oral Tablet" },
+        dosage: "Once daily",
+        authoredOn: "2025-04-02",
+      },
+      {
+        text: "Metformin 500 mg — twice daily",
+        coding: {
+          system: RXNORM,
+          code: "861007",
+          display: "metformin hydrochloride 500 MG Oral Tablet",
+        },
+        dosage: "Twice daily",
+        authoredOn: "2025-06-15",
+      },
+    ],
+    immunizations: [
+      {
+        vaccine: "Influenza, seasonal, injectable",
+        coding: { system: CVX, code: "141", display: "Influenza, seasonal, injectable" },
+        date: "2025-10-12",
+      },
+      {
+        vaccine: "COVID-19 mRNA vaccine",
+        coding: {
+          system: CVX,
+          code: "208",
+          display: "COVID-19, mRNA, LNP-S, PF, 30 mcg/0.3 mL dose",
+        },
+        date: "2025-09-03",
+      },
+      {
+        vaccine: "Tdap (tetanus, diphtheria, pertussis)",
+        coding: { system: CVX, code: "115", display: "Tdap" },
+        date: "2021-06-18",
+      },
+    ],
+    conditions: [
+      {
+        text: "Hypertension",
+        coding: { system: SCT, code: "38341003", display: "Hypertensive disorder" },
+      },
+      {
+        text: "Type 2 diabetes",
+        coding: { system: SCT, code: "44054006", display: "Type 2 diabetes mellitus" },
+      },
+    ],
+    coverage: {
+      plan: "Demo Health plan (PPO)",
+      payor: "Demo Mutual",
+      subscriberId: "DEMO-4417",
+      group: "DEMO-GRP-8821",
+    },
   },
   evergreen: {
     id: "evergreen",
     name: "Evergreen Patient App",
     tagline: "your records from Evergreen Family Health",
     accent: "#3ac2aa",
+    prescriber: "Evergreen Family Health",
     allergies: [
-      { substance: "Amoxicillin", reactions: ["Rash"], criticality: "low" },
-      { substance: "Shellfish" },
+      {
+        substance: "Amoxicillin",
+        coding: { system: RXNORM, code: "723", display: "amoxicillin" },
+        reactions: [
+          { text: "Rash", coding: { system: SCT, code: "271807003", display: "Eruption" } },
+        ],
+        criticality: "low",
+      },
+      {
+        substance: "Shellfish",
+        coding: { system: SCT, code: "300913006", display: "Allergy to shellfish" },
+      },
     ],
-    medications: ["Atorvastatin 20 mg — nightly", "Levothyroxine 75 mcg — each morning"],
-    conditions: ["Hyperlipidaemia"],
+    medications: [
+      {
+        text: "Atorvastatin 20 mg — nightly",
+        coding: { system: RXNORM, code: "617310", display: "atorvastatin 20 MG Oral Tablet" },
+        dosage: "Nightly",
+        authoredOn: "2025-02-11",
+      },
+      {
+        text: "Levothyroxine 75 mcg — each morning",
+        coding: {
+          system: RXNORM,
+          code: "966222",
+          display: "levothyroxine sodium 0.075 MG Oral Tablet",
+        },
+        dosage: "Each morning",
+        authoredOn: "2024-11-20",
+      },
+    ],
+    immunizations: [
+      {
+        vaccine: "Influenza, seasonal, injectable",
+        coding: { system: CVX, code: "141", display: "Influenza, seasonal, injectable" },
+        date: "2025-11-02",
+      },
+      {
+        vaccine: "Zoster (shingles), recombinant",
+        coding: { system: CVX, code: "187", display: "zoster recombinant" },
+        date: "2024-04-19",
+      },
+    ],
+    conditions: [
+      {
+        text: "Hyperlipidaemia",
+        coding: { system: SCT, code: "55822004", display: "Hyperlipidemia" },
+      },
+    ],
+    coverage: {
+      plan: "Evergreen Choice (PPO)",
+      payor: "Evergreen Health Plan",
+      subscriberId: "EVG-9082",
+      group: "EVG-GRP-102",
+    },
   },
 };
 
@@ -133,13 +276,32 @@ function specFor(item: SmartCheckinRequestItem): MockItemSpec {
             {
               system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
               code: "active",
+              display: "Active",
             },
           ],
         },
-        code: { text: allergy.substance },
+        verificationStatus: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+              code: "confirmed",
+              display: "Confirmed",
+            },
+          ],
+        },
+        code: { coding: [allergy.coding], text: allergy.substance },
         ...(allergy.criticality ? { criticality: allergy.criticality } : {}),
         ...(allergy.reactions
-          ? { reaction: [{ manifestation: allergy.reactions.map((text) => ({ text })) }] }
+          ? {
+              reaction: [
+                {
+                  manifestation: allergy.reactions.map((reaction) => ({
+                    ...(reaction.coding ? { coding: [reaction.coding] } : {}),
+                    text: reaction.text,
+                  })),
+                },
+              ],
+            }
           : {}),
         patient: subject,
       })),
@@ -148,12 +310,29 @@ function specFor(item: SmartCheckinRequestItem): MockItemSpec {
 
   if (hints.includes("medication")) {
     return bundle(
-      brand.medications.map((text) => ({
+      brand.medications.map((medication) => ({
         resourceType: "MedicationRequest",
         status: "active",
         intent: "order",
-        medicationCodeableConcept: { text },
+        reportedBoolean: true,
+        medicationCodeableConcept: { coding: [medication.coding], text: medication.text },
         subject,
+        authoredOn: medication.authoredOn,
+        requester: { display: brand.prescriber },
+        dosageInstruction: [{ text: medication.dosage }],
+      })),
+    );
+  }
+
+  if (hints.includes("immuniz") || hints.includes("vaccin")) {
+    return bundle(
+      brand.immunizations.map((immunization) => ({
+        resourceType: "Immunization",
+        status: "completed",
+        vaccineCode: { coding: [immunization.coding], text: immunization.vaccine },
+        patient: subject,
+        occurrenceDateTime: immunization.date,
+        primarySource: true,
       })),
     );
   }
@@ -163,22 +342,72 @@ function specFor(item: SmartCheckinRequestItem): MockItemSpec {
       {
         resourceType: "Coverage",
         status: "active",
-        type: { text: `${brand.name} plan` },
-        subscriberId: brand.id === "demo" ? "DEMO-4417" : "EVG-9082",
+        type: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+              code: "PPO",
+              display: "preferred provider organization policy",
+            },
+          ],
+          text: brand.coverage.plan,
+        },
+        subscriberId: brand.coverage.subscriberId,
         beneficiary: subject,
+        relationship: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+              code: "self",
+              display: "Self",
+            },
+          ],
+        },
+        period: { start: "2026-01-01" },
+        payor: [{ display: brand.coverage.payor }],
+        class: [
+          {
+            type: {
+              coding: [
+                {
+                  system: "http://terminology.hl7.org/CodeSystem/coverage-class",
+                  code: "group",
+                  display: "Group",
+                },
+              ],
+            },
+            value: brand.coverage.group,
+            name: `${brand.coverage.payor} employer group`,
+          },
+        ],
       },
     ]);
   }
 
   return bundle(
-    brand.conditions.map((text) => ({
+    brand.conditions.map((condition) => ({
       resourceType: "Condition",
       clinicalStatus: {
         coding: [
-          { system: "http://terminology.hl7.org/CodeSystem/condition-clinical", code: "active" },
+          {
+            system: "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            code: "active",
+            display: "Active",
+          },
         ],
       },
-      code: { text },
+      category: [
+        {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/condition-category",
+              code: "problem-list-item",
+              display: "Problem List Item",
+            },
+          ],
+        },
+      ],
+      code: { coding: [condition.coding], text: condition.text },
       subject,
     })),
   );

@@ -385,13 +385,36 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
     };
   }
 
-  // Keyword-match the selector so demos get plausible USCDI content.
+  // Keyword-match the selector so demos get plausible USCDI content: real
+  // codings (CVX, RxNorm, SNOMED CT) and the US Core required/must-support
+  // elements, so the artifacts validate against the profiles verifiers ask for.
   const hints = `${item.title} ${item.summary ?? ""} ${JSON.stringify(item.content)}`.toLowerCase();
   const bundle = (resources: Record<string, unknown>[]): unknown => ({
     resourceType: "Bundle",
     type: "collection",
     entry: resources.map((resource) => ({ resource })),
   });
+  const SCT = "http://snomed.info/sct";
+  const RXNORM = "http://www.nlm.nih.gov/research/umls/rxnorm";
+  const CVX = "http://hl7.org/fhir/sid/cvx";
+  const allergyActive = {
+    coding: [
+      {
+        system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+        code: "active",
+        display: "Active",
+      },
+    ],
+  };
+  const allergyConfirmed = {
+    coding: [
+      {
+        system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+        code: "confirmed",
+        display: "Confirmed",
+      },
+    ],
+  };
 
   if (hints.includes("coverage") || hints.includes("insur") || hints.includes("carin")) {
     return bundle([
@@ -399,11 +422,44 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
         resourceType: "Coverage",
         identifier: [mockIdentifier],
         status: "active",
-        type: { text: "Demo Health plan" },
+        type: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+              code: "PPO",
+              display: "preferred provider organization policy",
+            },
+          ],
+          text: "Demo Health plan (PPO)",
+        },
         subscriberId: "DEMO-4417",
         beneficiary: demoPatient,
-        payor: [{ display: "Demo Mutual" }],
+        relationship: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+              code: "self",
+              display: "Self",
+            },
+          ],
+        },
         period: { start: "2026-01-01" },
+        payor: [{ display: "Demo Mutual" }],
+        class: [
+          {
+            type: {
+              coding: [
+                {
+                  system: "http://terminology.hl7.org/CodeSystem/coverage-class",
+                  code: "group",
+                  display: "Group",
+                },
+              ],
+            },
+            value: "DEMO-GRP-8821",
+            name: "Demo Mutual employer group",
+          },
+        ],
       },
     ]);
   }
@@ -413,31 +469,34 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
       {
         resourceType: "AllergyIntolerance",
         identifier: [mockIdentifier],
-        clinicalStatus: {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
-              code: "active",
-            },
-          ],
+        clinicalStatus: allergyActive,
+        verificationStatus: allergyConfirmed,
+        code: {
+          coding: [{ system: SCT, code: "373270004", display: "Penicillin antibacterial" }],
+          text: "Penicillin",
         },
-        code: { text: "Penicillin" },
         criticality: "high",
         patient: demoPatient,
-        reaction: [{ manifestation: [{ text: "Hives" }] }],
+        reaction: [
+          {
+            manifestation: [
+              {
+                coding: [{ system: SCT, code: "126485001", display: "Urticaria" }],
+                text: "Hives",
+              },
+            ],
+          },
+        ],
       },
       {
         resourceType: "AllergyIntolerance",
         identifier: [{ ...mockIdentifier, value: `${runId}-2` }],
-        clinicalStatus: {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
-              code: "active",
-            },
-          ],
+        clinicalStatus: allergyActive,
+        verificationStatus: allergyConfirmed,
+        code: {
+          coding: [{ system: SCT, code: "256349002", display: "Peanut - dietary" }],
+          text: "Peanut",
         },
-        code: { text: "Peanut" },
         criticality: "low",
         patient: demoPatient,
         reaction: [{ manifestation: [{ text: "Oral itching" }] }],
@@ -449,31 +508,67 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
       {
         resourceType: "AllergyIntolerance",
         identifier: [{ ...mockIdentifier, value: `${runId}-3` }],
-        clinicalStatus: {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
-              code: "active",
-            },
-          ],
+        clinicalStatus: allergyActive,
+        code: {
+          coding: [{ system: SCT, code: "387406002", display: "Sulfonamide" }],
+          text: "Sulfa drugs (sulfonamides)",
         },
-        code: { text: "Sulfa drugs (sulfonamides)" },
         patient: demoPatient,
       },
       {
         resourceType: "AllergyIntolerance",
         identifier: [{ ...mockIdentifier, value: `${runId}-4` }],
-        clinicalStatus: {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
-              code: "active",
-            },
-          ],
+        clinicalStatus: allergyActive,
+        code: {
+          coding: [{ system: SCT, code: "111088007", display: "Latex" }],
+          text: "Latex",
         },
-        code: { text: "Latex" },
         criticality: "unable-to-assess",
         patient: demoPatient,
+      },
+    ]);
+  }
+
+  if (hints.includes("immuniz") || hints.includes("vaccin")) {
+    return bundle([
+      {
+        resourceType: "Immunization",
+        identifier: [mockIdentifier],
+        status: "completed",
+        vaccineCode: {
+          coding: [{ system: CVX, code: "141", display: "Influenza, seasonal, injectable" }],
+          text: "Influenza, seasonal, injectable",
+        },
+        patient: demoPatient,
+        occurrenceDateTime: "2025-10-12",
+        primarySource: true,
+        lotNumber: "FLU-77031",
+      },
+      {
+        resourceType: "Immunization",
+        identifier: [{ ...mockIdentifier, value: `${runId}-2` }],
+        status: "completed",
+        vaccineCode: {
+          coding: [
+            { system: CVX, code: "208", display: "COVID-19, mRNA, LNP-S, PF, 30 mcg/0.3 mL dose" },
+          ],
+          text: "COVID-19 mRNA vaccine",
+        },
+        patient: demoPatient,
+        occurrenceDateTime: "2025-09-03",
+        primarySource: true,
+      },
+      {
+        resourceType: "Immunization",
+        identifier: [{ ...mockIdentifier, value: `${runId}-3` }],
+        status: "completed",
+        vaccineCode: {
+          coding: [{ system: CVX, code: "115", display: "Tdap" }],
+          text: "Tdap (tetanus, diphtheria, pertussis)",
+        },
+        patient: demoPatient,
+        occurrenceDateTime: "2021-06-18",
+        primarySource: true,
       },
     ]);
   }
@@ -485,32 +580,92 @@ function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
         identifier: [mockIdentifier],
         status: "active",
         intent: "order",
-        medicationCodeableConcept: { text: "Lisinopril 10 mg — once daily" },
+        reportedBoolean: true,
+        medicationCodeableConcept: {
+          coding: [{ system: RXNORM, code: "314076", display: "lisinopril 10 MG Oral Tablet" }],
+          text: "Lisinopril 10 mg — once daily",
+        },
         subject: demoPatient,
+        authoredOn: "2025-04-02",
+        requester: { display: "Demo Primary Care" },
+        dosageInstruction: [{ text: "Once daily" }],
       },
       {
         resourceType: "MedicationRequest",
         identifier: [{ ...mockIdentifier, value: `${runId}-2` }],
         status: "active",
         intent: "order",
-        medicationCodeableConcept: { text: "Metformin 500 mg — twice daily" },
+        reportedBoolean: true,
+        medicationCodeableConcept: {
+          coding: [
+            { system: RXNORM, code: "861007", display: "metformin hydrochloride 500 MG Oral Tablet" },
+          ],
+          text: "Metformin 500 mg — twice daily",
+        },
+        subject: demoPatient,
+        authoredOn: "2025-06-15",
+        requester: { display: "Demo Primary Care" },
+        dosageInstruction: [{ text: "Twice daily" }],
+      },
+    ]);
+  }
+
+  const conditionActive = {
+    coding: [
+      {
+        system: "http://terminology.hl7.org/CodeSystem/condition-clinical",
+        code: "active",
+        display: "Active",
+      },
+    ],
+  };
+  const problemListItem = [
+    {
+      coding: [
+        {
+          system: "http://terminology.hl7.org/CodeSystem/condition-category",
+          code: "problem-list-item",
+          display: "Problem List Item",
+        },
+      ],
+    },
+  ];
+
+  if (hints.includes("condition") || hints.includes("problem")) {
+    return bundle([
+      {
+        resourceType: "Condition",
+        identifier: [mockIdentifier],
+        clinicalStatus: conditionActive,
+        category: problemListItem,
+        code: {
+          coding: [{ system: SCT, code: "38341003", display: "Hypertensive disorder" }],
+          text: "Hypertension",
+        },
+        subject: demoPatient,
+      },
+      {
+        resourceType: "Condition",
+        identifier: [{ ...mockIdentifier, value: `${runId}-2` }],
+        clinicalStatus: conditionActive,
+        category: problemListItem,
+        code: {
+          coding: [{ system: SCT, code: "44054006", display: "Type 2 diabetes mellitus" }],
+          text: "Type 2 diabetes",
+        },
         subject: demoPatient,
       },
     ]);
   }
 
+  // Nothing recognized: a text-only condition — an honest "we can't code
+  // an arbitrary demo item" rather than a fabricated coding.
   return bundle([
     {
       resourceType: "Condition",
       identifier: [mockIdentifier],
-      clinicalStatus: {
-        coding: [
-          {
-            system: "http://terminology.hl7.org/CodeSystem/condition-clinical",
-            code: "active",
-          },
-        ],
-      },
+      clinicalStatus: conditionActive,
+      category: problemListItem,
       code: { text: `Mock condition for "${item.title}"` },
       subject: demoPatient,
     },

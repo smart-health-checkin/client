@@ -235,6 +235,97 @@ describe("mock wallet specification", () => {
     expect(fabricated.requestStatus).toHaveLength(3);
     expect(fabricated.artifacts.length).toBeGreaterThan(0);
   });
+
+  test("an immunizations item fabricates Immunization records, not Conditions", async () => {
+    const { buildRequest } = await import("./index.js");
+    const { buildMockResponse } = await import("./mock-wallet.js");
+    const request = buildRequest({
+      items: [
+        {
+          id: "immunizations",
+          title: "Immunization history",
+          content: {
+            kind: "selection.fhir",
+            profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"],
+          },
+          accept: ["application/fhir+json"],
+        },
+      ],
+    });
+
+    const response = buildMockResponse(request);
+    const artifact = response.artifacts.find((a) => a.fulfills.includes("immunizations"))!;
+    const value = (
+      artifact as {
+        value: {
+          entry: Array<{
+            resource: {
+              resourceType: string;
+              vaccineCode?: { coding?: Array<{ system: string; code: string }> };
+            };
+          }>;
+        };
+      }
+    ).value;
+    const types = value.entry.map((entry) => entry.resource.resourceType);
+    expect(types).toContain("Immunization");
+    expect(types).not.toContain("Condition");
+    // USCDI-shaped: every fabricated immunization carries a CVX coding.
+    for (const entry of value.entry) {
+      const coding = entry.resource.vaccineCode?.coding?.[0];
+      expect(coding?.system).toBe("http://hl7.org/fhir/sid/cvx");
+      expect(coding?.code).toMatch(/^\d+$/);
+    }
+  });
+
+  test("fabricated allergies and medications carry real codings", async () => {
+    const { buildRequest } = await import("./index.js");
+    const { buildMockResponse } = await import("./mock-wallet.js");
+    const request = buildRequest({
+      items: [
+        {
+          id: "allergies",
+          title: "Allergies and intolerances",
+          content: {
+            kind: "selection.fhir",
+            profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+          },
+          accept: ["application/fhir+json"],
+        },
+        {
+          id: "meds",
+          title: "Medication list",
+          content: {
+            kind: "selection.fhir",
+            profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest"],
+          },
+          accept: ["application/fhir+json"],
+        },
+      ],
+    });
+
+    const response = buildMockResponse(request);
+    type Coded = { coding?: Array<{ system?: string; code?: string }> };
+    const resources = (itemId: string) => {
+      const artifact = response.artifacts.find((a) => a.fulfills.includes(itemId))!;
+      const value = (artifact as { value: { entry: Array<{ resource: Record<string, unknown> }> } }).value;
+      return value.entry.map((entry) => entry.resource);
+    };
+
+    for (const allergy of resources("allergies")) {
+      const coding = (allergy.code as Coded).coding?.[0];
+      // SNOMED CT substances (RxNorm is equally valid for drug allergies).
+      expect(coding?.system).toBe("http://snomed.info/sct");
+      expect(coding?.code).toMatch(/^\d+$/);
+    }
+    for (const med of resources("meds")) {
+      const coding = (med.medicationCodeableConcept as Coded).coding?.[0];
+      expect(coding?.system).toBe("http://www.nlm.nih.gov/research/umls/rxnorm");
+      expect(coding?.code).toMatch(/^\d+$/);
+      expect(med.authoredOn).toBeDefined();
+      expect(med.dosageInstruction).toBeDefined();
+    }
+  });
 });
 
 describe("server authority", () => {
