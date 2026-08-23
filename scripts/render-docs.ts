@@ -2,8 +2,8 @@
  * Renders the repo's markdown docs into the site at /docs/.
  *
  * The markdown in docs/ is the single source: it reads on GitHub and renders
- * here. Every page carries the shared header and the deep footer, so any page
- * is one click from everything else — no sidebar needed.
+ * here. Every page carries the shared site chrome plus a rail of the guides in
+ * reading order, so you always know where you are in the sequence.
  */
 
 import { marked } from "marked";
@@ -12,58 +12,107 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { basename, join } from "node:path";
 import { API_GROUPS, anchorFor } from "./api-index.ts";
 import { GUIDES } from "./site-nav.ts";
-import { CHROME_CSS, footer, header } from "./site-chrome.ts";
+import { CHROME_ASSETS, footer, header } from "./site-chrome.ts";
+import { BASE, OUT_ROOT } from "./site-base.ts";
 
-const OUT = "_site/docs";
+const OUT = `${OUT_ROOT}/docs`;
 
 const DOCS_STYLE = `
-  :root { --bg:#f7faf9; --surface:#fff; --ink:#16211f; --muted:#5b6b67; --accent:#0e7c6b; --line:#dce5e2; --code-bg:#eef4f2; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-    --bg:#0e1513; --surface:#16201d; --ink:#e6efec; --muted:#93a5a0; --accent:#3ac2aa; --line:#24322e; --code-bg:#131c19; } }
-  :root[data-theme="dark"] { --bg:#0e1513; --surface:#16201d; --ink:#e6efec; --muted:#93a5a0; --accent:#3ac2aa; --line:#24322e; --code-bg:#131c19; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; line-height:1.65; }
-  ${CHROME_CSS}
-  .layout { max-width:48rem; margin:0 auto; padding:2.5rem 1.25rem 1rem; }
-  article { min-width:0; padding-bottom:1rem; }
-  .crumb { font-size:0.85rem; color:var(--muted); margin:0 0 1.25rem; }
-  .crumb a { color:var(--muted); text-decoration:none; }
-  .crumb a:hover { color:var(--accent); }
-  h1 { font-size:1.85rem; letter-spacing:-0.01em; margin:0 0 1rem; text-wrap:balance; }
-  h2 { font-size:1.15rem; margin:2rem 0 0.5rem; }
-  h3 { font-size:1rem; margin:1.5rem 0 0.4rem; }
-  h4 { font-size:0.92rem; margin:1.2rem 0 0.3rem; }
-  p, li { margin:0.5rem 0; }
-  code { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:0.88em; background:var(--code-bg); padding:0.1em 0.35em; border-radius:4px; }
-  pre { background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:0.9rem 1.1rem; overflow-x:auto; }
-  pre code { background:none; padding:0; font-size:0.82rem; line-height:1.55; }
-  /* Shiki emits both palettes as custom properties; pick one per scheme. */
-  pre.shiki, pre.shiki span { color: var(--shiki-light); background-color: transparent; }
-  pre.shiki { background: var(--code-bg) !important; }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) pre.shiki,
-    :root:not([data-theme="light"]) pre.shiki span { color: var(--shiki-dark); }
+  body {
+    margin:0; background:var(--bg); color:var(--fg-1);
+    font-family:var(--font-sans); font-size:var(--fs-base); line-height:var(--lh-normal);
+    -webkit-font-smoothing:antialiased;
   }
-  :root[data-theme="dark"] pre.shiki, :root[data-theme="dark"] pre.shiki span { color: var(--shiki-dark); }
-  pre.shiki code { display:block; font-size:0.82rem; line-height:1.55; }
-  table { width:100%; border-collapse:collapse; margin:0.8rem 0; font-size:0.92rem; display:block; overflow-x:auto; }
-  th, td { text-align:left; padding:0.45rem 0.6rem; border-bottom:1px solid var(--line); vertical-align:top; }
-  blockquote { margin:0.8rem 0; padding:0.3rem 1rem; border-left:3px solid var(--accent); color:var(--muted); }
-  a { color:var(--accent); }
-  hr { border:none; border-top:1px solid var(--line); margin:2rem 0; }
-  .pager { display:flex; justify-content:space-between; gap:1rem; margin-top:2.5rem; padding-top:1rem; border-top:1px solid var(--line); font-size:0.9rem; }
-  .pager span { color:var(--muted); }
-  .lede { color:var(--muted); font-size:1.05rem; max-width:62ch; }
-  .api-group { margin:1.75rem 0 0; }
-  .api-group h2 { margin:0 0 0.2rem; }
-  .api-group p.blurb { color:var(--muted); font-size:0.92rem; margin:0 0 0.6rem; }
-  .api-list { display:grid; grid-template-columns:minmax(12rem,auto) 1fr; gap:0.3rem 1rem; font-size:0.92rem; }
-  .api-list a { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:0.85rem; }
-  .api-list span { color:var(--muted); }
+  .layout {
+    max-width:var(--container-wide); margin:0 auto; padding:var(--space-7) 24px var(--space-5);
+    display:grid; grid-template-columns:14rem minmax(0,1fr); gap:var(--space-8); align-items:start;
+  }
+  article { min-width:0; max-width:46rem; }
+  .rail { position:sticky; top:calc(var(--space-7) + 44px); font-size:var(--fs-sm); }
+  .rail h4 {
+    margin:0 0 var(--space-3); font-size:var(--fs-xs); font-weight:700;
+    letter-spacing:var(--tracking-caps); text-transform:uppercase; color:var(--fg-3);
+  }
+  .rail ul + h4 { margin-top:var(--space-6); }
+  .rail ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .rail li { margin:0; }
+  .rail h4 a { color:inherit; text-decoration:none; }
+  .rail h4 a:hover { color:var(--brand); }
+  .rail h4 a[aria-current="page"] { color:var(--brand); }
+  .rail a {
+    display:block; padding:5px 10px; margin-left:-10px; border-radius:var(--radius-sm);
+    color:var(--fg-2); text-decoration:none; line-height:1.35;
+  }
+  .rail a:hover { color:var(--brand); background:var(--gray-50); }
+  .rail a[aria-current="page"] { color:var(--brand); font-weight:600; background:var(--brand-wash); }
+  @media (max-width: 68rem) {
+    .layout { grid-template-columns:minmax(0,1fr); gap:var(--space-6); max-width:52rem; }
+    .rail { position:static; padding-bottom:var(--space-5); border-bottom:1px solid var(--border); }
+    .rail ul { flex-direction:row; flex-wrap:wrap; gap:var(--space-1); }
+    .rail a { margin-left:0; }
+  }
+  .crumb { font-size:var(--fs-sm); color:var(--fg-3); margin:0 0 var(--space-5); }
+  .crumb a { color:var(--fg-3); text-decoration:none; }
+  .crumb a:hover { color:var(--brand); }
+  h1 { margin:0 0 var(--space-4); font-size:var(--fs-3xl); letter-spacing:var(--tracking-tight); line-height:var(--lh-tight); text-wrap:balance; }
+  h2 { margin:var(--space-7) 0 var(--space-3); font-size:var(--fs-xl); letter-spacing:var(--tracking-tight); }
+  h3 { margin:var(--space-6) 0 var(--space-2); font-size:var(--fs-md); }
+  h4 { margin:var(--space-5) 0 var(--space-2); font-size:var(--fs-base); }
+  p, li { margin:var(--space-3) 0; color:var(--fg-2); }
+  li > p { margin:var(--space-2) 0; }
+  strong { color:var(--fg-1); }
+  code { font-family:var(--font-mono); font-size:0.88em; background:var(--gray-100); padding:1px 5px; border-radius:var(--radius-sm); color:var(--fg-1); }
+  pre { background:var(--gray-50); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); overflow-x:auto; }
+  pre code { background:none; padding:0; font-size:var(--fs-sm); line-height:1.6; }
+  table { width:100%; border-collapse:collapse; margin:var(--space-4) 0; font-size:var(--fs-sm); display:block; overflow-x:auto; }
+  th, td { text-align:left; padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--border); vertical-align:top; }
+  th { font-weight:600; color:var(--fg-1); }
+  blockquote { margin:var(--space-4) 0; padding:var(--space-2) var(--space-4); border-left:3px solid var(--brand-bright); background:var(--brand-wash); border-radius:0 var(--radius-sm) var(--radius-sm) 0; color:var(--fg-2); }
+  blockquote p { margin:var(--space-2) 0; }
+  a { color:var(--brand); }
+  hr { border:none; border-top:1px solid var(--border); margin:var(--space-7) 0; }
+  .pager { display:flex; justify-content:space-between; gap:var(--space-4); margin-top:var(--space-7); padding-top:var(--space-4); border-top:1px solid var(--border); font-size:var(--fs-sm); }
+  .pager span { color:var(--fg-3); }
+  .lede { font-family:var(--font-serif); color:var(--fg-2); font-size:var(--fs-md); max-width:62ch; line-height:1.55; }
+  .api-group { margin:var(--space-7) 0 0; }
+  .api-group h2 { margin:0 0 var(--space-1); }
+  .api-group p.blurb { color:var(--fg-3); font-size:var(--fs-sm); margin:0 0 var(--space-3); }
+  .api-list { display:grid; grid-template-columns:minmax(13rem,auto) 1fr; gap:var(--space-2) var(--space-5); font-size:var(--fs-sm); align-items:baseline; }
+  .api-list a { font-family:var(--font-mono); font-size:var(--fs-sm); }
+  .api-list span { color:var(--fg-2); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr)); gap:var(--space-4); margin-top:var(--space-4); }
+  /* .card carries .smart-panel from the design system; these are the
+     link-specific bits it doesn't cover */
+  .card { text-decoration:none; color:inherit; display:block; }
+  .card:hover { border-color:var(--brand); }
+  .card strong { display:block; margin-bottom:var(--space-1); }
+  .card span { color:var(--fg-2); font-size:var(--fs-sm); }
+  pre.shiki, pre.shiki span { color: var(--shiki-light); background-color: transparent; }
+  pre.shiki { background: var(--gray-50) !important; }
+  pre.shiki code { display:block; font-size:var(--fs-sm); line-height:1.6; }
 `;
 
+/** The guides in reading order, plus the API reference, with you marked. */
+function rail(slug: string): string {
+  const here = (s: string) => (s === slug ? ' aria-current="page"' : "");
+  const guides = GUIDES.filter((g) => existsSync(g.file))
+    .map((g) => `<li><a href="${BASE}/docs/${g.slug}.html"${here(g.slug)}>${g.title}</a></li>`)
+    .join("");
+  const api = API_GROUPS.map((g) => g.module)
+    .filter((m, i, all) => all.indexOf(m) === i)
+    .map((m) => `<li><a href="${BASE}/docs/api/${m}.html"${here(`api-${m}`)}>${m}</a></li>`)
+    .join("");
+  return `<nav class="rail" aria-label="Documentation">
+    <h4><a href="${BASE}/docs/"${here("index")}>Guides</a></h4>
+    <ul>${guides}</ul>
+    <h4><a href="${BASE}/docs/api/"${here("api-index")}>API reference</a></h4>
+    <ul>${api}</ul>
+  </nav>`;
+}
+
 function crumb(title: string, isApi: boolean): string {
-  return `<p class="crumb"><a href="/docs/">Docs</a>${isApi ? ' <span>/</span> <a href="/docs/api/">API reference</a>' : ""} <span>/</span> ${title}</p>`;
+  return `<p class="crumb"><a href="${BASE}/docs/">Docs</a>${isApi ? ` <span>/</span> <a href="${BASE}/docs/api/">API reference</a>` : ""} <span>/</span> ${title}</p>`;
 }
 
 function pager(slug: string): string {
@@ -73,24 +122,25 @@ function pager(slug: string): string {
   const prev = list[i - 1];
   const next = list[i + 1];
   return `<div class="pager">
-    <span>${prev ? `← <a href="/docs/${prev.slug}.html">${prev.title}</a>` : ""}</span>
-    <span>${next ? `<a href="/docs/${next.slug}.html">${next.title}</a> →` : ""}</span>
+    <span>${prev ? `← <a href="${BASE}/docs/${prev.slug}.html">${prev.title}</a>` : ""}</span>
+    <span>${next ? `<a href="${BASE}/docs/${next.slug}.html">${next.title}</a> →` : ""}</span>
   </div>`;
 }
 
-const shell = (title: string, slug: string, body: string): string => `<!doctype html>
+const shell = (title: string, slug: string, body: string, markdown?: string): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+${markdown ? `<link rel="alternate" type="text/markdown" href="${markdown}">` : ""}
+${CHROME_ASSETS}
 <style>${DOCS_STYLE}</style>
 </head>
 <body>
-${header("docs")}
+${header()}
 <div class="layout">
+  ${rail(slug)}
   <article>${body}</article>
 </div>
 ${footer()}
@@ -100,11 +150,11 @@ ${footer()}
 
 function rewriteLinks(html: string): string {
   return html
-    .replace(/href="(?:\.\.\/)?api\/index\.md"/g, 'href="/docs/api/"')
-    .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, 'href="/docs/api/$1.html"')
-    .replace(/href="\.\.\/demo\/README\.md"/g, 'href="/docs/demo.html"')
-    .replace(/href="\.\.\/([a-z-]+)\.md"/g, 'href="/docs/$1.html"')
-    .replace(/href="([a-z-]+)\.md"/g, 'href="/docs/$1.html"');
+    .replace(/href="(?:\.\.\/)?api\/index\.md"/g, `href="${BASE}/docs/api/"`)
+    .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
+    .replace(/href="\.\.\/demo\/README\.md"/g, `href="${BASE}/docs/demo.html"`)
+    .replace(/href="\.\.\/([a-z-]+)\.md"/g, `href="${BASE}/docs/$1.html"`)
+    .replace(/href="([a-z-]+)\.md"/g, `href="${BASE}/docs/$1.html"`);
 }
 
 // Build-time syntax highlighting: dual-theme CSS variables, so the page
@@ -145,12 +195,16 @@ mkdirSync(OUT, { recursive: true });
 mkdirSync(join(OUT, "api"), { recursive: true });
 
 // --- narrative guides -------------------------------------------------
+// Every page is also published as the markdown it came from, at the same
+// path with .md — the primitive the site's llms.txt files are built on.
 for (const guide of GUIDES) {
   if (!existsSync(guide.file)) continue;
-  const html = crumb(guide.title, false) + render(readFileSync(guide.file, "utf8")) + pager(guide.slug);
+  const md = readFileSync(guide.file, "utf8");
+  const html = crumb(guide.title, false) + render(md) + pager(guide.slug);
+  writeFileSync(join(OUT, `${guide.slug}.md`), md);
   writeFileSync(
     join(OUT, `${guide.slug}.html`),
-    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html),
+    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html, `${BASE}/docs/${guide.slug}.md`),
   );
 }
 
@@ -165,12 +219,13 @@ for (const file of readdirSync("docs/api")) {
   if (!file.endsWith(".md") || file === "index.md") continue;
   const md = readFileSync(join("docs/api", file), "utf8");
   const html = render(md)
-    .replace(/href="([a-z-]+)\.md"/g, 'href="/docs/api/$1.html"')
-    .replace(/href="\/docs\/api\/index\.html"/g, 'href="/docs/api/"');
+    .replace(/href="([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
+    .replace(/href="\/docs\/api\/index\.html"/g, `href="${BASE}/docs/api/"`);
   const name = basename(file, ".md");
+  writeFileSync(join(OUT, "api", `${name}.md`), md);
   writeFileSync(
     join(OUT, "api", `${name}.html`),
-    shell(`${name} — API reference`, `api-${name}`, crumb(`${name} module`, true) + html),
+    shell(`${name} — API reference`, `api-${name}`, crumb(`${name} module`, true) + html, `${BASE}/docs/api/${name}.md`),
   );
 }
 
@@ -188,7 +243,7 @@ const groupsHtml = API_GROUPS.map((group) => {
   const rows = group.entries
     .map(
       (entry) =>
-        `      <a href="/docs/api/${group.module}.html#${anchorFor(entry.name)}"><code>${entry.name}</code></a><span>${entry.what}</span>`,
+        `      <a href="${BASE}/docs/api/${group.module}.html#${anchorFor(entry.name)}"><code>${entry.name}</code></a><span>${entry.what}</span>`,
     )
     .join("\n");
   return `  <section class="api-group">
@@ -205,7 +260,7 @@ writeFileSync(
   shell(
     "API reference — SMART Health Check-in",
     "api-index",
-    `<p class="crumb"><a href="/docs/">Docs</a> <span>/</span> API reference</p>
+    `<p class="crumb"><a href="${BASE}/docs/">Docs</a> <span>/</span> API reference</p>
 <h1>API reference</h1>
 <p class="lede">
   Every export, grouped by what you'd be doing. Signatures and types are
@@ -213,15 +268,15 @@ writeFileSync(
   build time to make sure nothing is missing from it.
 </p>
 <p>
-  Most integrations use two: <a href="/docs/api/checkin.html#requestcheckin"><code>requestCheckin</code></a>
+  Most integrations use two: <a href="${BASE}/docs/api/checkin.html#requestcheckin"><code>requestCheckin</code></a>
   and — only if you want the FHIR mapping —
-  <a href="/docs/api/fhir.html#buildcheckinbundle"><code>buildCheckinBundle</code></a>.
+  <a href="${BASE}/docs/api/fhir.html#buildcheckinbundle"><code>buildCheckinBundle</code></a>.
   For explanation rather than signatures, start with
-  <a href="/docs/getting-started.html">Getting started</a>.
+  <a href="${BASE}/docs/getting-started.html">Getting started</a>.
 </p>
 ${groupsHtml}
 <div class="pager">
-  <span>Full generated pages: <a href="/docs/api/checkin.html">checkin</a> · <a href="/docs/api/fhir.html">fhir</a></span>
+  <span>Full generated pages: <a href="${BASE}/docs/api/checkin.html">checkin</a> · <a href="${BASE}/docs/api/fhir.html">fhir</a></span>
 </div>`,
   ),
 );
@@ -229,7 +284,7 @@ ${groupsHtml}
 // --- docs landing -----------------------------------------------------
 const cards = GUIDES.filter((g) => existsSync(g.file))
   .map(
-    (g) => `      <a class="card" href="/docs/${g.slug}.html">
+    (g) => `      <a class="card smart-panel" href="${BASE}/docs/${g.slug}.html">
         <strong>${g.title}</strong><span>${g.blurb}</span>
       </a>`,
   )
@@ -243,4 +298,42 @@ writeFileSync(
 
 console.log(
   `docs rendered: ${GUIDES.length} guides, API index (${runtimeExports.size} exports checked) -> ${OUT}`,
+);
+
+// --- llms.txt: this section, for a model ------------------------------
+// The index follows llmstxt.org; the full file is every guide and the API
+// reference concatenated. Both sit at the section root, like every section.
+const ORIGIN = process.env.SITE_ORIGIN ?? "https://smart-health-checkin.org";
+const abs = (path: string): string => `${ORIGIN}${BASE}${path}`;
+const guides = GUIDES.filter((g) => existsSync(g.file));
+const apiModules = readdirSync("docs/api")
+  .filter((f) => f.endsWith(".md") && f !== "index.md")
+  .map((f) => basename(f, ".md"));
+
+writeFileSync(
+  join(OUT_ROOT, "llms.txt"),
+  [
+    "# SMART Health Check-in — JavaScript client",
+    "",
+    "> The provider side of SMART Health Check-in as one `await`: ask the patient's health app for what the visit needs and get a verified response back in the page. Install from git (`npm install github:smart-health-checkin/client`) or import the hosted ES module.",
+    "",
+    "## Guides",
+    ...guides.map((g) => `- [${g.title}](${abs(`/docs/${g.slug}.md`)}): ${g.blurb}`),
+    "",
+    "## API reference",
+    ...apiModules.map((m) => `- [${m}](${abs(`/docs/api/${m}.md`)})`),
+    "",
+    "## Optional",
+    `- [Everything in one file](${abs("/llms-full.txt")})`,
+    "- [Source](https://github.com/smart-health-checkin/client)",
+    "",
+  ].join("\n"),
+);
+
+const section = (url: string, body: string): string => `\n\n---\n\n<!-- ${url} -->\n\n${body.trim()}\n`;
+writeFileSync(
+  join(OUT_ROOT, "llms-full.txt"),
+  "# SMART Health Check-in — JavaScript client\n" +
+    guides.map((g) => section(abs(`/docs/${g.slug}.md`), readFileSync(g.file, "utf8"))).join("") +
+    apiModules.map((m) => section(abs(`/docs/api/${m}.md`), readFileSync(join("docs/api", `${m}.md`), "utf8"))).join(""),
 );

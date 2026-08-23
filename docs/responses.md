@@ -11,7 +11,7 @@ response.artifacts;      // [{ id, mediaType, fulfills: [...], value, fhirVersio
 response.requestStatus;  // [{ item: "allergies", status: "fulfilled" }]
 ```
 
-## What's already been checked
+## What the library has verified
 
 Before your code sees a response, the kit has:
 
@@ -49,7 +49,7 @@ for (const item of myRequest.items) {
 }
 ```
 
-## Getting at the data
+## Reading artifacts
 
 Artifacts point back at the items they satisfy — one artifact can cover
 several items, and one item can be covered by several artifacts.
@@ -74,7 +74,7 @@ SMART Health Card artifacts carry `value.verifiableCredential` — an array of
 JWS strings. Keep the JWS if you store them: it's the only thing that carries
 the issuer's signature. Unpacking it into plain FHIR throws that away.
 
-## The pattern worth copying: fill the gaps, don't re-ask
+## Prefill, then ask only for what's missing
 
 The interesting move isn't dumping the response into a chart. It's using it to
 *shorten what you ask the patient*.
@@ -98,7 +98,7 @@ const needsDetail = rows.filter(
 Then the patient confirms what's known and supplies only what isn't — and you
 can mark which fields *they* contributed, which is exactly the information a
 nurse wants when reconciling. The
-[allergy example](https://smart-health-checkin.org/demo/autofill.html#wallet=app)
+[allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
 implements this end to end, including a manual-entry path that lands in the
 same review.
 
@@ -110,7 +110,7 @@ Two things that follow from doing it this way:
   "typed and then confirmed by the app" are different facts, and they matter
   downstream.
 
-## Storing it
+## Storing the response
 
 The kit stops here on purpose — see [Writing FHIR](fhir.md) for the optional
 helper, or write it however your system wants. What matters is that patient-

@@ -5,7 +5,7 @@
     "src/fhir/index.ts"
   ],
   "out": "docs/api",
-  "name": "checkin-client API",
+  "name": "@smart-health-checkin/client API",
   "readme": "none",
   "excludePrivate": true,
   "excludeInternal": true,

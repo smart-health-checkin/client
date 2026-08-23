@@ -28,7 +28,7 @@ export const API_GROUPS: ApiGroup[] = [
     ],
   },
   {
-    title: "Describe what you need",
+    title: "Build a request",
     blurb: "Build a request inline, or name one for reuse.",
     module: "checkin",
     entries: [
@@ -43,7 +43,7 @@ export const API_GROUPS: ApiGroup[] = [
     ],
   },
   {
-    title: "Answer without a platform wallet",
+    title: "Run without a platform wallet",
     blurb: "Mediators that let the whole flow run in any browser, or in a test.",
     module: "checkin",
     entries: [
@@ -61,20 +61,37 @@ export const API_GROUPS: ApiGroup[] = [
     ],
   },
   {
-    title: "Choose who answers",
-    blurb: "Declare which responders you accept; the kit resolves them into a list your page can render.",
+    title: "Configure responding wallets",
+    blurb: "State which wallets may answer; the library resolves that into a list your page renders, and turns the chosen one back into a mediator.",
     module: "checkin",
     entries: [
-      { name: "resolveResponders", what: "Turn a policy (platform? which web wallets? mock?) into the concrete options, with unavailable ones marked." },
+      { name: "resolveResponders", what: "Turn a policy (platform? which web wallets? mock? which leads?) into the concrete options, with the unavailable ones and the default marked." },
       { name: "credentialGetterFor", what: "The mediator for a chosen responder — pass it straight to requestCheckin." },
-      { name: "ResponderPolicy", what: "What this relying party accepts: platform, a web-wallet list or URL, and mock." },
-      { name: "Responder", what: "One renderable option: id, name, description, icon, and whether it works here." },
+      { name: "ResponderPolicy", what: "What this relying party accepts — platform, a web-wallet list or URL, mock — and which one is the default." },
+      { name: "Responder", what: "One renderable option: id, name, description, icon, whether it works here, and whether it is the default." },
       { name: "loadWalletRegistry", what: "Resolve a wallet list from an inline array, an object, or a URL." },
       { name: "validateWalletRegistry", what: "Shape-check a registry before trusting it." },
       { name: "findWallet", what: "Look a registry entry up by id." },
       { name: "DEMO_WALLET_REGISTRY", what: "The built-in list of one: this project's demo wallet." },
       { name: "WalletRegistry", what: "A list of web wallets, plus where it came from." },
       { name: "WebWalletEntry", what: "One wallet: id, name, walletUrl, and presentation details." },
+    ],
+  },
+  {
+    title: "Hand off to the patient's phone",
+    blurb: "A kiosk or front-desk screen mints the request and shows a QR; the phone asks its wallet and sends the sealed answer back. You supply the mailbox.",
+    module: "checkin",
+    entries: [
+      { name: "createHandoff", what: "Everything a kiosk passes to runCheckin: an authority for the hand-off page's origin, and a getCredential that posts, shows the QR, and waits." },
+      { name: "createHandoffCredentialGetter", what: "Just the getCredential half, if you build the authority yourself." },
+      { name: "fetchHandoff", what: "Phone side, step one: pick the request up and recover what it asks for." },
+      { name: "answerHandoff", what: "Phone side, step two: ask the wallet (or a mediator) and send the sealed credential — or a decline — back." },
+      { name: "handoffUrlFor", what: "The URL the QR code carries: the hand-off page plus the session id." },
+      { name: "sessionIdFromHash", what: "Read that session id back on the phone." },
+      { name: "HandoffMailbox", what: "The seam you implement: post / fetch / answer / waitForAnswer, over any transport both devices reach." },
+      { name: "HandoffEnvelope", what: "What the kiosk posts: the navigator argument, the hand-off origin, and an expiry." },
+      { name: "HandoffAnswer", what: "What the phone posts back: the credential, or a decline." },
+      { name: "HandoffOptions", what: "Mailbox, hand-off URL, the QR callback, TTL." },
     ],
   },
   {
@@ -87,7 +104,9 @@ export const API_GROUPS: ApiGroup[] = [
       { name: "fabricateResponse", what: "Demo data for a request, honouring per-item consent." },
       { name: "ParsedWalletRequest", what: "The request plus the raw DeviceRequest and encryptionInfo bytes." },
       { name: "MockWalletOptions", what: "Per-item specs, a fallback, or a responder function for full control." },
-      { name: "MockItemSpec", what: "What to return for one item: FHIR, a health card, or a status like declined." },
+      { name: "MockItemSpec", what: "What to return for one item: FHIR, a health card, or a status like declined; alsoFulfills lets one artifact answer several items." },
+      { name: "MockItemSpecs", what: "One spec, or a list — several artifacts for one item." },
+      { name: "DEMO_HEALTH_CARD_JWS", what: "A structurally real, unsigned SMART Health Card (deflated payload, one Patient and one Coverage) for demos and tests." },
       { name: "buildMockResponse", what: "Build a response from a per-item spec without going through the wire layer — handy in unit tests." },
     ],
   },
@@ -144,7 +163,7 @@ export const API_GROUPS: ApiGroup[] = [
   },
   {
     title: "Write FHIR (optional module)",
-    blurb: "Imported separately from @smart-health-checkin/checkin-client/fhir — nothing in the check-in path depends on it.",
+    blurb: "Imported separately from @smart-health-checkin/client/fhir — nothing in the check-in path depends on it.",
     module: "fhir",
     entries: [
       { name: "buildCheckinBundle", what: "Map a response to a transaction Bundle with Provenance. Pure — no network." },

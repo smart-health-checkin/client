@@ -3,182 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>checkin-client</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<title>JavaScript client — SMART Health Check-in</title>
+<link rel="stylesheet" href="/assets/smart-design.css">
+<script src="/assets/site-chrome.js" defer></script>
 <style>
-  :root {
-    --bg: #f7faf9;
-    --surface: #ffffff;
-    --ink: #16211f;
-    --muted: #5b6b67;
-    --accent: #0e7c6b;
-    --line: #dce5e2;
-    --code-bg: #eef4f2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e1513;
-      --surface: #16201d;
-      --ink: #e6efec;
-      --muted: #93a5a0;
-      --accent: #3ac2aa;
-      --line: #24322e;
-      --code-bg: #131c19;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0e1513;
-    --surface: #16201d;
-    --ink: #e6efec;
-    --muted: #93a5a0;
-    --accent: #3ac2aa;
-    --line: #24322e;
-    --code-bg: #131c19;
-  }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "IBM Plex Sans", system-ui, sans-serif;
-    line-height: 1.6;
+    margin:0; background:var(--bg); color:var(--fg-1);
+    font-family:var(--font-sans); font-size:var(--fs-base); line-height:var(--lh-normal);
+    -webkit-font-smoothing:antialiased;
   }
-  main {
-    max-width: 46rem;
-    margin: 0 auto;
-    padding: 4rem 1.25rem 5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-  }
-  .eyebrow {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-  }
-  h1 {
-    font-size: 2.1rem;
-    font-weight: 600;
-    margin: 0.35rem 0 0;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-  }
-  .lede { font-size: 1.08rem; color: var(--muted); max-width: 60ch; margin: 0.75rem 0 0; }
-  section h2 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin: 0 0 0.75rem;
-  }
-  figure { margin: 0; }
-  figure svg { max-width: 100%; height: auto; color: var(--ink); }
-  figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
-  pre {
-    background: var(--code-bg);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    overflow-x: auto;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 0.84rem;
-    line-height: 1.55;
-    margin: 0;
-  }
-  code { font-family: "IBM Plex Mono", ui-monospace, monospace; }
-  .try .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; margin: 0.75rem 0 0; }
-  .try .choices button {
-    text-align: left; font: inherit; cursor: pointer; padding: 0.7rem 0.9rem;
-    border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink);
-    display: flex; flex-direction: column; gap: 0.2rem;
-  }
-  .try .choices button:hover { border-color: var(--accent); }
-  .try .choices button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .try .choices button[disabled] { opacity: 0.55; cursor: not-allowed; }
-  .try .choices strong { font-size: 0.95rem; font-weight: 600; }
-  .try .choices span { color: var(--muted); font-size: 0.85rem; line-height: 1.45; }
-  .try-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.9rem; margin-top: 1rem; }
-  .try-go .go {
-    display: inline-block; padding: 0.55rem 1.2rem; border-radius: 8px; font-weight: 500;
-    background: var(--accent); color: var(--bg); text-decoration: none;
-  }
-  .try-go .alt { font-size: 0.9rem; }
-  .snippet { position: relative; }
-  .snippet .copy-btn {
-    position: absolute; top: 0.5rem; right: 0.6rem;
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.75rem;
-    padding: 0.15rem 0.5rem; border: 1px solid var(--line); border-radius: 5px;
-    background: var(--surface); color: var(--accent); cursor: pointer;
-  }
-  .snippet .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  p { margin: 0.4rem 0; }
-  footer { border-top: 1px solid var(--line); margin-top: 1.5rem; background: var(--surface); }
-  .footer-inner {
-    max-width: 46rem; margin: 0 auto; padding: 2rem 1.25rem 2.5rem;
-    display: flex; flex-wrap: wrap; gap: 1.5rem 3rem; justify-content: space-between;
-    font-size: 0.9rem;
-  }
-  .footer-inner p { color: var(--muted); margin: 0.2rem 0 0; }
-  .footer-inner nav {
-    display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 0.9rem; align-items: baseline;
-  }
-  .footer-inner nav span { color: var(--muted); font-size: 0.85rem; }
-  a { color: var(--accent); }
+  /* Same left rail as the rest of the site; line length is held by the
+     elements, not by centring a narrow column. */
+  main { max-width:var(--container-wide); margin:0 auto; padding:var(--space-8) 24px; display:flex; flex-direction:column; gap:var(--space-7); }
+  main > * { max-width:52rem; }
+  .eyebrow { margin:0 0 var(--space-3); font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--brand); }
+  h1 { margin:0; font-size:var(--fs-3xl); letter-spacing:var(--tracking-tight); line-height:var(--lh-tight); }
+  h2 { margin:0 0 var(--space-3); font-size:var(--fs-xl); letter-spacing:var(--tracking-tight); }
+  p { margin:var(--space-3) 0; color:var(--fg-2); }
+  .lede { font-family:var(--font-serif); font-size:var(--fs-md); max-width:58ch; line-height:1.55; margin-top:var(--space-4); }
+  .small { font-size:var(--fs-sm); color:var(--fg-3); }
+  code { font-family:var(--font-mono); font-size:0.88em; background:var(--gray-100); padding:1px 5px; border-radius:var(--radius-sm); color:var(--fg-1); }
+  pre { background:var(--gray-50); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); overflow-x:auto; margin:var(--space-3) 0 0; }
+  pre code { background:none; padding:0; font-size:var(--fs-sm); line-height:1.6; }
+  a { color:var(--brand); }
+  figure.flow { margin:0; }
+  figure.flow svg { max-width:100%; height:auto; color:var(--fg-1); display:block; }
+  figure.flow .mono { font-family:var(--font-mono); }
+  figure.flow .sans { font-family:var(--font-sans); }
+  figcaption { font-size:var(--fs-sm); color:var(--fg-3); margin-top:var(--space-3); max-width:62ch; }
+  .snippet { position:relative; }
+  .snippet .copy-btn { position:absolute; top:8px; right:10px; }
+  .choices { display:grid; grid-template-columns:repeat(auto-fit,minmax(13rem,1fr)); gap:var(--space-3); margin:var(--space-4) 0 0; }
+  /* each choice is a .smart-panel that happens to be a button */
+  .choices button { text-align:left; font:inherit; cursor:pointer; padding:var(--space-4); display:flex; flex-direction:column; gap:var(--space-1); }
+  .choices button:hover { border-color:var(--brand); }
+  .choices button[aria-pressed="true"] { border-color:var(--brand); box-shadow:inset 0 0 0 1px var(--brand); }
+  .choices button[disabled] { opacity:0.55; cursor:not-allowed; }
+  .choices strong { font-size:var(--fs-sm); font-weight:600; }
+  .choices span { color:var(--fg-3); font-size:var(--fs-sm); line-height:1.45; }
+  .go { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-4); margin-top:var(--space-5); }
+  .go .alt { font-size:var(--fs-sm); }
 </style>
 </head>
 <body>
+<div data-smart-topbar></div>
 
 <main>
   <header>
-    <div class="eyebrow">smart-health-checkin</div>
-    <h1>checkin-client</h1>
+    <p class="eyebrow">@smart-health-checkin/client</p>
+    <h1>The JavaScript client</h1>
     <p class="lede">
-      Ask the patient's health app for what your visit needs, and get a
-      verified answer back in your own page — then do whatever your workflow
-      does next. The Digital Credentials API plumbing (CBOR, COSE, HPKE) stays
-      inside the kit; you write one <code>await</code>.
-    </p>
-    <p class="lede">
-      It implements <a href="/spec/">SMART Health Check-in 1.0</a>. Try the
-      whole flow below, or head to the <a href="/docs/">docs</a> to install it.
+      The provider side of SMART Health Check-in as one <code>await</code>:
+      ask the patient's health app for what the visit needs, and get a
+      verified response back in your own page. CBOR, COSE and HPKE stay inside.
     </p>
   </header>
 
-
-  <section class="try">
-    <h2>Try it now</h2>
-    <p class="muted">Who should answer the check-in request?</p>
-    <div class="choices" id="choices">
-      <button type="button" data-wallet="app" aria-pressed="true">
-        <strong>Demo wallet app</strong>
-        <span>A wallet opens in a tab with a real consent screen. Works in any browser.</span>
-      </button>
-      <button type="button" data-wallet="platform">
-        <strong>Your own wallet</strong>
-        <span id="platform-note">The real Digital Credentials API — checking this browser…</span>
-      </button>
-      <button type="button" data-wallet="auto">
-        <strong>Automatic mock</strong>
-        <span>Answers instantly with fabricated data and no consent screen.</span>
-      </button>
-    </div>
-    <p class="try-go">
-      <a class="go" id="go" href="./demo/#wallet=app">Open the check-in demo →</a>
-      <a class="alt" id="go-autofill" href="./demo/autofill.html#wallet=app">or the allergy autofill example</a>
-    </p>
-  </section>
-
   <section>
     <h2>How a check-in runs</h2>
-    <figure>
-      <svg viewBox="0 0 640 168" role="img" aria-label="Ask, then await: your page builds a request, the patient's wallet answers, and the awaited response lands back in your code — from which you can prefill forms, submit FHIR, take payment, or continue anywhere, in any order.">
+    <figure class="flow">
+      <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the awaited response lands back in your own code, where forms, FHIR, payment and routing happen in any order.">
         <defs>
           <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
           </marker>
         </defs>
-
-        <!-- ask -->
         <g fill="none" stroke="currentColor" stroke-width="1.2">
           <rect x="4" y="20" width="150" height="38" rx="6"/>
           <rect x="245" y="20" width="150" height="38" rx="6"/>
@@ -186,23 +76,21 @@
           <line x1="395" y1="39" x2="470" y2="39" marker-end="url(#arr)"/>
           <path d="M470 39 H 560 V 78" marker-end="url(#arr)"/>
         </g>
-        <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="12" text-anchor="middle">
+        <g class="mono" fill="currentColor" font-size="12" text-anchor="middle">
           <text x="79" y="43">your page asks</text>
           <text x="320" y="43">wallet answers</text>
         </g>
-        <g fill="currentColor" font-family="IBM Plex Sans, sans-serif" font-size="10" text-anchor="middle" opacity="0.65">
+        <g class="sans" fill="currentColor" font-size="10" text-anchor="middle" opacity="0.65">
           <text x="79" y="72">a check-in request</text>
           <text x="320" y="72">patient consents per item</text>
         </g>
-
-        <!-- the awaited response lands back in your code -->
         <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 3">
           <rect x="4" y="88" width="632" height="70" rx="8"/>
         </g>
-        <g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="12">
+        <g class="mono" fill="currentColor" font-size="12">
           <text x="20" y="110">await → you have the data, in your own code</text>
         </g>
-        <g fill="currentColor" font-family="IBM Plex Sans, sans-serif" font-size="10.5" opacity="0.75">
+        <g class="sans" fill="currentColor" font-size="10.5" opacity="0.75">
           <text x="20" y="132">prefill your forms · write FHIR · take payment · ask follow-ups · route the patient</text>
           <text x="20" y="148">…whatever your workflow needs, whenever it needs it — you never left your page.</text>
         </g>
@@ -211,140 +99,82 @@
         Two steps, then you're back in your own code with the response in hand.
         Everything after that — prefilling forms, writing FHIR, payment, next
         screens — is ordinary application logic, in whatever order you want.
+        On a desktop the browser offers a QR code, so the phone's wallet answers
+        and the data still lands in the page the patient was using.
       </figcaption>
     </figure>
   </section>
 
   <section>
-    <h2>Try the demo</h2>
-    <p>
-      <a href="./demo/">The demo</a> is a fictional clinic's check-in page
-      running the real protocol stack. Pick a scenario from the demo bar
-      (insurance card, new-patient summary, day-of PHQ-2, allergy review,
-      med list), press <em>Check in with your health app</em>, and watch the
-      response come back, get verified, and post to a public test FHIR
-      server. Every technical artifact — the SMART request, the wallet's
-      response, the FHIR transaction, the server's reply — is one click away
-      in the <em>Developer detail</em> section.
-    </p>
-    <ul>
-      <li><strong>No wallet-equipped phone?</strong> Switch the
-        <em>responder</em> in the demo bar to <strong>demo wallet app</strong>
-        — a wallet tab opens with a real consent screen where you choose
-        what to share:
-        <a href="./demo/#wallet=app">demo/#wallet=app</a>. There's also an
-        <em>automatic mock</em> that answers instantly with no consent screen,
-        for scripted testing:
-        <a href="./demo/#wallet=auto&amp;submit=dry-run">demo/#wallet=auto&amp;submit=dry-run</a>.
-        Both run the real CBOR/COSE/HPKE pipeline over fabricated records.</li>
-      <li><strong>The autofill pattern:</strong> the
-        <a href="./demo/autofill.html#wallet=app">allergy-review example</a> shows a
-        provider form literally prefilled from the patient's app — and then
-        asking only for what the shared record <em>doesn't</em> carry. US Core
-        requires the substance but not the reaction, so records routinely
-        arrive as "Latex, and nothing else"; the form flags exactly those and
-        elicits the symptoms and severity from the person who knows, marking
-        them <code>newInformation</code> for the care team.</li>
-      <li><strong>Framework bindings are trivial</strong> because the core is
-        a plain async function: the same flow in
-        <a href="./demo/react.html">React</a> (a ~25-line hook), with an
-        Angular service shown alongside it.</li>
-      <li><strong>Everything is a URL.</strong> The whole configuration —
-        scenario or full request object, patient, FHIR target, return leg —
-        lives in the URL fragment, so any test case is a shareable link
-        (<a href="https://github.com/smart-health-checkin/checkin-client/tree/main/demo#url-grammar" target="_blank" rel="noreferrer">grammar</a>).</li>
-    </ul>
-  </section>
-
-  <section>
-    <h2>Quick start for EHRs and portals</h2>
-    <p>
-      The kit does exactly one thing: hand your code a validated response,
-      on your page. Everything after that is yours. The URLs below point at
-      this deployment's hosted builds, so the snippets work as-is for
-      experimentation; vendor a pinned copy for anything real.
-    </p>
-    <p><strong>1. Ask, await, prefill.</strong> Define the request inline
-      (the kit fills in protocol boilerplate), await the patient's validated
-      response, and populate your own form — no submission, your code stays
-      in control:</p>
-<pre><code>&lt;script type="module"&gt;
-  import { requestCheckin }
-    from "<span class="computed-url" data-file="./lib/checkin.js"></span>";
-
-  const response = await requestCheckin({
-    purpose: "Review your allergy list before your visit",
-    items: [{
-      id: "allergies",
-      title: "Allergies and intolerances",
-      content: {
-        kind: "selection.fhir",
-        profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
-      },
-      accept: ["application/fhir+json"],
-    }],
-  });
-  // response.artifacts → prefill your intake form inline
-&lt;/script&gt;</code></pre>
-    <p><strong>2. Then do whatever your workflow needs.</strong> The kit stops
-      at the response — it has no notion of a FHIR server, your auth, or your
-      next screen. Writing records is ordinary code you already own; an
-      optional helper is there if you want the mapping done for you:</p>
-<pre><code>import { buildCheckinBundle, postCheckinBundle }
-  from "<span class="computed-url" data-file="./lib/fhir.js"></span>";
-
-const bundle = buildCheckinBundle({ request, response,
-  context: { patient: "Patient/123", appointment: "Appointment/456" } });
-
-await postCheckinBundle(bundle, { fhirBase: myFhirBase });   // or use your own client
-location.assign("/checkin/payment");</code></pre>
-    <p class="muted" style="font-size:0.92rem">
-      Keeping submission out of the kit is deliberate: where patient-supplied
-      data lands, under whose authorization, with what review, is deployment
-      policy — not something a protocol library should decide for you.
-    </p>
-    <p>
-      The full walkthrough — requests, responses, wallets, FHIR, and the
-      production checklist — is in the
-      <a href="/docs/">docs</a>.
+    <h2>Install</h2>
+    <p>From git, pinning a branch or a commit — there is no npm registry involved:</p>
+<pre><code>npm install github:smart-health-checkin/client            # or bun add, pnpm add
+npm install github:smart-health-checkin/client#&lt;commit&gt;</code></pre>
+    <p>Or as a hosted module, with no build step:</p>
+<pre><code>import { requestCheckin } from "<span class="computed-url" data-file="./lib/checkin.js"></span>";</code></pre>
+    <p class="small">
+      Pinned copies outlive a rebuild:
+      <a class="pinned" data-mod="checkin"></a> ·
+      <a class="pinned" data-mod="fhir"></a>
     </p>
   </section>
 
   <section>
-    <h2>Status</h2>
+    <h2>The call</h2>
+<pre><code>const response = await requestCheckin({
+  purpose: "Before your visit with Dr. Reyes",
+  items: [{
+    id: "allergies",
+    title: "Allergies and intolerances",
+    content: {
+      kind: "selection.fhir",
+      profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+    },
+    accept: ["application/fhir+json"],
+  }],
+});
+
+response.artifacts;       // [{ mediaType: "application/fhir+json", value: {…} }]
+response.requestStatus;   // [{ item: "allergies", status: "fulfilled" }]</code></pre>
     <p>
-      Working draft. Request construction, SessionTranscript, HPKE, and COSE
-      signature verification are implemented and byte-verified against real
-      Chrome/Android captures in the
-      <a href="https://github.com/smart-health-checkin/spec/tree/main/fixtures" target="_blank" rel="noreferrer">conformance fixtures</a>,
-      and the demo runs end-to-end against a public test FHIR server today.
-      Still open: a server-owned key-custody reference, production trust
-      anchors, and iOS/Safari support for the underlying browser API.
+      A response that reaches you has been decrypted, signature-checked, and
+      cross-checked against the request. What happens next — prefill, write
+      FHIR, take payment — is your code. An optional
+      <a href="./docs/fhir.html">fhir module</a> maps a response to a
+      transaction Bundle if you want that done for you.
+      <a href="./docs/getting-started.html">Getting started →</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Try it</h2>
+    <p>Who should answer the check-in request?</p>
+    <div class="choices" id="choices">
+      <button class="smart-panel" type="button" data-wallet="demo" aria-pressed="true">
+        <strong>Demo wallet app</strong>
+        <span>A wallet opens in a tab with a real consent screen. Works in any browser.</span>
+      </button>
+      <button class="smart-panel" type="button" data-wallet="platform">
+        <strong>Your own wallet</strong>
+        <span id="platform-note">The real Digital Credentials API — checking this browser…</span>
+      </button>
+      <button class="smart-panel" type="button" data-wallet="mock">
+        <strong>Automatic mock</strong>
+        <span>Answers instantly with fabricated data and no consent screen.</span>
+      </button>
+    </div>
+    <p class="go">
+      <a class="smart-btn primary" id="go" href="./demo/#wallet=demo">Open the clinic demo</a>
+      <a class="alt" id="go-autofill" href="./demo/autofill.html#wallet=demo">or the allergy autofill example</a>
+      <a class="alt" href="./demo/kiosk.html">or the kiosk hand-off</a>
     </p>
   </section>
 </main>
+<div data-smart-footer></div>
 
-<footer>
-  <div class="footer-inner">
-    <div>
-      <strong>SMART Health Check-in</strong>
-      <p>Apache-2.0. Contributions and issues welcome.</p>
-    </div>
-    <nav>
-      <a href="https://github.com/smart-health-checkin/checkin-client" target="_blank" rel="noreferrer">checkin-client</a>
-      <span>the toolkit on this page</span>
-      <a href="https://github.com/smart-health-checkin/spec" target="_blank" rel="noreferrer">spec</a>
-      <span>protocol, reference wallet, conformance fixtures</span>
-      <a href="/docs/">docs &amp; API reference</a>
-      <span>install, guides, every export</span>
-      <a href="/ktc/closing-the-loop/">Closing the Loop</a>
-      <span>why this design, for the CMS workstream</span>
-    </nav>
-  </div>
-</footer>
 <script type="module">
-  // Dogfooding: the landing page asks the published module whether this
-  // browser can reach a real wallet.
+  // Dogfooding: the page asks the published module whether this browser can
+  // reach a real wallet.
   import { detectDcApiSupport } from "./lib/checkin.js";
 
   const support = detectDcApiSupport();
@@ -373,9 +203,21 @@ location.assign("/checkin/payment");</code></pre>
 </script>
 
 <script>
+  // Hosted-module URLs are computed from wherever this page is served, so the
+  // snippets are correct whether the package owns the apex or sits at /client/.
   for (const span of document.querySelectorAll(".computed-url")) {
     span.textContent = new URL(span.dataset.file, location.href).href;
   }
+  fetch("./lib/version.json").then((r) => r.json()).then(({ version }) => {
+    for (const a of document.querySelectorAll("a.pinned")) {
+      const href = new URL(`./lib/${version}/${a.dataset.mod}.js`, location.href);
+      a.href = href.href;
+      a.innerHTML = `<code>${href.pathname}</code>`;
+    }
+  }).catch(() => {
+    for (const a of document.querySelectorAll("a.pinned")) a.textContent = "—";
+  });
+
   for (const pre of document.querySelectorAll("pre")) {
     const wrapper = document.createElement("div");
     wrapper.className = "snippet";
@@ -383,7 +225,7 @@ location.assign("/checkin/payment");</code></pre>
     wrapper.append(pre);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "copy-btn";
+    button.className = "copy-btn smart-btn sm mono";
     button.textContent = "copy";
     button.addEventListener("click", () => {
       navigator.clipboard.writeText(pre.textContent).then(() => {

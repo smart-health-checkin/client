@@ -28,7 +28,7 @@ for (const file of readdirSync(DIR)) {
   }
   // TypeDoc calls the barrel "index"; call it what people import.
   text = text
-    .replace(/^# index$/m, "# checkin-client")
+    .replace(/^# index$/m, "# @smart-health-checkin/client")
     .replace(/\[index\]\(checkin\.md\)/g, "[checkin](checkin.md)")
     .replace(/^\| \[index\]/m, "| [checkin]");
   writeFileSync(path, text);

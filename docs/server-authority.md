@@ -1,4 +1,4 @@
-# Server-held keys: the seam
+# Server-held keys
 
 Most deployments should keep the verifier key in the page — see
 [Production checklist](production.md) for why that's the design rather than a
@@ -11,7 +11,7 @@ short-lived piece of state. Nothing here is protocol — the wire format
 between page and wallet is unchanged. This is a contract between *your* page
 and *your* server, and you can implement it in any language.
 
-## What flows
+## The two calls
 
 ```
   browser                              your server                wallet
@@ -123,7 +123,7 @@ work around.
 ## Using it from the page
 
 ```ts
-import { runCheckin } from "@smart-health-checkin/checkin-client";
+import { runCheckin } from "@smart-health-checkin/client";
 
 const outcome = await runCheckin(myRequest, {
   authority: { server: "/checkin-api" },

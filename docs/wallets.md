@@ -4,28 +4,39 @@ Something has to answer the request. By default that's the browser's Digital
 Credentials API handing it to a wallet the patient has installed — but you can
 substitute any mediator, which is what makes this testable without a phone.
 
-## Declaring who may answer
+## Configure the list of responding wallets
 
-A platform wallet is chosen by the operating system. A *web* wallet is a site,
-so somebody has to decide which one to open — and that decision belongs to
-the relying party, not to this library.
+Something has to answer the request. The library can hand it to three kinds
+of responder:
 
-State what you accept, and get back the list to render:
+- the **platform wallet** — whatever the operating system offers through the
+  Digital Credentials API; on a desktop, a QR code the phone scans;
+- a **web wallet** — a site that opens in a tab and answers there;
+- the **mock** — instant fabricated data, for development and tests.
+
+The platform wallet needs no configuration; the OS chooses it. A web wallet
+is a site, so somebody has to decide which sites are acceptable, and that
+decision belongs to you, not to this library. You state it as a policy and
+get back a list your page can render:
 
 ```ts
-import { resolveResponders, credentialGetterFor } from "@smart-health-checkin/checkin-client";
+import { resolveResponders, credentialGetterFor } from "@smart-health-checkin/client";
 
 const responders = await resolveResponders({
   platform: true,                      // the device's own wallet
   webWallets: "/config/wallets.json",  // wallets this deployment recognizes
   mock: import.meta.env.DEV,           // development only
+  default: "platform",                 // the primary action
 });
 ```
 
 Each entry is renderable as-is — `id`, `name`, `description`, `iconUrl`, and
 `available` with a `reason` when this browser can't use it (an unavailable
 platform wallet is *listed and disabled*, not hidden, so people can see why).
-When the person picks one:
+Exactly one entry has `isDefault: true`: the one you named, if it's available
+here, otherwise the first available one — so a page that prefers the platform
+wallet still leads with a working option on a browser that has none. When the
+person picks one:
 
 ```ts
 const response = await requestCheckin(myRequest, {
@@ -34,9 +45,56 @@ const response = await requestCheckin(myRequest, {
 ```
 
 With one web wallet configured you get a two-item list; with several you get
-a menu. The [clinic demo](https://smart-health-checkin.org/demo/) renders it
+a menu. The [clinic demo](https://smart-health-checkin.org/client/demo/) renders it
 as a split button — primary action on the left, the rest behind a caret —
 which is a good shape when there's a sensible default.
+
+### Where the library stops and your UI starts
+
+The library never draws a button. It turns your policy into data, and turns
+the person's choice back into a mediator; everything between those two calls
+is your page.
+
+```
+  your page                            the client library
+  ───────────────────────────────────  ──────────────────────────────────────
+  1  declare a policy ──────────────►  resolveResponders(policy)
+     platform? web wallets?              · detectDcApiSupport(): can this
+     mock? default?                        browser reach a platform wallet?
+                                         · loadWalletRegistry(): a URL, an
+                                           inline list, or the built-in one
+                                         · marks available, reason, isDefault
+  2  Responder[]  ◄───────────────────┘
+     one object per option: id, kind,
+     name, description, iconUrl,
+     available, reason, isDefault, wallet
+
+  3  render them however fits the page:
+     a split button, a menu, cards;
+     disable the unavailable, lead
+     with isDefault                       (the library is not involved)
+
+  4  the person picks one ─────────►  credentialGetterFor(responder)
+                                         · web  → opens wallet.walletUrl in
+                                                  a tab, relays the request
+                                         · mock → answers instantly
+                                         · platform → undefined: the
+                                           browser's own credentials.get
+  5  getCredential  ◄─────────────────┘
+
+  6  requestCheckin(request,
+       { getCredential }) ────────────►  build the mdoc request, run the
+                                         mediator, decrypt, verify, cross-check
+  7  response  ◄─────────────────────┘
+```
+
+Two seams, both plain data: the `Responder` list going out (step 2) and one
+chosen `Responder` coming back (step 4). Nothing about your rendering is
+visible to the library, and nothing about the wire is visible to your
+rendering. The clinic demo's split button is one implementation —
+[`demo/src/main.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/main.ts):
+`renderResponderMenu` draws from the list, and the click handler is the few
+lines around `credentialGetterFor`.
 
 ### The wallet registry
 
@@ -60,9 +118,9 @@ without touching anything else:
     {
       "id": "demo",
       "name": "Demo Health Wallet",
-      "walletUrl": "https://smart-health-checkin.org/demo/wallet.html",
+      "walletUrl": "https://smart-health-checkin.org/client/demo/wallet.html",
       "description": "This project's reference wallet, with fabricated records.",
-      "homepage": "https://smart-health-checkin.org/demo/",
+      "homepage": "https://smart-health-checkin.org/client/demo/",
       "iconUrl": "https://…/icon.png",
       "target": "tab"
     }
@@ -70,17 +128,20 @@ without touching anything else:
 }
 ```
 
-Every form is validated the same way — inline mistakes fail as loudly as
-fetched ones — and a malformed list throws rather than silently falling back — "which wallet are we sending people to" is not a
-question to answer by accident. `webWallets: true` uses the built-in list of
-one (this project's demo wallet), which is the default a deployment starts
-from before it recognizes anyone else's.
+Every form is validated the same way, and a malformed list throws rather
+than silently falling back: which wallet you send people to is not a question
+to answer by accident. `webWallets: true` uses the built-in list of one, this
+project's demo wallet — where a deployment starts before it recognizes anyone
+else's.
 
 Treat the registry as a trust decision: every entry is a site you're willing
 to hand a check-in request to, and the response comes back bound to *your*
 origin, so a wallet you list can see what you asked for.
 
-## The three mediators
+## Using a mediator directly
+
+The policy above is the convenient path. The three mediators it resolves to
+are exported too, for pages that only ever use one:
 
 ```ts
 // 1. The person's own wallet (the default) — nothing to pass. On a phone it
@@ -89,13 +150,13 @@ origin, so a wallet you list can see what you asked for.
 await requestCheckin(myRequest);
 
 // 2. A wallet web app in a tab: a real consent screen, any browser.
-import { createWebWalletCredentialGetter } from "@smart-health-checkin/checkin-client";
+import { createWebWalletCredentialGetter } from "@smart-health-checkin/client";
 await requestCheckin(myRequest, {
   getCredential: createWebWalletCredentialGetter({ walletUrl: "/wallet.html" }),
 });
 
 // 3. Non-interactive mock: instant, fabricated data, for scripted tests.
-import { createMockWalletCredentialGetter } from "@smart-health-checkin/checkin-client";
+import { createMockWalletCredentialGetter } from "@smart-health-checkin/client";
 await requestCheckin(myRequest, {
   getCredential: createMockWalletCredentialGetter({ origin: location.origin }),
 });
@@ -107,19 +168,19 @@ differs — so a flow proven against the web wallet is proven against the
 protocol.
 
 The demo wallet's own source is worth reading if you're building a responder:
-[`demo/wallet.html`](https://github.com/smart-health-checkin/checkin-client/blob/main/demo/wallet.html)
-plus [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/checkin-client/blob/main/demo/src/wallet.ts).
+[`demo/wallet.html`](https://github.com/smart-health-checkin/client/blob/main/demo/wallet.html)
+plus [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts).
 It parses the DeviceRequest, shows the requesting origin and a per-item
 consent screen, and signs and seals a DeviceResponse bound to that origin.
 
-## Pinning exactly what the mock returns
+## Specify what the mock returns
 
 Fabricated data is fine for a smoke test and useless for a real one. The mock
 wallet takes a specification per request item, so a test can state precisely
 what comes back — including the unhappy paths:
 
 ```ts
-import { createMockWalletCredentialGetter } from "@smart-health-checkin/checkin-client";
+import { createMockWalletCredentialGetter } from "@smart-health-checkin/client";
 
 const getCredential = createMockWalletCredentialGetter({
   origin: location.origin,
@@ -141,13 +202,19 @@ verification on the way back in — so you're testing your integration, not a
 stub. When you only want the response object and none of the wire work,
 `buildMockResponse(request, spec)` returns it directly.
 
+Two shapes a real wallet produces are spelled the same way: a list of specs
+returns several artifacts for one item (a signed card *and* the same facts as
+FHIR), and `alsoFulfills` lets one artifact answer several items (a clinical
+summary that already contains the allergy list). Left to fabricate, the mock
+does both where the request invites them.
+
 For full control, `respond: (request) => SmartCheckinResponse` hands you the
 request and takes whatever you build.
 
-## Checking support before you offer it
+## Check browser support first
 
 ```ts
-import { detectDcApiSupport } from "@smart-health-checkin/checkin-client";
+import { detectDcApiSupport } from "@smart-health-checkin/client";
 
 const support = detectDcApiSupport();
 if (support.state === "unsupported") {
@@ -170,7 +237,7 @@ Where the API is genuinely absent you'll get `unsupported` with a reason to
 show. That's what the fallback is for, and why the web-wallet mediator exists:
 it needs nothing but `window.open` and `postMessage`.
 
-## The web wallet in a bit more detail
+## How the web wallet hand-off works
 
 `createWebWalletCredentialGetter({ walletUrl, target, timeoutMs })` opens the
 wallet (a tab by default; `target: "popup"` for a window), waits for it to
@@ -207,4 +274,4 @@ implement the two-call contract (`prepareCredentialRequest` /
 is specified in [Server-held keys](server-authority.md); the reasoning is in
 the [Production checklist](production.md).
 
-Next: [Writing FHIR](fhir.md) · [Production checklist](production.md)
+Next: [Kiosk and front-desk check-in](kiosk.md) · [Writing FHIR](fhir.md)

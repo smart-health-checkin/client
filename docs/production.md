@@ -4,7 +4,7 @@ The demo is honest about being a demo. Here's what changes when real people
 and real charts are involved — most of it is deliberately *yours*, because
 these are deployment policy rather than protocol.
 
-## Key custody: in the browser is the design, not a shortcut
+## Key custody
 
 The verifier's HPKE keypair is generated in the page, used for exactly one
 exchange, and discarded. That is the intended arrangement, not a stepping
@@ -38,7 +38,7 @@ Whichever you choose, the ordinary browser rules still apply: serve over
 HTTPS, keep the page free of third-party scripts you don't trust, and treat
 XSS on a check-in page as what it is — a data breach.
 
-## Trust policy is yours
+## Trust policy
 
 The kit verifies that a response is internally consistent: signatures check
 out against the certificate the wallet presented, the digests match, and the
@@ -58,7 +58,7 @@ provide it, and the page must be bound to an authenticated patient session
 before you trust that binding. Treat an unauthenticated check-in page as
 producing unattributed data.
 
-## Where the data lands
+## Where the data goes
 
 Patient-supplied data isn't clinician-entered data, and the difference should
 survive the write. Whatever the destination — a staging queue, a reconciliation
@@ -70,7 +70,7 @@ review workflow.
 Decide retention too: how long does a raw response live, in logs or a queue,
 and who can read it there.
 
-## The URL is part of the design
+## Configuration in the URL fragment
 
 The demo carries its configuration in the URL **fragment**, never the query
 string, so patient references and request payloads never reach a server log or
@@ -89,7 +89,7 @@ replacement for it.
 ## Pin your dependencies
 
 Install from a commit rather than a branch, and use the versioned hosted
-module (`/lib/<version>/checkin.js`) rather than the moving one, so a
+module (`/client/lib/<version>/checkin.js`) rather than the moving one, so a
 deployment you validated stays the deployment you're running. Better still,
 vendor a build you control — this is code running on a page where a patient is
 sharing health data.
@@ -105,4 +105,3 @@ sharing health data.
 - [ ] Pinned dependency, ideally vendored
 - [ ] Retention decided for responses and logs
 
-See also: [Security notes](security-notes.md)

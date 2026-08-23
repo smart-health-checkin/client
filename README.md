@@ -1,10 +1,10 @@
-# checkin-client
+# @smart-health-checkin/client
 
 Ask the patient's health app for what your visit needs, and get a verified
 answer back in your own page.
 
 ```ts
-import { requestCheckin } from "@smart-health-checkin/checkin-client";
+import { requestCheckin } from "@smart-health-checkin/client";
 
 const response = await requestCheckin({
   purpose: "Before your visit",
@@ -35,7 +35,7 @@ has to audit and configure.
 
 ## Documentation
 
-The docs site is at [smart-health-checkin.org/docs](https://smart-health-checkin.org/docs/);
+The docs site is at [smart-health-checkin.org/client/docs](https://smart-health-checkin.org/client/docs/);
 the same pages live in this repo, so they read here too.
 
 | Guide | |
@@ -56,33 +56,34 @@ step compiles the TypeScript on install, so you get JavaScript plus `.d.ts`
 types; Bun resolves the TypeScript sources directly.
 
 ```sh
-npm install github:smart-health-checkin/checkin-client
-npm install github:smart-health-checkin/checkin-client#<commit-sha>
-bun add github:smart-health-checkin/checkin-client
+npm install github:smart-health-checkin/client
+npm install github:smart-health-checkin/client#<commit-sha>
+bun add github:smart-health-checkin/client
 ```
 
 Or with no build step, from the hosted ES modules — moving
-[`/lib/checkin.js`](https://smart-health-checkin.org/lib/checkin.js) or pinned
-`/lib/<version>/checkin.js`:
+[`/client/lib/checkin.js`](https://smart-health-checkin.org/client/lib/checkin.js) or pinned
+`/client/lib/<version>/checkin.js`:
 
 ```html
 <script type="module">
-  import { requestCheckin } from "https://smart-health-checkin.org/lib/checkin.js";
+  import { requestCheckin } from "https://smart-health-checkin.org/client/lib/checkin.js";
 </script>
 ```
 
 The optional FHIR helper is a separate entry point,
-`@smart-health-checkin/checkin-client/fhir` (or `/lib/fhir.js`), so nothing in
+`@smart-health-checkin/client/fhir` (or `/client/lib/fhir.js`), so nothing in
 the check-in path pulls it in.
 
 ## Try it
 
-<https://smart-health-checkin.org/demo/> — a fictional clinic running the real
-protocol stack. No wallet-equipped phone needed: switch the responder to
-**demo wallet app** and a wallet opens in a tab with a real consent screen.
-Every wire artifact is one click away under *Developer detail*.
+<https://smart-health-checkin.org/client/demo/> — a fictional clinic running the real
+protocol stack. It opens with this project's demo wallet in a tab — a real consent screen,
+no phone needed — and the split button offers the device's own wallet and a
+mock. What came back is one click away in the results table, and every wire
+artifact under *Developer detail*.
 
-The [allergy example](https://smart-health-checkin.org/demo/autofill.html#wallet=app)
+The [allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
 shows the pattern worth stealing: prefill from the app, then ask only for what
 the shared record couldn't carry.
 
@@ -95,8 +96,7 @@ the shared record couldn't carry.
 | `src/browser` | Digital Credentials API invocation and the key-custody seam. |
 | `src/kit` | The facade — `requestCheckin` / `runCheckin`, scenarios, wallet mediators. |
 | `src/fhir` | **Optional companion**, never imported by the rest: response → transaction Bundle, plus a posting helper. |
-| `demo/` | The clinic demo, the demo wallet app, the autofill example, a React example. |
-| `fixtures/` | Byte-level conformance corpus, pinned from the spec repo — the wire layer is verified against real Chrome/Android captures. |
+| `demo/` | The clinic demo, the demo wallet app, the autofill example, React and Angular examples. |
 
 ## Development
 
@@ -106,11 +106,15 @@ bun test                 # unit + fixture conformance tests
 bun run typecheck
 bun run build            # dist/ with declarations
 bun run docs             # regenerate docs/api from source
-scripts/build-pages.sh   # full site into _site/
+scripts/build-pages.sh   # this package's pages into _site/
 ```
 
 `scripts/build-pages.sh` refuses to finish if the hosted bundles don't
 actually run — see `scripts/verify-lib.ts` for why that check exists.
+
+smart-health-checkin.org is built and deployed by the
+[smart-health-checkin.github.io](https://github.com/smart-health-checkin/smart-health-checkin.github.io) repo, which checks this
+one out and mounts it at `/client/`; pushing `main` here asks it to rebuild.
 
 Apache-2.0. Related: [spec](https://github.com/smart-health-checkin/spec) ·
 [KTC materials](https://github.com/smart-health-checkin/ktc)

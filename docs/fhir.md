@@ -8,7 +8,7 @@ thing you'd have to audit before adopting it.
 If you want the mapping done for you anyway, there's a separate module:
 
 ```ts
-import { buildCheckinBundle, postCheckinBundle } from "@smart-health-checkin/checkin-client/fhir";
+import { buildCheckinBundle, postCheckinBundle } from "@smart-health-checkin/client/fhir";
 ```
 
 It's a different import path on purpose — nothing in the check-in path pulls
@@ -70,12 +70,12 @@ because not sending is just not calling this function.
 Pass `fetchImpl` to attach your session credentials, retries, tracing, or
 whatever your stack does.
 
-## Or don't use this at all
+## Writing FHIR yourself
 
 The response is ordinary data. Writing it into your own model is often the
 better answer — and the check-in page is ordinary application code, so nothing
 about the protocol constrains that choice. The
-[allergy example](https://smart-health-checkin.org/demo/autofill.html#wallet=app)
+[allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
 shows the same reviewed data rendered both as standard FHIR and as an
 EHR-native packet with routing flags, precisely to make the point that this is
 your decision.

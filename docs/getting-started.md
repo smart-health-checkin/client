@@ -3,7 +3,7 @@
 You have a web page — a patient portal, a kiosk screen, a link you text
 people before their visit. This guide gets a working check-in on it.
 
-## What this actually does
+## What it does
 
 Your page asks the patient's health app for specific things (an insurance
 card, a medication list, a questionnaire). The browser hands that request to
@@ -21,15 +21,15 @@ There's no npm registry involved — install from git, pinning a branch or a
 commit:
 
 ```sh
-npm install github:smart-health-checkin/checkin-client
-bun add github:smart-health-checkin/checkin-client      # or bun/pnpm/yarn
+npm install github:smart-health-checkin/client
+bun add github:smart-health-checkin/client      # or bun/pnpm/yarn
 ```
 
 Or skip the build step entirely and import the hosted module:
 
 ```html
 <script type="module">
-  import { requestCheckin } from "https://smart-health-checkin.org/lib/checkin.js";
+  import { requestCheckin } from "https://smart-health-checkin.org/client/lib/checkin.js";
 </script>
 ```
 
@@ -39,7 +39,7 @@ A request is a list of *items* — each one a thing you want, described in
 terms the patient's app can act on and the patient can understand.
 
 ```ts
-import { requestCheckin } from "@smart-health-checkin/checkin-client";
+import { requestCheckin } from "@smart-health-checkin/client";
 
 const response = await requestCheckin({
   purpose: "Before your visit with Dr. Reyes",
@@ -88,12 +88,12 @@ response that doesn't match the request never reaches your code.
 [Response model](responses.md) covers artifacts, per-item statuses,
 and the prefill patterns worth copying.
 
-## Handling the paths that aren't success
+## Declined, unsupported, and errors
 
 Three things happen in the real world besides "it worked":
 
 ```ts
-import { requestCheckin, CheckinFlowError } from "@smart-health-checkin/checkin-client";
+import { requestCheckin, CheckinFlowError } from "@smart-health-checkin/client";
 
 try {
   const response = await requestCheckin(myRequest);
@@ -115,46 +115,55 @@ design: check-in is an accelerator on top of your existing intake, not a
 replacement that strands people when it isn't available. Prefer
 `runCheckin(...)` if you'd rather branch on `outcome.status` than catch.
 
-## Running it without a wallet
+## Who answers the request
 
-On a phone the platform path opens the installed wallet; on a desktop, a
-browser that supports the API shows a QR code to scan, and the phone answers
-— so a laptop is a perfectly good place to offer real check-in.
-
-For development, or where the API isn't available at all, pass a different
-mediator and the whole flow — real CBOR, COSE signatures, HPKE encryption —
-runs locally:
+By default, the patient's own wallet: on a phone the installed app; on a
+desktop, a QR code the phone scans, with the answer landing back on the
+desktop page. To also offer web wallets — or the mock, during development —
+state a policy and render the list it gives you. Which one leads is part of
+the policy:
 
 ```ts
-import { createWebWalletCredentialGetter } from "@smart-health-checkin/checkin-client";
+import {
+  resolveResponders, credentialGetterFor, requestCheckin,
+} from "@smart-health-checkin/client";
 
+const responders = await resolveResponders({
+  platform: true,                 // the device's own wallet
+  webWallets: "/wallets.json",    // web wallets you recognize
+  mock: import.meta.env.DEV,      // development only
+  default: "platform",            // the primary action
+});
+// render one control per responder; disable the unavailable; lead with isDefault
+
+// …or whichever one the person clicked
+const chosen = responders.find((r) => r.isDefault)!;
 const response = await requestCheckin(myRequest, {
-  getCredential: createWebWalletCredentialGetter({ walletUrl: "/wallet.html" }),
+  getCredential: credentialGetterFor(chosen),
 });
 ```
 
-That opens a wallet *web app* in a tab with a real consent screen. For tests
-that shouldn't stop for a human, `createMockWalletCredentialGetter` answers
-instantly — and takes a per-item specification, so a test can pin exactly
-what comes back, including declines and missing data. Both are covered in
-[Wallets and browser support](wallets.md).
+The library never draws the control. It turns a policy into data and a choice
+into a mediator; [Wallets and browser support](wallets.md) has the hand-off
+sketch, the registry format, and the mock's per-item specification for tests.
 
-You can also just [try the demo](https://smart-health-checkin.org/demo/) —
-switch the responder to "demo wallet app" and watch the whole exchange,
-including every wire artifact.
+Whichever answers, the wire is the same — real CBOR, COSE signatures, HPKE —
+so a flow proven against the web wallet is proven against the protocol.
+[The demo](https://smart-health-checkin.org/client/demo/) opens with this
+project's demo wallet in a tab: a real consent screen, no phone needed.
 
-## Then what?
+## After the response
 
 Whatever your workflow does. The kit's job ends with the response in your
 hand; it has no idea a FHIR server exists. If you want the results written as
 FHIR, [there's an optional helper](fhir.md) — or use your own client, your
 own auth, your own model.
 
-## Using it from a framework
+## From React or Angular
 
 The core is a plain async function, so bindings are thin: a
-[React hook](https://smart-health-checkin.org/demo/react.html) and an
-[Angular service](https://smart-health-checkin.org/demo/angular.html) — each
+[React hook](https://smart-health-checkin.org/client/demo/react.html) and an
+[Angular service](https://smart-health-checkin.org/client/demo/angular.html) — each
 about twenty lines, each running the same flow, both live on this site with
 their source in `demo/src/frameworks/`.
 

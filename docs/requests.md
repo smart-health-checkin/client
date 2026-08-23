@@ -19,7 +19,7 @@ and what formats you'll take.
 constraint. Nothing in this protocol can compel a share, and any item can
 come back `declined`.
 
-## Asking for existing records: `selection.fhir`
+## Existing records: `selection.fhir`
 
 Use this when the patient's app is likely to *have* the data already. Three
 selectors, all optional and additive:
@@ -55,7 +55,7 @@ share" — occasionally what you want, usually too broad to be polite.
 adjacent data. Always validate what arrives against what you can actually
 use; the kit checks protocol conformance, not clinical fitness.
 
-## Asking a question: `form.fhir`
+## Questionnaires: `form.fhir`
 
 Use this when the answer doesn't exist yet — a PHQ-2, a symptom check, a
 consent question. Point at a Questionnaire canonical, or inline the whole
@@ -100,7 +100,7 @@ Order signals preference: "a signed card if you have one, otherwise plain
 FHIR." Only list what you can actually process — the kit rejects a response
 whose artifact type isn't in your `accept` list.
 
-## Reusing requests
+## Three ways to pass a request
 
 Three shapes, all accepted by `requestCheckin` and `runCheckin`:
 
@@ -115,7 +115,7 @@ cache, or serialize it. `registerScenario(name, init)` names one so
 declarative surfaces (or a demo page's URL) can refer to it:
 
 ```ts
-import { registerScenario } from "@smart-health-checkin/checkin-client";
+import { registerScenario } from "@smart-health-checkin/client";
 
 registerScenario("visit-prep", {
   purpose: "Before your visit",
@@ -123,8 +123,8 @@ registerScenario("visit-prep", {
 });
 ```
 
-The library ships a few demo scenarios (`insurance-only`, `new-patient`,
-`phq2-dayof`, `allergy-review`, `medlist-refresh`) — they exist for the demo
+The library ships a few demo scenarios (`visit-prep`, `insurance-only`,
+`new-patient`, `phq2-dayof`, `allergy-review`, `medlist-refresh`) — they exist for the demo
 pages and for reading, not as a blessed vocabulary. Write your own.
 
 ## What must not go in a request

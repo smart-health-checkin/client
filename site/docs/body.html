@@ -1,130 +1,28 @@
 <div>
     <h1>Docs</h1>
     <p class="lede">
-      One call asks the patient's health app for what your visit needs and
-      returns a cryptographically verified, validated response to your page.
-      Everything after that — prefilling forms, writing FHIR, payment,
-      routing — is your application's code.
+      Guides in reading order, then the generated API reference. Start with
+      Getting started, which covers install.
     </p>
   </div>
-
-  <section>
-    <h2>Install it the way your project works</h2>
-
-    <h3>1. A module in your build (Bun, Node, Vite, anything)</h3>
-    <p class="muted">
-      Installed straight from git — pin a branch or a commit; there's no npm
-      registry involved. A <code>prepare</code> step compiles the TypeScript
-      on install, so you get JavaScript plus <code>.d.ts</code> types.
-    </p>
-<pre><code># latest on main
-npm install github:smart-health-checkin/checkin-client
-
-# pin a branch or an exact commit
-npm install github:smart-health-checkin/checkin-client#main
-npm install github:smart-health-checkin/checkin-client#&lt;commit-sha&gt;
-
-# bun / pnpm / yarn work the same way
-bun add github:smart-health-checkin/checkin-client</code></pre>
-<pre><code>import { requestCheckin } from "@smart-health-checkin/checkin-client";
-import { buildCheckinBundle } from "@smart-health-checkin/checkin-client/fhir";</code></pre>
-    <p class="muted">
-      Bun resolves the TypeScript sources directly (via the package's
-      <code>bun</code> export condition); everyone else gets the compiled
-      <code>dist/</code> with types.
-    </p>
-
-    <h3>2. A script tag, no build step</h3>
-    <p class="muted">
-      The same modules, hosted here as ES modules. Use the pinned version for
-      anything you'll link to later.
-    </p>
-<pre><code>&lt;script type="module"&gt;
-  import { requestCheckin } from "<span class="computed" data-file="/lib/checkin.js"></span>";
-  const response = await requestCheckin({ purpose: "…", items: [ … ] });
-&lt;/script&gt;</code></pre>
-    <table>
-      <tr><th>Module</th><th>Latest</th><th>Pinned</th></tr>
-      <tr>
-        <td><code>checkin</code><br><span class="muted">the protocol client</span></td>
-        <td><a href="/lib/checkin.js"><code>/lib/checkin.js</code></a></td>
-        <td><a class="pinned" data-mod="checkin"></a></td>
-      </tr>
-      <tr>
-        <td><code>fhir</code><br><span class="muted">optional write helper</span></td>
-        <td><a href="/lib/fhir.js"><code>/lib/fhir.js</code></a></td>
-        <td><a class="pinned" data-mod="fhir"></a></td>
-      </tr>
-    </table>
-
-    <h3>3. Read the source</h3>
-    <p class="muted">
-      It's TypeScript with no runtime dependencies —
-      <a href="https://github.com/smart-health-checkin/checkin-client/tree/main/src" target="_blank" rel="noreferrer">src/</a>
-      is small enough to read in a sitting, and the wire layer is verified
-      against byte-level fixtures captured from real browser sessions.
-    </p>
-  </section>
 
   <section>
     <h2>Guides</h2>
     <div class="cards">
 <!--GUIDE-CARDS-->
-      <a class="card" href="/docs/api/">
-        <strong>API reference</strong>
-        <span>Every export, generated from the source. Two of them cover most integrations.</span>
-      </a>
-      <a class="card" href="/demo/">
-        <strong>Working demo</strong>
-        <span>A fictional clinic running the real stack — no phone needed.</span>
-      </a>
     </div>
   </section>
 
   <section>
-    <h2>The shape of it</h2>
-<pre><code>import { requestCheckin, CheckinFlowError } from "@smart-health-checkin/checkin-client";
-
-try {
-  const response = await requestCheckin({
-    purpose: "Before your visit",
-    items: [{
-      id: "allergies",
-      title: "Allergies and intolerances",
-      content: {
-        kind: "selection.fhir",
-        profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
-      },
-      accept: ["application/fhir+json"],
-    }],
-  });
-
-  // response.artifacts — verified, validated, yours to use
-} catch (e) {
-  if (e instanceof CheckinFlowError && e.outcome.status === "declined") {
-    // the patient declined; fall back to your existing form
-  }
-}</code></pre>
-    <p class="muted">
-      No platform wallet on your machine? Pass a different mediator —
-      <code>createWebWalletCredentialGetter</code> (a wallet web app in a tab,
-      with a real consent screen) or <code>createMockWalletCredentialGetter</code>
-      (instant, for scripted tests). Both are in the
-      <a href="/docs/api/">API reference</a>.
-    </p>
+    <h2>Reference</h2>
+    <div class="cards">
+      <a class="card smart-panel" href="api/">
+        <strong>API reference</strong>
+        <span>Every export, grouped by task and generated from the source.</span>
+      </a>
+      <a class="card smart-panel" href="../demo/">
+        <strong>Demos</strong>
+        <span>A fictional clinic running the real stack, plus React and Angular bindings. No phone needed.</span>
+      </a>
+    </div>
   </section>
-
-<script>
-  for (const span of document.querySelectorAll(".computed")) {
-    span.textContent = new URL(span.dataset.file, location.origin).href;
-  }
-  fetch("/lib/version.json").then((r) => r.json()).then(({ version }) => {
-    for (const a of document.querySelectorAll("a.pinned")) {
-      const href = `/lib/${version}/${a.dataset.mod}.js`;
-      a.href = href;
-      a.innerHTML = `<code>${href}</code>`;
-    }
-  }).catch(() => {
-    for (const a of document.querySelectorAll("a.pinned")) a.textContent = "\u2014";
-  });
-</script>
