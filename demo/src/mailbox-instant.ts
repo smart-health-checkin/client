@@ -1,20 +1,20 @@
 /**
  * The demo's hand-off mailbox, on InstantDB.
  *
- * Both devices talk to the same Instant app: the kiosk writes the envelope
- * and subscribes for the answer; the phone reads the envelope and writes the
- * answer. Everything that crosses it is public material or ciphertext — the
- * navigator argument going out, the HPKE-sealed credential coming back — so
- * the mailbox needs no secrets and the Instant app id is public.
+ * Both devices talk to the same Instant app: the kiosk posts the envelope and
+ * subscribes for the answer; the phone reads the envelope and posts the
+ * answer. One `handoffs` row per session holds timestamps and two storage
+ * pointers; the payloads themselves are files, because neither is
+ * size-bounded — an envelope can inline a questionnaire, and a sealed answer
+ * can be a clinical summary with documents or several health cards.
  *
- * The app's schema and permission rules predate this page (they were written
- * for the spec repo's earlier kiosk demo) and can only be changed from the
- * Instant dashboard, so the rows keep that design's names: the envelope rides
- * in `requests.encryptedRequest` (it is not encrypted), and the answer is a
- * blob in Instant storage under `submissions/<session>/`. Your own mailbox
- * would not look like this; see docs/kiosk.md for the contract it implements.
+ * Everything that crosses it is public material or ciphertext, so the mailbox
+ * needs no secrets and the app id is public. The rules (instant.perms.ts) make
+ * the session id the capability: read and post with it, answer exactly once.
+ * Schema and rules live at the repo root; push changes with
+ *   bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5
  */
-import { id, init } from "@instantdb/core";
+import { id, init, lookup } from "@instantdb/core";
 import type { HandoffAnswer, HandoffEnvelope, HandoffMailbox } from "../../src/index.js";
 
 export const INSTANT_APP_ID = "9cc51106-8018-43b8-8a37-fd8f414fdde5";
@@ -22,40 +22,61 @@ export const INSTANT_APP_ID = "9cc51106-8018-43b8-8a37-fd8f414fdde5";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db: any = init({ appId: INSTANT_APP_ID, devtool: false });
 
-const randomId = (): string =>
-  btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(18))))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+// Filenames carry a random suffix (see instant.perms.ts): the row records
+// the one that counts, and nobody can overwrite a file they can't name.
+const nonce = (): string => crypto.randomUUID().replace(/-/g, "");
+const envelopePath = (sessionId: string): string => `handoffs/${sessionId}/envelope-${nonce()}.json`;
+const answerPath = (sessionId: string): string => `handoffs/${sessionId}/answer-${nonce()}.json`;
+
+async function upload(path: string, value: unknown): Promise<void> {
+  await db.storage.uploadFile(path, new Blob([JSON.stringify(value)], { type: "application/json" }), {
+    contentType: "application/json",
+  });
+}
+
+/** Read a stored payload back; the rules require the session id alongside the path. */
+async function download<T>(sessionId: string, path: string): Promise<T> {
+  const files = await db.queryOnce(
+    { $files: { $: { where: { path } } } },
+    { ruleParams: { sessionId, path } },
+  );
+  const url = files.data?.$files?.[0]?.url;
+  if (!url) throw new Error(`${path} is not available`);
+  return (await (await fetch(url)).json()) as T;
+}
+
+type Row = { id: string; sessionId: string; envelopePath: string; answerPath?: string; createdAt: string; expiresAt: string };
 
 export const instantMailbox: HandoffMailbox = {
   async post(sessionId, envelope) {
+    const path = envelopePath(sessionId);
+    await upload(path, envelope);
     await db.transact(
-      db.tx.requests[id()].ruleParams({ requestId: sessionId }).update({ requestId: sessionId, encryptedRequest: envelope }),
+      db.tx.handoffs[id()].ruleParams({ sessionId }).update({
+        sessionId,
+        envelopePath: path,
+        createdAt: envelope.createdAt,
+        expiresAt: envelope.expiresAt,
+      }),
     );
   },
 
   async fetch(sessionId) {
     const result = await db.queryOnce(
-      { requests: { $: { where: { requestId: sessionId } } } },
-      { ruleParams: { requestId: sessionId } },
+      { handoffs: { $: { where: { sessionId } } } },
+      { ruleParams: { sessionId } },
     );
-    const row = result.data?.requests?.[0];
+    const row: Row | undefined = result.data?.handoffs?.[0];
     if (!row) throw new Error("No such hand-off session. Scan the code on the kiosk again.");
-    return row.encryptedRequest as HandoffEnvelope;
+    return download<HandoffEnvelope>(sessionId, row.envelopePath);
   },
 
   async answer(sessionId, answer) {
-    const submissionId = randomId();
-    const storagePath = `submissions/${sessionId}/${submissionId}.bin`;
-    const uploaded = await db.storage.uploadFile(
-      storagePath,
-      new Blob([JSON.stringify(answer)], { type: "application/octet-stream" }),
-      { contentType: "application/octet-stream" },
-    );
+    const path = answerPath(sessionId);
+    await upload(path, answer);
+    // The rules allow this update once, and only to this field.
     await db.transact(
-      db.tx.submissions[id()].ruleParams({ requestId: sessionId }).update({
-        submissionId, requestId: sessionId, storagePath, storageFileId: uploaded.data.id,
-        iv: "", phoneEphemeralPublicKeyJwk: {},
-      }),
+      db.tx.handoffs[lookup("sessionId", sessionId)].ruleParams({ sessionId }).update({ answerPath: path }),
     );
   },
 
@@ -63,25 +84,16 @@ export const instantMailbox: HandoffMailbox = {
     return new Promise<HandoffAnswer>((resolve, reject) => {
       let done = false;
       const unsubscribe = db.subscribeQuery(
-        { submissions: { $: { where: { requestId: sessionId } } } },
-        async (resp: { error?: { message: string }; data?: { submissions?: Array<{ storagePath: string }> } }) => {
+        { handoffs: { $: { where: { sessionId } } } },
+        async (resp: { error?: { message: string }; data?: { handoffs?: Row[] } }) => {
           if (done) return;
           if (resp.error) { done = true; unsubscribe(); reject(new Error(resp.error.message)); return; }
-          const row = resp.data?.submissions?.[0];
-          if (!row) return;
+          const row = resp.data?.handoffs?.[0];
+          if (!row?.answerPath) return;
           done = true; unsubscribe();
-          try {
-            const files = await db.queryOnce(
-              { $files: { $: { where: { path: row.storagePath } } } },
-              { ruleParams: { requestId: sessionId, storagePath: row.storagePath } },
-            );
-            const url = files.data?.$files?.[0]?.url;
-            if (!url) throw new Error("the answer was recorded but its contents are not available");
-            const text = await (await fetch(url)).text();
-            resolve(JSON.parse(text) as HandoffAnswer);
-          } catch (e) { reject(e); }
+          download<HandoffAnswer>(sessionId, row.answerPath).then(resolve, reject);
         },
-        { ruleParams: { requestId: sessionId } },
+        { ruleParams: { sessionId } },
       );
       options.signal?.addEventListener("abort", () => {
         if (done) return;

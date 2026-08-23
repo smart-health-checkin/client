@@ -107,6 +107,7 @@ bun run typecheck
 bun run build            # dist/ with declarations
 bun run docs             # regenerate docs/api from source
 scripts/build-pages.sh   # this package's pages into _site/
+bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5   # the kiosk demo's mailbox schema and rules (needs INSTANT_CLI_AUTH_TOKEN)
 ```
 
 `scripts/build-pages.sh` refuses to finish if the hosted bundles don't

@@ -87,9 +87,13 @@ endpoints on your own API. What it has to get right:
   that page's origin, so serve it from an origin you control.
 
 The demo's mailbox is InstantDB —
-[`demo/src/mailbox-instant.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/mailbox-instant.ts).
-It reuses an app whose schema was written for an earlier kiosk demo, so its
-row names are odd; read it for the shape of the contract, not the names.
+[`demo/src/mailbox-instant.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/mailbox-instant.ts),
+with its schema and rules in
+[`instant.schema.ts`](https://github.com/smart-health-checkin/client/blob/main/instant.schema.ts)
+and [`instant.perms.ts`](https://github.com/smart-health-checkin/client/blob/main/instant.perms.ts).
+One `handoffs` row per session carries timestamps and two storage pointers;
+the envelope and the answer are files, because neither is size-bounded. The
+rules make the session id the capability: read and post with it, answer once.
 
 ## What differs from a same-device check-in
 
