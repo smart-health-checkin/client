@@ -29,8 +29,8 @@ jobs:
           npm init -y >/dev/null
           npm install "$GITHUB_WORKSPACE"
           cat > check.mjs <<'JS'
-          import { buildRequest } from "@smart-health-checkin/checkin-client";
-          import { buildCheckinBundle } from "@smart-health-checkin/checkin-client/fhir";
+          import { buildRequest } from "@smart-health-checkin/client";
+          import { buildCheckinBundle } from "@smart-health-checkin/client/fhir";
           const r = buildRequest({ purpose: "ci", items: [{ id: "x", title: "X",
             content: { kind: "selection.fhir" }, accept: ["application/fhir+json"] }] });
           if (r.type !== "smart-health-checkin-request") throw new Error("bad request");
