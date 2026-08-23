@@ -2,11 +2,18 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  createBrowserLocalAuthority,
-  createWebWalletCredentialGetter,
-} from "../../../src/index.js";
+import type { ResponderPolicy } from "../../../src/index.js";
 import { useCheckin } from "./use-checkin.js";
+
+// What this page accepts, and which one leads. The demo wallet leads because
+// it works in any browser; a real deployment would more likely say "platform".
+const POLICY: ResponderPolicy = {
+  platform: true,
+  webWallets: "./wallets.json",
+  mock: true,
+  default: "demo",
+  origin: location.origin,
+};
 
 const REQUEST = {
   purpose: "Confirm your medications before your visit",
@@ -26,10 +33,7 @@ const REQUEST = {
 };
 
 function MedicationCheckin() {
-  const { status, response, error, start } = useCheckin(REQUEST, {
-    authority: createBrowserLocalAuthority({ origin: location.origin }),
-    getCredential: createWebWalletCredentialGetter({ walletUrl: "./wallet.html" }),
-  });
+  const { status, response, error, responders, start } = useCheckin(REQUEST, POLICY);
 
   const medications =
     response?.artifacts
@@ -46,9 +50,21 @@ function MedicationCheckin() {
         the vanilla and Angular examples use.
       </p>
 
-      <button className="smart-btn primary" onClick={() => void start()} disabled={status === "waiting"}>
-        {status === "waiting" ? "Waiting for your health app…" : "Prefill from your health app"}
-      </button>
+      {/* Rendering is the page's business: one control per responder, the default leading. */}
+      <div className="choices">
+        {responders.map((r) => (
+          <button
+            key={r.id}
+            className={r.isDefault ? "smart-btn primary" : "smart-btn"}
+            disabled={!r.available || status === "waiting"}
+            title={r.reason ?? r.description ?? ""}
+            onClick={() => void start(r)}
+          >
+            {r.kind === "platform" ? "Prefill from my health app" : r.name}
+          </button>
+        ))}
+      </div>
+      {status === "waiting" && <p className="note">Waiting for the wallet…</p>}
 
       {status === "declined" && <p className="note">Nothing was shared — fill the form manually.</p>}
       {status === "error" && <p className="note error">{error}</p>}

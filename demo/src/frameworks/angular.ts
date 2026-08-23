@@ -2,8 +2,9 @@
  * Angular example: the same flow, rendered by Angular through a service that
  * wraps the vanilla async core.
  *
- * There is no Angular (or React) code inside the library — the binding below
- * is the entire integration surface, and it's about twenty lines.
+ * There is no Angular (or React) code inside the library. A binding owns three
+ * things, and this service shows all three: the responder list the component
+ * renders (resolved from a policy), the one call, and its state.
  */
 
 import "@angular/compiler"; // JIT: this page has no Angular build step
@@ -12,11 +13,12 @@ import { bootstrapApplication } from "@angular/platform-browser";
 import { provideZonelessChangeDetection } from "@angular/core";
 import {
   CheckinFlowError,
-  createBrowserLocalAuthority,
-  createWebWalletCredentialGetter,
+  credentialGetterFor,
   requestCheckin,
-  type CheckinOptions,
+  resolveResponders,
   type CheckinRequestInput,
+  type Responder,
+  type ResponderPolicy,
   type SmartCheckinResponse,
 } from "../../../src/index.js";
 
@@ -24,15 +26,26 @@ type Status = "idle" | "waiting" | "done" | "declined" | "error";
 
 @Injectable({ providedIn: "root" })
 export class CheckinService {
+  readonly responders = signal<Responder[]>([]);
   readonly status = signal<Status>("idle");
   readonly response = signal<SmartCheckinResponse | undefined>(undefined);
   readonly error = signal<string | undefined>(undefined);
+  private policy?: ResponderPolicy;
 
-  async request(input: CheckinRequestInput, options?: CheckinOptions): Promise<void> {
+  /** Who may answer in this browser; availability and the default come back in the list. */
+  async configure(policy: ResponderPolicy): Promise<void> {
+    this.policy = policy;
+    this.responders.set(await resolveResponders(policy));
+  }
+
+  async request(input: CheckinRequestInput, responder = this.responders().find((r) => r.isDefault)): Promise<void> {
+    if (!responder) return;
     this.status.set("waiting");
     this.error.set(undefined);
     try {
-      this.response.set(await requestCheckin(input, options));
+      this.response.set(await requestCheckin(input, {
+        getCredential: credentialGetterFor(responder, { origin: this.policy?.origin }),
+      }));
       this.status.set("done");
     } catch (e) {
       if (e instanceof CheckinFlowError && e.outcome.status === "declined") {
@@ -44,6 +57,16 @@ export class CheckinService {
     }
   }
 }
+
+// What this page accepts, and which one leads. The demo wallet leads because
+// it works in any browser; a real deployment would more likely say "platform".
+const POLICY: ResponderPolicy = {
+  platform: true,
+  webWallets: "./wallets.json",
+  mock: true,
+  default: "demo",
+  origin: location.origin,
+};
 
 const REQUEST = {
   purpose: "Confirm your medications before your visit",
@@ -73,9 +96,21 @@ const REQUEST = {
         the vanilla and React examples use.
       </p>
 
-      <button class="smart-btn primary" (click)="start()" [disabled]="checkin.status() === 'waiting'">
-        {{ checkin.status() === "waiting" ? "Waiting for your health app…" : "Prefill from your health app" }}
-      </button>
+      <!-- Rendering is the page's business: one control per responder, the default leading. -->
+      <div class="choices">
+        @for (r of checkin.responders(); track r.id) {
+          <button
+            [class]="r.isDefault ? 'smart-btn primary' : 'smart-btn'"
+            [disabled]="!r.available || checkin.status() === 'waiting'"
+            [title]="r.reason ?? r.description ?? ''"
+            (click)="start(r)">
+            {{ r.kind === "platform" ? "Prefill from my health app" : r.name }}
+          </button>
+        }
+      </div>
+      @if (checkin.status() === "waiting") {
+        <p class="note">Waiting for the wallet…</p>
+      }
 
       @if (checkin.status() === "declined") {
         <p class="note">Nothing was shared — fill the form manually.</p>
@@ -96,6 +131,10 @@ const REQUEST = {
 export class AppComponent {
   readonly checkin = inject(CheckinService);
 
+  constructor() {
+    void this.checkin.configure(POLICY);
+  }
+
   medications = () => {
     const response = this.checkin.response();
     if (!response) return [] as string[];
@@ -106,11 +145,8 @@ export class AppComponent {
       .map((r) => (r.medicationCodeableConcept as { text?: string } | undefined)?.text ?? "(unnamed)");
   };
 
-  start(): void {
-    void this.checkin.request(REQUEST, {
-      authority: createBrowserLocalAuthority({ origin: location.origin }),
-      getCredential: createWebWalletCredentialGetter({ walletUrl: "./wallet.html" }),
-    });
+  start(responder?: Responder): void {
+    void this.checkin.request(REQUEST, responder);
   }
 }
 

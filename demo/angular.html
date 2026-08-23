@@ -31,11 +31,6 @@
   h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
   .muted { color: var(--muted); font-size: 0.92rem; }
-  .primary {
-    font: inherit; font-weight: 500; padding: 0.6rem 1.3rem; border-radius: 8px; margin-top: 0.6rem;
-    border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
-  }
-  .primary:disabled { opacity: 0.45; cursor: not-allowed; }
   .note.error { border-color: var(--danger); }
   ul.meds { list-style: none; margin: 0.9rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
   ul.meds li { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.9rem; }
@@ -45,6 +40,7 @@
     font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
   }
   a { color: var(--accent); }
+  .choices { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 </style>
 </head>
 <body>
@@ -58,9 +54,11 @@
   <header>
     <h1>Same core, Angular bindings</h1>
     <p class="muted">
-      The library is a plain async function with no framework dependency. This
-      page renders with Angular through a ~20-line injectable service; the
-      <a href="./react.html">React example</a> is the same wrapper as a hook.
+      The library is a plain async function with no framework dependency. A
+      binding owns three things: the responder list the component renders
+      (resolved from a policy), the one call, and its state. This page's
+      injectable service is all of it; the <a href="./react.html">React
+      example</a> is the same as a hook.
     </p>
   </header>
 
@@ -70,20 +68,36 @@
     <h2>The whole binding</h2>
 <pre><code>@Injectable({ providedIn: "root" })
 export class CheckinService {
+  readonly responders = signal&lt;Responder[]&gt;([]);
   readonly status = signal&lt;Status&gt;("idle");
   readonly response = signal&lt;SmartCheckinResponse | undefined&gt;(undefined);
 
-  async request(input, options?) {
+  // who may answer in this browser — availability and the default come back in the list
+  async configure(policy) {
+    this.policy = policy;
+    this.responders.set(await resolveResponders(policy));
+  }
+
+  async request(input, responder = this.responders().find((r) =&gt; r.isDefault)) {
     this.status.set("waiting");
     try {
-      this.response.set(await requestCheckin(input, options));
+      this.response.set(await requestCheckin(input, {
+        getCredential: credentialGetterFor(responder, { origin: this.policy.origin }),
+      }));
       this.status.set("done");
     } catch (e) {
-      this.status.set(
-        e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
-          ? "declined" : "error");
+      this.status.set(e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
+        ? "declined" : "error");
     }
   }
+}
+
+// …and the component renders the list: one button per responder, the default leading
+@for (r of checkin.responders(); track r.id) {
+  &lt;button [class]="r.isDefault ? 'smart-btn primary' : 'smart-btn'"
+          [disabled]="!r.available" [title]="r.reason" (click)="start(r)"&gt;
+    {{ r.name }}
+  &lt;/button&gt;
 }</code></pre>
     <p class="muted" style="font-size:0.88rem">
       Compiled in the browser (JIT) so this page needs no Angular build step —
