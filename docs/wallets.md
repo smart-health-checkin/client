@@ -23,7 +23,7 @@ get back a list your page can render:
 import { resolveResponders, credentialGetterFor } from "@smart-health-checkin/client";
 
 const responders = await resolveResponders({
-  platform: true,                      // the device's own wallet
+  platform: true,                      // the wallet installed on the device
   webWallets: "/config/wallets.json",  // wallets this deployment recognizes
   mock: import.meta.env.DEV,           // development only
   default: "platform",                 // the primary action
@@ -144,7 +144,7 @@ The policy above is the convenient path. The three mediators it resolves to
 are exported too, for pages that only ever use one:
 
 ```ts
-// 1. The person's own wallet (the default) — nothing to pass. On a phone it
+// 1. The platform wallet (the default) — nothing to pass. On a phone it
 //    opens the installed wallet; on a desktop the browser offers a QR code
 //    to scan, and the phone answers.
 await requestCheckin(myRequest);

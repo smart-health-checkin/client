@@ -164,11 +164,17 @@ replacement that strands people when it isn't available. Prefer
 
 ## Who answers the request
 
-By default, the patient's own wallet: on a phone the installed app; on a
-desktop, a QR code the phone scans, with the answer landing back on the
-desktop page. To also offer web wallets — or the mock, during development —
-state a policy and render the list it gives you. Which one leads is part of
-the policy:
+Three kinds of responder can answer a request:
+
+- the **platform wallet** — the app installed on the device, reached through
+  the Digital Credentials API; on a desktop the browser shows a QR code, the
+  phone's wallet answers, and the response still lands in the desktop page;
+- a **web wallet** — a site that opens in a tab and answers there;
+- the **mock** — fabricated data, instantly, for development and tests.
+
+The platform wallet needs no configuration. To offer the others too, state a
+policy and render the list it gives you; which one leads is part of the
+policy:
 
 ```ts
 import {
@@ -176,7 +182,7 @@ import {
 } from "@smart-health-checkin/client";
 
 const responders = await resolveResponders({
-  platform: true,                 // the device's own wallet
+  platform: true,                 // the wallet installed on the device
   webWallets: "/wallets.json",    // web wallets you recognize
   mock: import.meta.env.DEV,      // development only
   default: "platform",            // the primary action
