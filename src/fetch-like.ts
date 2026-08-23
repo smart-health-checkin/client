@@ -1,5 +1,5 @@
 /**
- * The minimal fetch signature the kit accepts, so callers can inject their
+ * The minimal fetch signature the library accepts, so callers can inject their
  * own client — auth headers, retries, tracing — without the library
  * depending on any particular one.
  *

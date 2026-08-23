@@ -1,7 +1,7 @@
 /**
  * Public barrel: the check-in protocol surface.
  *
- * The kit's job ends when your code has a validated SmartCheckinResponse.
+ * The library's job ends when your code has a validated SmartCheckinResponse.
  * FHIR writing is a separate, optional module — import it from
  * `./fhir/index.ts` (built as `fhir.js` on the site) if you want it.
  */

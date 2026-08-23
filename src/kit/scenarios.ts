@@ -18,7 +18,7 @@ export type Scenario = {
   request: SmartCheckinRequest;
 };
 
-/** Everything a request needs except the boilerplate the kit can fill in. */
+/** Everything a request needs except the boilerplate the library can fill in. */
 export type CheckinRequestInit = {
   id?: string;
   purpose?: string;

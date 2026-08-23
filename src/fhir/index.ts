@@ -3,7 +3,7 @@
  * surface. It turns a SmartCheckinResponse into ordinary FHIR and posts it,
  * for apps that want that done for them.
  *
- * Deliberately separate from the kit: what happens to patient-supplied data
+ * Deliberately separate from the check-in library: what happens to patient-supplied data
  * — where it lands, under whose authorization, with what review — is
  * deployment policy. The check-in flow itself never touches it. Use this,
  * your own FHIR client, or neither.
