@@ -4,75 +4,50 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Allergy Review</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/smart-design.css">
+<script src="/assets/site-chrome.js" defer></script>
 <style>
+  /* This demo simulates a clinic's own page, drawn on the site's design
+     system so the whole domain reads as one product family. Names below are
+     the demo's local vocabulary, mapped onto the shared tokens. */
   :root {
-    --bg: #f7faf9; --surface: #ffffff; --ink: #16211f; --muted: #5b6b67;
-    --accent: #0e7c6b; --line: #dce5e2; --code-bg: #eef4f2; --danger: #b3423a;
-    --demo-bg: #fdf6e7; --demo-line: #e0cf9f; --demo-ink: #6b5a2a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
-      --accent: #3ac2aa; --line: #24322e; --code-bg: #131c19; --danger: #e08d84;
-      --demo-bg: #1e1a10; --demo-line: #463d1f; --demo-ink: #dbc98f;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
-    --accent: #3ac2aa; --line: #24322e; --code-bg: #131c19; --danger: #e08d84;
-    --demo-bg: #1e1a10; --demo-line: #463d1f; --demo-ink: #dbc98f;
+    --ink:      var(--fg-1);
+    --muted:    var(--fg-2);
+    --accent:   var(--brand);
+    --line:     var(--border);
+    --code-bg:  var(--gray-100);
+    --demo-bg:   var(--warning-wash);
+    --demo-line: #E7C88F;
+    --demo-ink:  #7A5A16;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.5; }
+  body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.5; }
   .wrap { max-width: 44rem; margin: 0 auto; padding: 0 1.25rem; }
-  .demo-strip { background: var(--demo-bg); border-bottom: 1px solid var(--demo-line); color: var(--demo-ink); font-size: 0.85rem; }
-  .demo-strip .wrap { min-height: 2.6rem; display: flex; align-items: center; gap: 0.7rem; }
   .demo-strip .what { flex: 1; min-width: 0; }
-  .strip-link { color: inherit; text-decoration: none; font-size: 0.82rem; opacity: 0.9; flex: none; }
+  .strip-link { flex: none; text-decoration: none; }
   .strip-link:hover { text-decoration: underline; opacity: 1; }
-  .demo-badge {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.7rem; letter-spacing: 0.1em;
-    border: 1px solid currentColor; border-radius: 3px; padding: 0.05rem 0.4rem; flex: none;
-  }
-  main { padding: 1.75rem 0 4rem; display: flex; flex-direction: column; gap: 1rem; }
-  h1 { font-size: 1.3rem; margin: 0; }
-  h2 { font-size: 1rem; margin: 0 0 0.35rem; }
-  .sub { color: var(--muted); font-size: 0.93rem; margin: 0.35rem 0 0; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.15rem; }
-  button.primary {
-    font: inherit; font-weight: 500; padding: 0.55rem 1.2rem; border-radius: 8px;
-    border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
-  }
-  button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
-  button.secondary {
-    font: inherit; font-weight: 500; padding: 0.55rem 1.1rem; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
-  }
-  button.secondary:hover { border-color: var(--accent); color: var(--accent); }
-  .start-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-  .add-row { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
-  .add-row input {
-    flex: 1; font: inherit; font-size: 0.9rem; padding: 0.45rem 0.65rem;
-    border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink);
-  }
-  .add-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .note { border-left: 3px solid var(--accent); padding: 0.2rem 0.85rem; font-size: 0.88rem; color: var(--muted); margin-top: 0.7rem; }
+  main.wrap { padding: 1.75rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1rem; }
+  h1 { font-size: var(--fs-xl); margin: 0; letter-spacing: var(--tracking-tight); }
+  h2 { font-size: var(--fs-md); margin: 0 0 var(--space-2); letter-spacing: var(--tracking-snug); }
+  .sub { color: var(--fg-2); font-size: var(--fs-sm); margin: var(--space-2) 0 0; }
+  .start-row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .add-row { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
+  .add-row .smart-input { flex: 1; font-family: var(--font-sans); }
+  .smart-note { margin-top: var(--space-3); }
   a { color: var(--accent); }
   .muted { color: var(--muted); }
 
   /* --- compact allergy rows --- */
-  ul.allergies { list-style: none; margin: 0.6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
-  ul.allergies li { border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.75rem; }
-  ul.allergies li.gap { border-color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
+  ul.allergies { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  ul.allergies li { border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); background: var(--surface); }
+  ul.allergies li.gap { border-color: var(--brand); box-shadow: inset 2px 0 0 var(--brand); }
   ul.allergies li.removed { opacity: 0.5; }
-  .line { display: flex; align-items: baseline; gap: 0.4rem 0.55rem; flex-wrap: wrap; }
+  .line { display: flex; align-items: baseline; gap: var(--space-2) var(--space-3); flex-wrap: wrap; }
   .name { font-weight: 600; }
-  .said { color: var(--muted); font-size: 0.84rem; flex: 1; min-width: 6rem; }
-  .row-actions { display: inline-flex; align-items: baseline; gap: 0.6rem; margin-left: auto; }
-  .state { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+  .said { color: var(--fg-3); font-size: var(--fs-sm); flex: 1; min-width: 6rem; }
+  .row-actions { display: inline-flex; align-items: baseline; gap: var(--space-3); margin-left: auto; }
+  .state { font-size: var(--fs-xs); color: var(--fg-3); white-space: nowrap; }
   li.gap .state { color: var(--accent); font-weight: 500; }
   .linkish {
     font: inherit; font-size: 0.78rem; background: none; border: none; padding: 0 0.15rem;
@@ -111,14 +86,14 @@
   pre {
     background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
     padding: 0.8rem 0.9rem; overflow: auto; max-height: 20rem; margin: 0.5rem 0 0;
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.76rem; line-height: 1.45;
+    font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.45;
   }
 </style>
 </head>
 <body>
-<div class="demo-strip"><div class="wrap">
-  <span class="demo-badge">DEMO</span>
-  <span class="what">Autofill sketch — a provider form, prefilled</span>
+<div class="demo-strip smart-banner"><div class="wrap smart-banner-inner">
+  <span class="smart-chip warning">Demo</span>
+  <span class="what grow">Autofill sketch — a provider form, prefilled</span>
   <a class="strip-link" href="./">Full check-in demo →</a>
 </div></div>
 
@@ -134,28 +109,28 @@
     </p>
   </header>
 
-  <section class="card">
+  <section class="smart-panel">
     <div class="start-row">
-      <button id="prefill" class="primary">Prefill from your health app</button>
-      <button id="manual" class="secondary">I'll enter them myself</button>
+      <button id="prefill" class="smart-btn primary">Prefill from your health app</button>
+      <button id="manual" class="smart-btn">I'll enter them myself</button>
     </div>
-    <p class="note" id="status-note"></p>
+    <p class="smart-note" id="status-note"></p>
   </section>
 
-  <section class="card" id="review-card" hidden>
+  <section class="smart-panel" id="review-card" hidden>
     <h2>Your allergy list <span class="muted" style="font-weight:400; font-size:0.85rem">— from your app</span></h2>
     <ul class="allergies" id="allergy-list"></ul>
     <div class="add-row">
-      <input id="new-allergy" placeholder="Add an allergy — e.g. Amoxicillin" aria-label="Add an allergy">
-      <button id="add-row" class="secondary">Add</button>
+      <input class="smart-input" id="new-allergy" placeholder="Add an allergy — e.g. Amoxicillin" aria-label="Add an allergy">
+      <button id="add-row" class="smart-btn">Add</button>
     </div>
     <p class="progress" id="progress"></p>
     <div class="actions">
-      <button id="send" class="primary">Send to care team</button>
+      <button id="send" class="smart-btn primary">Send to care team</button>
     </div>
   </section>
 
-  <section class="card" id="sent-card" hidden>
+  <section class="smart-panel" id="sent-card" hidden>
     <h2>What the clinic stores</h2>
     <p class="muted" style="font-size:0.88rem">
       The same review, two ways — the check-in page is ordinary application

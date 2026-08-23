@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check in on your phone</title>
+<link rel="stylesheet" href="/assets/smart-design.css">
+<script src="/assets/site-chrome.js" defer></script>
+<style>
+  :root { --ink: var(--fg-1); --muted: var(--fg-2); --line: var(--border); }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; }
+  .wrap { max-width: 28rem; margin: 0 auto; padding: 0 var(--space-5); }
+  main.wrap { padding-top: var(--space-6); padding-bottom: var(--space-9); display: flex; flex-direction: column; gap: var(--space-4); }
+  h1 { margin: 0 0 var(--space-2); font-size: var(--fs-xl); letter-spacing: var(--tracking-tight); }
+  p { margin: var(--space-2) 0; color: var(--muted); }
+  .from { font-size: var(--fs-sm); color: var(--fg-3); }
+  ul.ask { margin: var(--space-3) 0; padding-left: 1.2em; color: var(--muted); }
+  .choices { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
+  .choices .smart-btn { justify-content: center; }
+  #note { font-size: var(--fs-sm); color: var(--fg-3); min-height: 1.5em; }
+</style>
+</head>
+<body>
+
+<div class="demo-strip smart-banner">
+  <div class="wrap smart-banner-inner">
+    <span class="smart-chip warning">Demo</span>
+    <span class="what grow">The phone's side of a kiosk check-in.</span>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="smart-panel" id="ask" hidden>
+    <div class="from">Request from <span id="from"></span></div>
+    <h1 id="purpose"></h1>
+    <p>They're asking your health app for:</p>
+    <ul class="ask" id="items"></ul>
+    <p>You choose what to share, item by item.</p>
+    <div class="choices" id="choices"></div>
+  </section>
+  <section class="smart-panel" id="done" hidden>
+    <h1 id="done-headline"></h1>
+    <p id="done-text"></p>
+  </section>
+  <p id="note">Picking up the request…</p>
+</main>
+
+<script type="module" src="./handoff.js"></script>
+</body>
+</html>

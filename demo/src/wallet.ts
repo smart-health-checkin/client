@@ -16,7 +16,7 @@ import {
   buildMockResponse,
   parseWalletRequest,
   sealWalletResponse,
-  type MockItemSpec,
+  type MockItemSpec, type MockItemSpecs, DEMO_HEALTH_CARD_JWS,
   type SmartCheckinRequest,
   type SmartCheckinRequestItem,
   type SmartCheckinResponse,
@@ -71,9 +71,29 @@ const brand =
 
 /** Answer each requested item out of this wallet's own records. */
 function respond(request: SmartCheckinRequest): SmartCheckinResponse {
-  const items: Record<string, MockItemSpec> = {};
+  const items: Record<string, MockItemSpecs> = {};
   for (const item of request.items) {
-    items[item.id] = specFor(item);
+    const spec = specFor(item);
+    // A signed card and the same facts as plain FHIR, when both are welcome.
+    items[item.id] =
+      "fhir" in spec && item.accept.includes("application/smart-health-card") && item.accept.includes("application/fhir+json")
+        ? [{ healthCard: [DEMO_HEALTH_CARD_JWS] }, spec]
+        : spec;
+  }
+  // One bundle for a summary item and any item its profiles already cover —
+  // a wallet doesn't send the allergy list twice.
+  for (const summary of request.items) {
+    if (summary.content.kind !== "selection.fhir" || !summary.content.profilesFrom?.length) continue;
+    const profiles = summary.content.profiles ?? [];
+    const spec = items[summary.id];
+    if (!spec || Array.isArray(spec) || !("fhir" in spec)) continue;
+    const covered = request.items
+      .filter((o) => o !== summary && o.content.kind === "selection.fhir" && o.content.profiles?.length && o.accept.includes("application/fhir+json"))
+      .filter((o) => (o.content as { profiles?: readonly string[] }).profiles!.every((p) => profiles.includes(p)))
+      .map((o) => o.id);
+    if (!covered.length) continue;
+    items[summary.id] = { ...spec, alsoFulfills: covered };
+    for (const id of covered) delete items[id];
   }
   return buildMockResponse(request, { items });
 }

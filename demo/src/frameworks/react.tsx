@@ -46,7 +46,7 @@ function MedicationCheckin() {
         the vanilla and Angular examples use.
       </p>
 
-      <button className="primary" onClick={() => void start()} disabled={status === "waiting"}>
+      <button className="smart-btn primary" onClick={() => void start()} disabled={status === "waiting"}>
         {status === "waiting" ? "Waiting for your health app…" : "Prefill from your health app"}
       </button>
 

@@ -4,39 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>React example</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/smart-design.css">
+<script src="/assets/site-chrome.js" defer></script>
 <style>
+  /* This demo simulates a clinic's own page, drawn on the site's design
+     system so the whole domain reads as one product family. Names below are
+     the demo's local vocabulary, mapped onto the shared tokens. */
   :root {
-    --bg: #f7faf9; --surface: #ffffff; --ink: #16211f; --muted: #5b6b67;
-    --accent: #0e7c6b; --line: #dce5e2; --danger: #b3423a;
-    --demo-bg: #fdf6e7; --demo-line: #e0cf9f; --demo-ink: #6b5a2a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
-      --accent: #3ac2aa; --line: #24322e; --danger: #e08d84;
-      --demo-bg: #1e1a10; --demo-line: #463d1f; --demo-ink: #dbc98f;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0e1513; --surface: #16201d; --ink: #e6efec; --muted: #93a5a0;
-    --accent: #3ac2aa; --line: #24322e; --danger: #e08d84;
-    --demo-bg: #1e1a10; --demo-line: #463d1f; --demo-ink: #dbc98f;
+    --ink:      var(--fg-1);
+    --muted:    var(--fg-2);
+    --accent:   var(--brand);
+    --line:     var(--border);
+    --code-bg:  var(--gray-100);
+    --demo-bg:   var(--warning-wash);
+    --demo-line: #E7C88F;
+    --demo-ink:  #7A5A16;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.55; }
-  .demo-strip { background: var(--demo-bg); border-bottom: 1px solid var(--demo-line); color: var(--demo-ink); font-size: 0.85rem; }
+  body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; }
   .wrap { max-width: 42rem; margin: 0 auto; padding: 0 1.25rem; }
-  .demo-strip .wrap { min-height: 2.75rem; display: flex; align-items: center; gap: 0.75rem; }
   .demo-strip .what { flex: 1; min-width: 0; }
-  .strip-link { color: inherit; text-decoration: none; font-size: 0.82rem; opacity: 0.9; flex: none; }
+  .strip-link { flex: none; text-decoration: none; }
   .strip-link:hover { text-decoration: underline; opacity: 1; }
-  .demo-badge {
-    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.7rem; letter-spacing: 0.1em;
-    border: 1px solid currentColor; border-radius: 3px; padding: 0.05rem 0.4rem; flex: none;
-  }
-  main { padding: 2rem 0 4rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  main.wrap { padding: 2rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.1rem; }
   h1 { font-size: 1.35rem; margin: 0; }
   h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
@@ -46,18 +36,21 @@
     border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
   }
   .primary:disabled { opacity: 0.45; cursor: not-allowed; }
-  .note { border-left: 3px solid var(--accent); padding: 0.25rem 0.9rem; font-size: 0.9rem; color: var(--muted); }
   .note.error { border-color: var(--danger); }
   ul.meds { list-style: none; margin: 0.9rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
   ul.meds li { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.9rem; }
-  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.78rem; }
+  pre {
+    background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: var(--space-4); overflow-x: auto;
+    font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
+  }
   a { color: var(--accent); }
 </style>
 </head>
 <body>
-<div class="demo-strip"><div class="wrap">
-  <span class="demo-badge">DEMO</span>
-  <span class="what">React bindings over the same vanilla core</span>
+<div class="demo-strip smart-banner"><div class="wrap smart-banner-inner">
+  <span class="smart-chip warning">Demo</span>
+  <span class="what grow">React bindings over the same vanilla core</span>
   <a class="strip-link" href="./">Full check-in demo →</a>
 </div></div>
 
@@ -72,7 +65,7 @@
 
   <div id="root"></div>
 
-  <section class="card">
+  <section class="smart-panel">
     <h2>The whole binding</h2>
 <pre><code>export function useCheckin(request, options) {
   const [state, setState] = useState({ status: "idle" });

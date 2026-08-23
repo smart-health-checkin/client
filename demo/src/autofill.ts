@@ -66,8 +66,10 @@ type Row = {
 const el = (id: string): HTMLElement => document.getElementById(id)!;
 const params = new URLSearchParams(location.hash.replace(/^#/, ""));
 const walletParam = params.get("wallet") ?? (params.get("mock") === "1" ? "auto" : params.get("mock"));
+// Defaults to the demo wallet, which works in any browser; #wallet=platform
+// asks the device's own. "demo" is the wallet's registry id, "app" its old name.
 const wallet: "platform" | "app" | "auto" =
-  walletParam === "app" ? "app" : walletParam === "auto" ? "auto" : "platform";
+  walletParam === "platform" ? "platform" : walletParam === "auto" || walletParam === "mock" ? "auto" : "app";
 const credentialGetter =
   wallet === "app"
     ? createWebWalletCredentialGetter({ walletUrl: "./wallet.html" })
@@ -99,9 +101,9 @@ function init(): void {
     note.textContent = "Automatic mock wallet — fabricated demo allergies, no consent screen.";
   } else if (support.state === "supported") {
     note.textContent =
-      "Your own wallet can answer — on a desktop the browser offers a QR code to scan with your phone. (Add #wallet=app to use the demo wallet tab instead.)";
+      "Your own wallet can answer — on a desktop the browser offers a QR code to scan with your phone. (Drop #wallet=platform to use the demo wallet tab instead.)";
   } else {
-    note.textContent = `Digital Credentials API not available here (${support.reason}). Add #wallet=app to run with the demo wallet tab.`;
+    note.textContent = `Digital Credentials API not available here (${support.reason}). Drop #wallet=platform to run with the demo wallet tab.`;
     button.disabled = true;
   }
   button.onclick = () => void prefill();

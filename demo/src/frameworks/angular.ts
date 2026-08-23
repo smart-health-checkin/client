@@ -73,7 +73,7 @@ const REQUEST = {
         the vanilla and React examples use.
       </p>
 
-      <button class="primary" (click)="start()" [disabled]="checkin.status() === 'waiting'">
+      <button class="smart-btn primary" (click)="start()" [disabled]="checkin.status() === 'waiting'">
         {{ checkin.status() === "waiting" ? "Waiting for your health app…" : "Prefill from your health app" }}
       </button>
 

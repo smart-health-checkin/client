@@ -21,18 +21,22 @@ import {
   type SmartCheckinRequest,
   type SmartCheckinResponse,
 } from "../../src/index.js";
+import { explainResponse, renderExplorer } from "./explore.js";
 import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.js";
 
-const DEFAULT_FHIR_BASE = "https://hapi.fhir.org/baseR4";
-const KNOWN_OPEN_SERVERS = [DEFAULT_FHIR_BASE];
-const DEFAULT_SCENARIO = "insurance-only";
+// The demo never posts anywhere unless you set a base in Demo controls.
+const DEFAULT_FHIR_BASE = "";
+const KNOWN_OPEN_SERVERS = ["https://hapi.fhir.org/baseR4"];
+const DEFAULT_SCENARIO = "visit-prep";
 const DEMO_PATIENT = "Patient/example";
 const DEMO_PATIENT_NAME = "Jordan Reyes (demo)";
 const DEMO_APPOINTMENT = "Appointment/demo-visit";
 
 /**
- * The relying party declares what it accepts; the kit resolves it into the
- * list this page renders. `wallets=<url>` swaps in a different registry.
+ * The relying party declares what it accepts and which one leads; the kit
+ * resolves that into the list this page renders. `wallets=<url>` swaps in a
+ * different registry. The demo wallet leads because it works in any browser;
+ * a real deployment would more likely name "platform".
  */
 async function loadResponders(registryUrl: string | null): Promise<Responder[]> {
   return resolveResponders({
@@ -40,8 +44,12 @@ async function loadResponders(registryUrl: string | null): Promise<Responder[]> 
     webWallets: registryUrl ?? "./wallets.json",
     mock: true,
     origin: location.origin,
+    default: "demo",
   });
 }
+
+let RESPONDERS: Responder[] = [];
+const defaultResponderId = (): string => RESPONDERS.find((r) => r.isDefault)?.id ?? "platform";
 
 type WalletMode = string;
 type AfterMode = "none" | PostMode;
@@ -81,7 +89,7 @@ function readSettings(): Settings {
   return {
     request: passthrough ?? SCENARIOS[scenarioKey!]!.request,
     scenarioKey,
-    wallet: walletParam ?? "platform",
+    wallet: walletParam ?? defaultResponderId(),
     after: after === "transaction" || after === "individual" ? after : "none",
     patient: p.get("patient") ?? DEMO_PATIENT,
     appointment: p.get("appointment") ?? DEMO_APPOINTMENT,
@@ -97,8 +105,6 @@ function setParam(key: string, value: string, dropWhen?: string): void {
   if (key === "wallet") p.delete("mock");
   location.hash = `#${p.toString()}`;
 }
-
-let RESPONDERS: Responder[] = [];
 
 function responderFor(id: WalletMode): Responder | undefined {
   // back-compat with the old ?wallet=app / auto values
@@ -144,6 +150,7 @@ function renderArtifacts(): void {
     const tools = document.createElement("span");
     tools.className = "tools";
     const copy = document.createElement("button");
+    copy.className = "smart-btn sm mono";
     copy.type = "button";
     copy.textContent = "copy";
     copy.onclick = (event) => {
@@ -155,6 +162,7 @@ function renderArtifacts(): void {
       });
     };
     const openTab = document.createElement("button");
+    openTab.className = "smart-btn sm mono";
     openTab.type = "button";
     openTab.textContent = "open ↗";
     openTab.onclick = (event) => {
@@ -241,7 +249,7 @@ function render(): void {
     s.patient === DEMO_PATIENT ? `${DEMO_PATIENT_NAME} · ${s.patient}` : s.patient || "not linked",
   );
   addContext("Appointment:", s.appointment || "upcoming visit");
-  if (s.after !== "none") addContext("Records go to:", hostOf(s.fhirBase));
+  if (s.after !== "none") addContext("Records go to:", s.fhirBase ? hostOf(s.fhirBase) : "nowhere — no FHIR base set");
 
   // requested items
   el("purpose-line").textContent = s.request.purpose
@@ -263,7 +271,7 @@ function render(): void {
       body.append(summary);
     }
     const chip = document.createElement("span");
-    chip.className = "chip";
+    chip.className = "chip smart-chip";
     chip.textContent = item.required ? "requested" : "optional";
     li.append(body, chip);
     items.append(li);
@@ -276,11 +284,14 @@ function render(): void {
   const note = el("backend-note");
   const ackWrap = el("backend-ack-wrap");
   const ack = el("backend-ack") as HTMLInputElement;
+  const willPost = s.after !== "none" && !!s.fhirBase;
   const knownServer = KNOWN_OPEN_SERVERS.includes(s.fhirBase);
-  const needsAck = s.after !== "none" && !knownServer;
+  const needsAck = willPost && !knownServer;
   note.hidden = s.after === "none";
   ackWrap.hidden = !needsAck;
-  if (s.after !== "none") {
+  if (!willPost && s.after !== "none") {
+    note.textContent = "No FHIR base is set, so nothing will be posted — the response stays in this page. Set one in Demo controls to post.";
+  } else if (willPost) {
     note.textContent = knownServer
       ? "This page will post results to the public HAPI test server (periodically wiped — test data only)."
       : `Caution: this page will post shared data to ${hostOf(s.fhirBase)}. Only proceed with test data and a server you recognize.`;
@@ -368,7 +379,7 @@ async function checkIn(s: Settings): Promise<void> {
 
     // 2. From here it is ordinary application code. This page happens to post
     //    FHIR using the optional helper — the kit was not involved.
-    if (s.after !== "none") {
+    if (s.after !== "none" && s.fhirBase) {
       const bundle = buildCheckinBundle({
         request: s.request,
         response,
@@ -420,31 +431,16 @@ function renderOutcome(
       ? "Nothing was shared. You can check in at the front desk instead."
       : (message ?? "");
 
-  const table = el("outcome-items");
-  table.innerHTML = "";
-  if (response) {
-    const statusById = new Map(response.requestStatus.map((r) => [r.item, r.status]));
-    for (const item of s.request.items) {
-      const row = document.createElement("tr");
-      const sharedAs = response.artifacts
-        .filter((a) => a.fulfills.includes(item.id))
-        .map((a) => a.mediaType)
-        .join(", ");
-      for (const text of [item.title, statusById.get(item.id) ?? "—", sharedAs || "—"]) {
-        const cell = document.createElement("td");
-        cell.textContent = text;
-        row.append(cell);
-      }
-      table.append(row);
-    }
-  }
+  const explore = el("explore");
+  explore.innerHTML = "";
+  if (response) void explainResponse(s.request, response).then((view) => renderExplorer(explore, view));
   el("outcome-note").textContent = "";
 
   const returnWrap = el("return-wrap");
   returnWrap.innerHTML = "";
   if (s.returnUrl && status === "completed") {
     const a = document.createElement("a");
-    a.className = "return-link";
+    a.className = "return-link smart-btn primary";
     a.href = s.returnUrl;
     a.textContent = "Continue check-in →";
     returnWrap.append(a);
@@ -462,6 +458,7 @@ function renderCreatedLinks(result: unknown, fhirBase: string): void {
   list.className = "dev-links";
   for (const location of links) {
     const a = document.createElement("a");
+    a.className = "smart-btn sm mono";
     a.href = `${fhirBase}/${location}`;
     a.target = "_blank";
     a.rel = "noreferrer";
