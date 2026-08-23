@@ -13,12 +13,13 @@ response.requestStatus;  // [{ item: "allergies", status: "fulfilled" }]
 
 ## What the library has verified
 
-Before your code sees a response, the kit has:
+Before your code sees a response, the library has:
 
 - HPKE-decrypted it using a key bound to **this** request and **your** page's
   origin, so a response captured elsewhere cannot be replayed at you;
-- verified the issuer signature (COSE) and the device signature over the
-  session transcript, and re-hashed every element against the signed digests;
+- verified the issuer's signature and the device's signature over the session
+  transcript — the binding to your page's origin — and re-hashed every element
+  against the signed digests;
 - confirmed the response answers *this* request: matching request id, every
   `fulfills` pointing at a real item, every artifact's media type in that
   item's `accept` list, and exactly one status per item.
@@ -45,7 +46,7 @@ your own form for the rest rather than treating a partial share as a failure.
 const byItem = new Map(response.requestStatus.map((s) => [s.item, s.status]));
 for (const item of myRequest.items) {
   const status = byItem.get(item.id);
-  if (status !== "fulfilled") promptManuallyFor(item);
+  if (status !== "fulfilled") askMyFormAbout(item);
 }
 ```
 
@@ -112,7 +113,7 @@ Two things that follow from doing it this way:
 
 ## Storing the response
 
-The kit stops here on purpose — see [Writing FHIR](fhir.md) for the optional
+The library stops here on purpose — see [Writing FHIR](fhir.md) for the optional
 helper, or write it however your system wants. What matters is that patient-
 supplied data is *labelled* as such wherever it lands, so a human can tell it
 apart from what a clinician entered.

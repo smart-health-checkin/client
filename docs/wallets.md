@@ -16,8 +16,7 @@ Three words this guide uses precisely:
 
 ## Configure the list of responding wallets
 
-Something has to answer the request. The library can hand it to three kinds
-of responder:
+The three kinds of responder, concretely:
 
 - the **platform wallet** — whatever the operating system offers through the
   Digital Credentials API; on a desktop, a QR code the phone scans;
@@ -58,7 +57,7 @@ for (const responder of responders) {
   button.onclick = () => requestCheckin(myRequest, {
     getCredential: credentialGetterFor(responder),
   }).then(prefillMyForm);
-  menu.append(button);
+  myMenu.append(button);
 }
 ```
 
@@ -96,12 +95,12 @@ two calls is your page.
                                          · web  → opens wallet.walletUrl in
                                                   a tab, relays the request
                                          · mock → answers instantly
-                                         · platform → undefined: the
+                                         · platform → the default: the
                                            browser's own credentials.get
   5  getCredential  ◄─────────────────┘
 
   6  requestCheckin(request,
-       { getCredential }) ────────────►  build the mdoc request, call the
+       { getCredential }) ────────────►  build the wire request, call the
                                          getter, decrypt, verify, cross-check
   7  response  ◄─────────────────────┘
 ```
@@ -158,8 +157,9 @@ origin, so a wallet you list can see what you asked for.
 
 ## Using a credential getter directly
 
-The policy above is the convenient path. The three credential getters it
-resolves to are exported too, for pages that only ever use one:
+The policy above is the convenient path. For a page that only ever uses one
+responder, the getters are there to call directly — and the platform wallet is
+what you get by passing nothing:
 
 ```ts
 // 1. The platform wallet (the default) — nothing to pass. On a phone it
@@ -180,16 +180,16 @@ await requestCheckin(myRequest, {
 });
 ```
 
-All three produce byte-identical wire traffic: real CBOR, real COSE
-signatures, real HPKE encryption, verified the same way. Only the credential
+All three produce the same wire traffic — the same encoding, the same
+signatures, the same encryption — verified the same way. Only the credential
 getter differs — so a flow proven against the web wallet is proven against the
 protocol.
 
 The demo wallet's own source is worth reading if you're building a responder:
 [`demo/wallet.html`](https://github.com/smart-health-checkin/client/blob/main/demo/wallet.html)
 plus [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts).
-It parses the DeviceRequest, shows the requesting origin and a per-item
-consent screen, and signs and seals a DeviceResponse bound to that origin.
+It parses the request off the wire, shows the requesting origin and a
+per-item consent screen, and signs and seals a response bound to that origin.
 
 ## Specify what the mock returns
 
@@ -218,7 +218,7 @@ const getCredential = createMockWalletCredentialGetter({
 That drives the whole real pipeline — CBOR, COSE signing, HPKE sealing, and
 verification on the way back in — so you're testing your integration, not a
 stub. When you only want the response object and none of the wire work,
-`buildMockResponse(request, spec)` returns it directly.
+`buildMockResponse(request, { items, fallback })` returns it directly.
 
 Two shapes a real wallet produces are spelled the same way: a list of specs
 returns several artifacts for one item (a signed card *and* the same facts as
@@ -240,8 +240,8 @@ if (support.state === "unsupported") {
 }
 ```
 
-`runCheckin` does this for you and returns `status: "unsupported"` without
-ever prompting the patient — nobody sees a button that can't work.
+`runCheckin` (the non-throwing form of `requestCheckin`) does this for you
+and returns `status: "unsupported"` without ever prompting the patient — nobody sees a button that can't work.
 
 **Desktop is not a dead end.** Where the browser supports the API — recent
 Chrome, Safari 26 — a desktop check-in is still worth offering: the browser
@@ -276,7 +276,8 @@ a click handler. Automated tests need synthesized input events (a scripted
 
 ## Key custody
 
-The `authority` option decides where the verifier's private key lives:
+The *authority* is the part of the flow that holds the private key and opens
+the response — the `authority` option decides where it lives:
 
 ```ts
 await requestCheckin(myRequest, { authority: "browser-local" });        // default

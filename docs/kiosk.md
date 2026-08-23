@@ -30,19 +30,21 @@ decline on the phone arrives at the kiosk as a decline, not as silence.
 ```ts
 import { runCheckin, createHandoff } from "@smart-health-checkin/client";
 
-const outcome = await runCheckin(request, createHandoff({
-  mailbox,                                  // yours — below
-  handoffUrl: "/checkin/handoff.html",      // the page the phone opens
-  onWaiting: ({ url }) => drawQrCode(url),  // the session id rides in the fragment
+const outcome = await runCheckin(myRequest, createHandoff({
+  mailbox: myMailbox,                         // yours — see "The mailbox" below
+  handoffUrl: "/checkin/handoff.html",        // the page the phone opens
+  onWaiting: ({ url }) => drawMyQrCode(url),  // the session id rides in the fragment
 }));
 ```
 
-`createHandoff` returns two things: an authority that computes the session
-transcript for the hand-off page's origin — because that is where the wallet
-will be asked — and a `getCredential` that posts the envelope, calls
-`onWaiting`, and waits. The key stays in this page, as always. The outcome is
-the ordinary one: `completed`, `declined`, or an error, and the response has
-been through the same checks as a same-device check-in.
+`createHandoff` returns the two options `runCheckin` needs. One is the
+*authority* — the part that holds the key and opens the response — set up for
+the hand-off page's origin, because a wallet binds its answer to the page that
+asked it, and that page is on the phone. The other is a credential getter that
+posts the envelope, calls `onWaiting`, and waits. The key stays in this page,
+as always. The outcome is the ordinary one: `completed`, `declined`, or an
+error, and the response has been through the same checks as a same-device
+check-in.
 
 ## The phone page
 
@@ -50,14 +52,14 @@ been through the same checks as a same-device check-in.
 import { fetchHandoff, answerHandoff, sessionIdFromHash } from "@smart-health-checkin/client";
 
 const sessionId = sessionIdFromHash(location.hash)!;
-const { envelope, request } = await fetchHandoff(mailbox, sessionId);
-showWhatIsAskedFor(request);                          // purpose and item titles
+const { envelope, request } = await fetchHandoff(myMailbox, sessionId);
+showMyConsentScreen(request);                         // purpose and item titles
 
-button.onclick = () => answerHandoff(mailbox, sessionId, envelope);
+myShareButton.onclick = () => answerHandoff(myMailbox, sessionId, envelope);
 ```
 
-`answerHandoff` calls `navigator.credentials.get` with the kiosk's argument
-and posts back what the wallet returned. It takes an optional `getCredential`
+`answerHandoff` calls `navigator.credentials.get` with exactly what the kiosk
+prepared and posts back what the wallet returned. It takes an optional `getCredential`
 — the same credential getters as everywhere, so `credentialGetterFor(responder)` lets
 the demo wallet or the mock answer on the phone too. The demo's hand-off page
 offers the usual [responder list](wallets.md) with the platform wallet leading.
@@ -98,8 +100,8 @@ rules make the session id the capability: read and post with it, answer once.
 ## What differs from a same-device check-in
 
 Only the origin. The wallet binds its response to the page that asked — the
-phone's hand-off page — so the kiosk's authority is built for that origin, and
-`createHandoff` does that for you. Everything after the credential arrives is
+phone's hand-off page — so the kiosk opens it expecting that origin, and
+`createHandoff` arranges that for you. Everything after the credential arrives is
 identical. The [production checklist](production.md) applies unchanged; a
 kiosk in a public place should additionally clear its screen on a timer, and
 treat the hand-off page as part of its trust boundary.

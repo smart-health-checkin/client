@@ -9,7 +9,9 @@ only decrypted server-side.
 The seam is deliberately small: **two JSON calls**, and the server owns one
 short-lived piece of state. Nothing here is protocol — the wire format
 between page and wallet is unchanged. This is a contract between *your* page
-and *your* server, and you can implement it in any language.
+and *your* server, and you can implement it in any language. The wire terms
+below (DeviceRequest, SessionTranscript, MSO) are the spec's; §8 of the
+[draft](https://smart-health-checkin.org/spec/) defines them.
 
 ## The two calls
 
@@ -130,8 +132,8 @@ const outcome = await runCheckin(myRequest, {
 });
 
 if (outcome.status === "completed") {
-  if (outcome.response) prefillForm(outcome.response);   // server returned data
-  else showReceipt(outcome.serverReference);              // server kept it
+  if (outcome.response) prefillMyForm(outcome.response); // server returned data
+  else showMyReceipt(outcome.serverReference);            // server kept it
 }
 ```
 

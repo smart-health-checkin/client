@@ -52,6 +52,12 @@ export {
   type OrgIsoMdocNavigatorArgument,
 } from "./wire/request.js";
 
+// The wire layer, for anyone building a server-held-key authority in this
+// language: the same functions the browser-local authority is made of.
+export { buildDcapiSessionTranscript, buildOrgIsoMdocRequest } from "./wire/request.js";
+export { openWalletResponse } from "./wire/response.js";
+export { verifyDeviceResponseSignatures } from "./wire/verify.js";
+
 export {
   createBrowserLocalAuthority,
   createServerAuthority,

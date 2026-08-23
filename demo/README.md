@@ -21,7 +21,7 @@ string, so patient identifiers and request payloads never reach server logs.
 | `patient` | FHIR Patient reference on the target server (e.g. `Patient/123`). |
 | `appointment` | FHIR Appointment reference; fetched for display context when present. |
 | `fhir` | A FHIR base URL to post to. No default: without one, nothing is posted. |
-| `post` | `none` (default — the response stays in the page), `transaction`, or `individual`. Posting uses the optional `fhir` helper, not the kit. |
+| `post` | `none` (default — the response stays in the page), `transaction`, or `individual`. Posting uses the optional `fhir` helper, not the library. |
 | `returnUrl` | Where the patient lands after completion — the closed-loop return leg. |
 | `wallet` | Which responder answers: the `id` of any wallet in the registry (`demo` — the page's default — or `evergreen`), `platform` for the device's own wallet, or `mock`. The older values `app` and `auto` still map to `demo` and `mock`. |
 | `wallets` | URL of a wallet registry to offer, replacing `./wallets.json`. |

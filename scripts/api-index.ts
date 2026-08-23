@@ -125,6 +125,17 @@ export const API_GROUPS: ApiGroup[] = [
     ],
   },
   {
+    title: "The wire layer",
+    blurb: "What an authority is made of — for a server that holds the key, in this language. Most pages never call these.",
+    module: "checkin",
+    entries: [
+      { name: "buildOrgIsoMdocRequest", what: "Mint the HPKE keypair and build the navigator argument for a request and an origin." },
+      { name: "buildDcapiSessionTranscript", what: "The session transcript the wallet will have bound its answer to: encryptionInfo plus the asking page's origin." },
+      { name: "openWalletResponse", what: "HPKE-open a sealed response with the private key and that transcript." },
+      { name: "verifyDeviceResponseSignatures", what: "Issuer signature, device signature, and MSO digests — the checks a browser-local authority runs." },
+    ],
+  },
+  {
     title: "Validate and inspect",
     blurb: "The checks the library already runs — exported so you can run them yourself.",
     module: "checkin",

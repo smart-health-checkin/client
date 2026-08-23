@@ -6,7 +6,7 @@ and what formats you'll take.
 
 ```ts
 {
-  id: "coverage",                         // your handle for this item
+  id: "coverage",                         // your id for this item
   title: "Insurance coverage",            // shown to the patient
   summary: "So we can verify benefits before your visit.",
   required: true,                         // advisory — the patient still chooses
@@ -26,8 +26,8 @@ selectors, all optional and additive:
 
 | Selector | Means | Example |
 | --- | --- | --- |
-| `profiles` | These exact StructureDefinitions | `.../us-core-allergyintolerance` |
-| `profilesFrom` | Anything from this profile family / IG | `http://hl7.org/fhir/us/core` |
+| `profiles` | These exact profiles (StructureDefinition canonical URLs) | `.../us-core-allergyintolerance` |
+| `profilesFrom` | Anything from this implementation guide | `http://hl7.org/fhir/us/core` |
 | `resourceTypes` | Plain FHIR resource types | `["Immunization"]` |
 
 ```ts
@@ -53,7 +53,7 @@ share" — occasionally what you want, usually too broad to be polite.
 
 **Selectors are a request, not a filter.** A wallet may return more, less, or
 adjacent data. Always validate what arrives against what you can actually
-use; the kit checks protocol conformance, not clinical fitness.
+use; the library checks protocol conformance, not clinical fitness.
 
 ## Questionnaires: `form.fhir`
 
@@ -97,7 +97,7 @@ accept: ["application/smart-health-card", "application/fhir+json"]
 ```
 
 Order signals preference: "a signed card if you have one, otherwise plain
-FHIR." Only list what you can actually process — the kit rejects a response
+FHIR." Only list what you can actually process — the library rejects a response
 whose artifact type isn't in your `accept` list.
 
 ## Three ways to pass a request
@@ -107,12 +107,12 @@ Three shapes, all accepted by `requestCheckin` and `runCheckin`:
 ```ts
 await requestCheckin({ purpose, items });          // inline (boilerplate filled in)
 await requestCheckin(myFullSmartCheckinRequest);   // a complete request object
-await requestCheckin({ scenario: "visit-prep" });  // a name you registered
+await requestCheckin({ scenario: "visit-prep" });  // a named scenario
 ```
 
 `buildRequest(init)` returns the completed object if you want to inspect,
-cache, or serialize it. `registerScenario(name, init)` names one so
-declarative surfaces (or a demo page's URL) can refer to it:
+cache, or serialize it. `registerScenario(name, init)` names one, so a URL or
+a config file can refer to it:
 
 ```ts
 import { registerScenario } from "@smart-health-checkin/client";
@@ -132,7 +132,7 @@ pages and for reading, not as a blessed vocabulary. Write your own.
 No requester identity, no credentials, no callback URLs, no trust claims.
 `purpose` and `title` are display strings — a wallet must never treat them as
 proof of who is asking. Who you are is established by the browser-asserted
-origin (and, optionally, reader authentication), not by anything you type
-into the request body.
+origin (and, optionally, reader authentication — the spec's mechanism for a
+verifier to sign its request), not by anything you type into the request body.
 
 Next: [Response model](responses.md)

@@ -17,8 +17,10 @@ it in, and you can ignore it entirely and use your own client.
 ## Build, inspect, then send
 
 ```ts
+const response = await requestCheckin(myRequest);
+
 const plan = buildCheckinBundle({
-  request,
+  request: myRequest,
   response,
   context: { patient: "Patient/123", appointment: "Appointment/456" },
 });
@@ -45,10 +47,9 @@ reviewer, or hand it to your own authenticated client instead of calling
   pointing at everything created, carrying the check-in request id and your
   configured patient/appointment as identifier entities.
 
-That last detail is a small lesson learned in public: the appointment rides as
-an *identifier entity*, not a `Provenance.target` reference, because a target
-reference must resolve on the destination server and a demo appointment id
-won't. Identifiers travel; references don't.
+The appointment rides as an *identifier entity*, not a `Provenance.target`
+reference, because a target reference must resolve on the destination server
+and a demo appointment id won't. Identifiers travel; references don't.
 
 **No patient matching happens, ever.** Whatever you pass as `context` is what
 gets stamped. Matching a share to a chart is your system's job, with your

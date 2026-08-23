@@ -6,8 +6,8 @@ these are deployment policy rather than protocol.
 
 ## Key custody
 
-The verifier's HPKE keypair is generated in the page, used for exactly one
-exchange, and discarded. That is the intended arrangement, not a stepping
+The keypair the response is sealed to is generated in the page, used for
+exactly one exchange, and discarded. That is the intended arrangement, not a stepping
 stone to something server-side.
 
 It has to be, for two reasons:
@@ -27,7 +27,8 @@ origin, so it can't be read in transit or replayed at another site. Keeping
 that key in page memory is appropriate — it is ephemeral, single-use, and
 guards a payload the page is entitled to read anyway.
 
-A `{ server }` authority exists for the narrow case where a deployment
+A `{ server }` authority — the `authority` option names the part of the flow
+that holds the key and opens the response — exists for the narrow case where a deployment
 specifically does *not* want the page to hold the response — a kiosk you
 don't control, or a policy that says PHI may only be decrypted server-side.
 Understand the trade: you lose in-page prefill, and you take on a service to
@@ -40,7 +41,7 @@ XSS on a check-in page as what it is — a data breach.
 
 ## Trust policy
 
-The kit verifies that a response is internally consistent: signatures check
+The library verifies that a response is internally consistent: signatures check
 out against the certificate the wallet presented, the digests match, and the
 session binding is correct. It hands you the certificate chain. It does not
 decide **which** wallets or issuers you're willing to believe — the demo

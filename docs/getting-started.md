@@ -107,7 +107,7 @@ const response = await requestCheckin({
 });
 ```
 
-You wrote `purpose` and `items`; the kit filled in the protocol boilerplate
+You wrote `purpose` and `items`; the library filled in the protocol boilerplate
 (`type`, `version`, a unique `id`, `fhirVersions`). `purpose` and each
 `title` are shown to the patient, so write them for a person, not a chart.
 
@@ -137,7 +137,9 @@ and the prefill patterns worth copying.
 
 ## Declined, unsupported, and errors
 
-Three things happen in the real world besides "it worked":
+Three things happen in the real world besides "it worked". (In every sample
+from here on, names starting with `my` are yours — the request you built, the
+form you already have.)
 
 ```ts
 import { requestCheckin, CheckinFlowError } from "@smart-health-checkin/client";
@@ -159,8 +161,9 @@ try {
 
 **Every one of these falls back to the form you already have.** That's the
 design: check-in is an accelerator on top of your existing intake, not a
-replacement that strands people when it isn't available. Prefer
-`runCheckin(...)` if you'd rather branch on `outcome.status` than catch.
+replacement that strands people when it isn't available. `runCheckin` is the
+same call returning an outcome to branch on instead of throwing, if you prefer
+that shape.
 
 ## Who answers the request
 
@@ -206,7 +209,7 @@ for (const responder of responders) {
     });
     prefillMyForm(response);
   };
-  menu.append(button);
+  myMenu.append(button);
 }
 ```
 
@@ -214,25 +217,27 @@ The library never draws the control; the list is data, and the click is yours.
 [Wallets and browser support](wallets.md) has the hand-off sketch, the registry
 format, and the mock's per-item specification for tests.
 
-Whichever answers, the wire is the same — real CBOR, COSE signatures, HPKE —
-so a flow proven against the web wallet is proven against the protocol.
+Whichever answers, the same sealed, signed response comes back and goes
+through the same checks — so a flow proven against the web wallet or the mock
+is proven against the protocol.
 [The demo](https://smart-health-checkin.org/client/demo/) opens with this
 project's demo wallet in a tab: a real consent screen, no phone needed.
 
 ## After the response
 
-Whatever your workflow does. The kit's job ends with the response in your
-hand; it has no idea a FHIR server exists. If you want the results written as
+Whatever your workflow does. The library's job ends with the response in
+your hand; it has no idea a FHIR server exists. If you want the results written as
 FHIR, [there's an optional helper](fhir.md) — or use your own client, your
 own auth, your own model.
 
 ## From React or Angular
 
-The core is a plain async function, so bindings are thin: a
+The core is a plain async function, so a binding owns only three things: the
+responder list, the one call, and its state. A
 [React hook](https://smart-health-checkin.org/client/demo/react.html) and an
-[Angular service](https://smart-health-checkin.org/client/demo/angular.html) — each
-about twenty lines, each running the same flow, both live on this site with
-their source in `demo/src/frameworks/`.
+[Angular service](https://smart-health-checkin.org/client/demo/angular.html)
+show exactly that, live on this site, with their source in
+`demo/src/frameworks/`.
 
 Next: [Request model](requests.md) ·
 [Response model](responses.md) ·
