@@ -71,7 +71,9 @@ export {
   fabricateResponse,
   parseWalletRequest,
   sealWalletResponse,
+  DEMO_HEALTH_CARD_JWS,
   type MockItemSpec,
+  type MockItemSpecs,
   type MockWalletOptions,
   type ParsedWalletRequest,
 } from "./kit/mock-wallet.js";
@@ -104,3 +106,17 @@ export {
   type WebWalletOptions,
   type WebWalletResponseMessage,
 } from "./kit/web-wallet.js";
+
+// A kiosk or front-desk screen hands the request to the patient's phone.
+export {
+  answerHandoff,
+  createHandoff,
+  createHandoffCredentialGetter,
+  fetchHandoff,
+  handoffUrlFor,
+  sessionIdFromHash,
+  type HandoffAnswer,
+  type HandoffEnvelope,
+  type HandoffMailbox,
+  type HandoffOptions,
+} from "./kit/handoff.js";

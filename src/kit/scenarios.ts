@@ -72,6 +72,61 @@ export function registerScenario(
 }
 
 export const SCENARIOS: Record<string, Scenario> = {
+  "visit-prep": {
+    label: "visit-prep",
+    description: "Before a visit: a clinical summary, allergies, insurance, and a PHQ-2 — one bundle answers two items, and the insurance item comes back twice.",
+    request: {
+      type: "smart-health-checkin-request",
+      version: "1",
+      id: "demo-visit-prep",
+      purpose: "Before your visit with Dr. Reyes",
+      fhirVersions: ["4.0.1"],
+      items: [
+        {
+          id: "us-core-summary",
+          title: "Clinical summary",
+          summary: "Problems, allergies, and current medications.",
+          content: {
+            kind: "selection.fhir",
+            profilesFrom: ["http://hl7.org/fhir/us/core"],
+            profiles: [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
+            ],
+          },
+          accept: ["application/fhir+json"],
+        },
+        {
+          id: "allergies",
+          title: "Allergies and intolerances",
+          summary: "So we can check them against anything we prescribe.",
+          required: true,
+          content: {
+            kind: "selection.fhir",
+            profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
+          },
+          accept: ["application/fhir+json"],
+        },
+        {
+          id: "coverage",
+          title: "Insurance coverage",
+          summary: "So we can verify benefits before you arrive.",
+          content: { kind: "selection.fhir", profilesFrom: ["http://hl7.org/fhir/us/carin-bb"] },
+          accept: ["application/smart-health-card", "application/fhir+json"],
+        },
+        {
+          id: "phq2",
+          title: "Two questions about your mood",
+          content: {
+            kind: "form.fhir",
+            questionnaireCanonical: "https://fhir.loinc.org/Questionnaire/55757-9",
+          },
+          accept: ["application/fhir+json"],
+        },
+      ],
+    },
+  },
   "insurance-only": {
     label: "insurance-only",
     description:

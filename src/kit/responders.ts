@@ -1,5 +1,5 @@
 /**
- * Who may answer a check-in request.
+ * Which wallets may answer a check-in request, as the page configures it.
  *
  * The relying party declares a policy — the device's own wallet, a set of web
  * wallets it recognizes, and (in development) the mock — and this resolves it
@@ -43,6 +43,14 @@ export type ResponderPolicy = {
   mock?: boolean;
   /** Verifier origin for the mock responder; defaults to this page's. */
   origin?: string;
+  /**
+   * Which responder the page should present as its primary action: "platform",
+   * "mock", or a web wallet's registry id. If that one isn't available in this
+   * browser, the first available responder is marked instead — so a page can
+   * prefer the platform wallet and still work where there is none. Unset: the
+   * first available.
+   */
+  default?: string;
 };
 
 export type Responder = {
@@ -56,6 +64,8 @@ export type Responder = {
   /** False when this browser can't use it; `reason` says why. */
   available: boolean;
   reason?: string;
+  /** True on exactly one responder: the one to present as the primary action. */
+  isDefault: boolean;
   /** The wallet entry, for `kind: "web"`. */
   wallet?: WebWalletEntry;
 };
@@ -67,8 +77,10 @@ export type Responder = {
  * const responders = await resolveResponders({
  *   platform: true,
  *   webWallets: "/config/wallets.json",
+ *   default: "platform",
  * });
- * // → render one button per responder; disable the unavailable ones
+ * // → render one button per responder; disable the unavailable ones;
+ * //   the one with isDefault is the primary action
  * ```
  */
 export async function resolveResponders(
@@ -87,6 +99,7 @@ export async function resolveResponders(
         "The wallet on this device — or, on a desktop, scan a QR code with your phone and answer there.",
       available: support.state === "supported",
       ...(support.state === "unsupported" ? { reason: support.reason } : {}),
+      isDefault: false,
     });
   }
 
@@ -104,6 +117,7 @@ export async function resolveResponders(
         ...(wallet.iconUrl ? { iconUrl: wallet.iconUrl } : {}),
         ...(wallet.homepage ? { homepage: wallet.homepage } : {}),
         available: true,
+        isDefault: false,
         wallet,
       });
     }
@@ -116,9 +130,13 @@ export async function resolveResponders(
       name: "Simulated response",
       description: "Answers instantly with fabricated data. Development only.",
       available: true,
+      isDefault: false,
     });
   }
 
+  const named = responders.find((r) => r.id === policy.default && r.available);
+  const chosen = named ?? responders.find((r) => r.available) ?? responders[0];
+  if (chosen) chosen.isDefault = true;
   return responders;
 }
 

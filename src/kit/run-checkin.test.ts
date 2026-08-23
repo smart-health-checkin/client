@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { HandoffAnswer, HandoffEnvelope, HandoffMailbox } from "./handoff.js";
 import { requestCheckin, runCheckin } from "./index.js";
 import { createMockWalletCredentialGetter } from "./mock-wallet.js";
 import { createBrowserLocalAuthority, type VerifierAuthority } from "../browser/index.js";
@@ -372,5 +373,146 @@ describe("wallet registry input forms", () => {
     expect(viaArray.map((r) => r.id)).toEqual(["a", "b"]);
     expect(viaObject.map((r) => r.id)).toEqual(["a", "b"]);
     expect(viaBuiltIn.map((r) => r.id)).toEqual(["demo"]);
+  });
+});
+
+describe("responder default", () => {
+  const WALLETS = [{ id: "demo", name: "Demo Health Wallet", walletUrl: "/demo/wallet.html" }];
+  const supported = () => ({ state: "supported" as const });
+  const unsupported = () => ({ state: "unsupported" as const, reason: "test" });
+
+  test("the named default is marked when available", async () => {
+    const { resolveResponders } = await import("./responders.js");
+    const list = await resolveResponders(
+      { platform: true, webWallets: WALLETS, mock: true, origin: ORIGIN, default: "demo" },
+      { detectSupport: supported },
+    );
+    expect(list.filter((r) => r.isDefault).map((r) => r.id)).toEqual(["demo"]);
+  });
+
+  test("an unavailable named default falls to the first available", async () => {
+    const { resolveResponders } = await import("./responders.js");
+    const list = await resolveResponders(
+      { platform: true, webWallets: WALLETS, default: "platform" },
+      { detectSupport: unsupported },
+    );
+    expect(list.filter((r) => r.isDefault).map((r) => r.id)).toEqual(["demo"]);
+  });
+
+  test("unset: the first available", async () => {
+    const { resolveResponders } = await import("./responders.js");
+    const list = await resolveResponders(
+      { platform: true, webWallets: WALLETS },
+      { detectSupport: supported },
+    );
+    expect(list.filter((r) => r.isDefault).map((r) => r.id)).toEqual(["platform"]);
+  });
+});
+
+describe("hand-off to a phone", () => {
+  function memoryMailbox(): HandoffMailbox {
+    const envelopes = new Map<string, HandoffEnvelope>();
+    const answers = new Map<string, HandoffAnswer>();
+    const waiters = new Map<string, (a: HandoffAnswer) => void>();
+    return {
+      async post(id, envelope) { envelopes.set(id, envelope); },
+      async fetch(id) { const e = envelopes.get(id); if (!e) throw new Error("no such session"); return e; },
+      async answer(id, answer) { answers.set(id, answer); waiters.get(id)?.(answer); },
+      waitForAnswer(id) {
+        const ready = answers.get(id);
+        return ready ? Promise.resolve(ready) : new Promise((resolve) => waiters.set(id, resolve));
+      },
+    };
+  }
+  const settle = () => new Promise((r) => setTimeout(r, 20));
+
+  test("the kiosk opens what the phone's wallet sealed", async () => {
+    const { runCheckin } = await import("./index.js");
+    const { createHandoff, fetchHandoff, answerHandoff, sessionIdFromHash } = await import("./handoff.js");
+    const { createMockWalletCredentialGetter } = await import("./mock-wallet.js");
+    const mailbox = memoryMailbox();
+    const shown: string[] = [];
+
+    // the kiosk
+    const kiosk = runCheckin({ scenario: "insurance-only" }, createHandoff({
+      mailbox,
+      handoffUrl: "https://clinic.example/checkin/handoff.html",
+      onWaiting: ({ url }) => shown.push(url),
+    }));
+    while (!shown.length) await settle();
+    expect(shown[0]).toMatch(/^https:\/\/clinic\.example\/checkin\/handoff\.html#session=/);
+
+    // the phone
+    const sessionId = sessionIdFromHash(new URL(shown[0]!).hash)!;
+    const { envelope, request } = await fetchHandoff(mailbox, sessionId);
+    expect(envelope.handoffOrigin).toBe("https://clinic.example");
+    expect(request.items.length).toBeGreaterThan(0);
+    await answerHandoff(mailbox, sessionId, envelope, createMockWalletCredentialGetter({ origin: "https://clinic.example" }));
+
+    const outcome = await kiosk;
+    expect(outcome.status).toBe("completed");
+    expect(outcome.response?.requestStatus.map((s) => s.status)).toContain("fulfilled");
+  });
+
+  test("a decline on the phone is a decline at the kiosk", async () => {
+    const { runCheckin } = await import("./index.js");
+    const { createHandoff, fetchHandoff, answerHandoff } = await import("./handoff.js");
+    const { WalletDeclinedError } = await import("./web-wallet.js");
+    const mailbox = memoryMailbox();
+    let sessionId = "";
+    const kiosk = runCheckin({ scenario: "insurance-only" }, createHandoff({
+      mailbox, handoffUrl: "https://clinic.example/handoff.html", onWaiting: (h) => { sessionId = h.sessionId; },
+    }));
+    while (!sessionId) await settle();
+    const { envelope } = await fetchHandoff(mailbox, sessionId);
+    const answer = await answerHandoff(mailbox, sessionId, envelope, async () => { throw new WalletDeclinedError(); });
+    expect(answer).toMatchObject({ declined: true });
+    expect((await kiosk).status).toBe("declined");
+  });
+});
+
+describe("many-to-many artifacts", () => {
+  const THREE_ITEMS = {
+    purpose: "Before your visit",
+    items: [
+      { id: "allergies", title: "Allergies", content: { kind: "selection.fhir" as const, profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"] }, accept: ["application/fhir+json"] },
+      { id: "coverage", title: "Coverage", content: { kind: "selection.fhir" as const, profilesFrom: ["http://hl7.org/fhir/us/carin-bb"] }, accept: ["application/smart-health-card", "application/fhir+json"] },
+      { id: "intake", title: "Intake", content: { kind: "form.fhir" as const, questionnaireCanonical: "https://example.org/q/intake" }, accept: ["application/fhir+json"] },
+    ],
+  };
+
+  test("a list of specs returns several artifacts for one item; alsoFulfills answers several items with one", async () => {
+    const { buildRequest } = await import("./index.js");
+    const { buildMockResponse, DEMO_HEALTH_CARD_JWS } = await import("./mock-wallet.js");
+    const request = buildRequest(THREE_ITEMS);
+    const response = buildMockResponse(request, {
+      items: {
+        allergies: { fhir: { resourceType: "Bundle", type: "collection", entry: [] }, alsoFulfills: ["coverage"] },
+        intake: [{ healthCard: [DEMO_HEALTH_CARD_JWS] }, { fhir: { resourceType: "QuestionnaireResponse", status: "completed" } }],
+      },
+    });
+    expect(response.artifacts.map((a) => [a.id, [...a.fulfills]])).toEqual([
+      ["mock-allergies", ["allergies", "coverage"]],
+      ["mock-intake-1", ["intake"]],
+      ["mock-intake-2", ["intake"]],
+    ]);
+    expect(response.requestStatus.map((s) => [s.item, s.status])).toEqual([
+      ["allergies", "fulfilled"], ["coverage", "fulfilled"], ["intake", "fulfilled"],
+    ]);
+  });
+
+  test("the fabricated visit-prep response has both shapes, and still cross-validates", async () => {
+    const { resolveRequest, runCheckin } = await import("./index.js");
+    const { createMockWalletCredentialGetter } = await import("./mock-wallet.js");
+    const request = resolveRequest({ scenario: "visit-prep" });
+    const outcome = await runCheckin(request, {
+      authority: createBrowserLocalAuthority({ origin: ORIGIN }),
+      getCredential: createMockWalletCredentialGetter({ origin: ORIGIN }),
+    });
+    expect(outcome.status).toBe("completed");
+    const fulfils = (id: string) => outcome.response!.artifacts.filter((a) => a.fulfills.includes(id)).map((a) => a.id);
+    expect(fulfils("coverage")).toEqual(["mock-coverage-card", "mock-coverage-fhir"]);  // two dots in a row
+    expect(fulfils("allergies")).toEqual(["mock-us-core-summary"]);                     // two dots in a column
+    expect(fulfils("us-core-summary")).toEqual(["mock-us-core-summary"]);
   });
 });
