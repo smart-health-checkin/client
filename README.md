@@ -44,9 +44,11 @@ the same pages live in this repo, so they read here too.
 | [Request model](docs/requests.md) | Items, FHIR selectors, questionnaires, accepted formats |
 | [Response model](docs/responses.md) | Artifacts, per-item status, asking only for what's missing |
 | [Wallets and browser support](docs/wallets.md) | Platform API, wallet web app, mock, key custody |
+| [Kiosk and front-desk check-in](docs/kiosk.md) | A screen with no wallet hands the request to the patient's phone |
 | [Writing FHIR](docs/fhir.md) | The optional mapping helper — and when not to use it |
 | [Production checklist](docs/production.md) | Trust policy, identity, fallback, pinning |
 | [Server-held keys](docs/server-authority.md) | The two-call seam, if your server holds the verifier key |
+| [Running the demos](demo/README.md) | The URL parameters that configure the clinic demo, wallet, and examples |
 | [API reference](docs/api/index.md) | Generated from source; every export |
 
 ## Install
@@ -96,7 +98,7 @@ the shared record couldn't carry.
 | `src/browser` | Digital Credentials API invocation and the key-custody seam. |
 | `src/kit` | The facade — `requestCheckin` / `runCheckin`, scenarios, responders and their credential getters. |
 | `src/fhir` | **Optional companion**, never imported by the rest: response → transaction Bundle, plus a posting helper. |
-| `demo/` | The clinic demo, the demo wallet app, the autofill example, React and Angular examples. |
+| `demo/` | The clinic demo, the demo wallet app, the autofill and kiosk hand-off examples, React and Angular examples. |
 
 ## Development
 
@@ -113,9 +115,12 @@ bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5   # the kio
 `scripts/build-pages.sh` refuses to finish if the hosted bundles don't
 actually run — see `scripts/verify-lib.ts` for why that check exists.
 
-smart-health-checkin.org is built and deployed by the
-[smart-health-checkin.github.io](https://github.com/smart-health-checkin/smart-health-checkin.github.io) repo, which checks this
-one out and mounts it at `/client/`; pushing `main` here asks it to rebuild.
+This repo builds and deploys its own GitHub Pages site on pushes to `main`
+(`.github/workflows/pages.yml`), and GitHub serves it beneath the apex site
+at smart-health-checkin.org/client/. The
+[smart-health-checkin.github.io](https://github.com/smart-health-checkin/smart-health-checkin.github.io) repo owns the apex —
+the home page and the shared `/assets/` — and deploys separately; nothing
+there rebuilds when this repo changes.
 
 Apache-2.0. Related: [spec](https://github.com/smart-health-checkin/spec) ·
 [KTC materials](https://github.com/smart-health-checkin/ktc)
