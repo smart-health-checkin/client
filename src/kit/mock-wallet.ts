@@ -99,7 +99,9 @@ export function buildMockResponse(
 
   // Items left to the fabricator are fabricated together, not one at a time,
   // so it can answer several with one bundle the way a wallet would.
-  const unspecified = request.items.filter((item) => options.items?.[item.id] === undefined);
+  const unspecified = request.items.filter(
+    (item) => options.items?.[item.id] === undefined && (item.content.kind === "selection.fhir" || item.content.kind === "form.fhir"),
+  );
   const fabricated = fallback === "fabricate" && unspecified.length
     ? fabricateResponse({ ...request, items: unspecified })
     : undefined;
@@ -111,6 +113,12 @@ export function buildMockResponse(
       continue;
     }
     const configured = options.items?.[item.id];
+    // An extension selector the mock doesn't know: answer it "unsupported"
+    // unless the caller configured something explicit (spec §5.4.3).
+    if (configured === undefined && item.content.kind !== "selection.fhir" && item.content.kind !== "form.fhir") {
+      requestStatus.push({ item: item.id, status: "unsupported", message: `selector kind "${(item.content as { kind: string }).kind}" is not supported` });
+      continue;
+    }
     const specs: readonly MockItemSpec[] | undefined =
       configured === undefined
         ? fallback === "fabricate" ? undefined : [fallback]

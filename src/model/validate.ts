@@ -95,7 +95,11 @@ function validateContentSelector(content: Record<string, unknown>, path: string)
     }
     return undefined;
   }
-  return `${path}.kind must be selection.fhir or form.fhir`;
+  // Any other non-empty kind is an extension selector (spec §5.4.3). It is a
+  // valid request; a wallet that doesn't support the kind answers that item
+  // "unsupported" rather than rejecting the whole request.
+  if (!nonEmptyString(content.kind)) return `${path}.kind must be a non-empty string`;
+  return undefined;
 }
 
 function validProfilesFrom(value: unknown): boolean {

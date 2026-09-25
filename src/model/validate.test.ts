@@ -201,3 +201,35 @@ describe("cross-validation (§6.6)", () => {
     ).toBe(false);
   });
 });
+
+test("accepts an extension selector kind as a valid request item (spec §5.4.3)", () => {
+  const request = {
+    type: "smart-health-checkin-request",
+    version: "1",
+    id: "ext-1",
+    items: [
+      { id: "known", title: "Demographics", content: { kind: "selection.fhir", resourceTypes: ["Patient"] }, accept: ["application/fhir+json"] },
+      { id: "ext", title: "Something new", content: { kind: "example.ktc-test", anything: true }, accept: ["application/fhir+json"] },
+    ],
+  };
+  expect(validateSmartCheckinRequest(request).ok).toBe(true);
+  const blank = { ...request, items: [{ ...request.items[1], content: { kind: "" } }] };
+  expect(validateSmartCheckinRequest(blank).ok).toBe(false);
+});
+
+test("the mock wallet answers an extension selector item unsupported and the rest normally", async () => {
+  const { buildMockResponse } = await import("../kit/mock-wallet.js");
+  const request = {
+    type: "smart-health-checkin-request" as const,
+    version: "1" as const,
+    id: "ext-2",
+    items: [
+      { id: "known", title: "Allergies", content: { kind: "selection.fhir" as const, resourceTypes: ["AllergyIntolerance"] }, accept: ["application/fhir+json"] },
+      { id: "ext", title: "Something new", content: { kind: "example.ktc-test" }, accept: ["application/fhir+json"] },
+    ],
+  };
+  const response = buildMockResponse(request as any);
+  const status = new Map(response.requestStatus.map((s) => [s.item, s.status]));
+  expect(status.get("ext")).toBe("unsupported");
+  expect(status.get("known")).toBe("fulfilled");
+});
