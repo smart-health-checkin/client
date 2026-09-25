@@ -89,9 +89,8 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
                 type: WEB_WALLET_REQUEST_MESSAGE_TYPE,
                 credentialRequestOptions: navigatorArgument,
                 requestId,
-                // The wallet must bind its SessionTranscript to the verifier's
-                // origin, which it cannot observe from inside the popup.
-                verifierOrigin: location.origin,
+                // No origin field: the wallet reads this page's origin from the
+                // message event, which the browser sets and the sender cannot forge.
               },
               walletOrigin,
             );

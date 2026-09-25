@@ -448,17 +448,20 @@ window.addEventListener("message", (event: MessageEvent) => {
   const message = data as {
     credentialRequestOptions?: unknown;
     requestId?: string;
-    verifierOrigin?: string;
   };
+  // Only the page that opened this wallet may ask it for anything, and an
+  // opaque origin can't be replied to.
+  if (event.source !== window.opener || event.origin === "null") return;
   try {
     const parsed = parseWalletRequest(message.credentialRequestOptions);
     pending = {
       requestId: message.requestId,
       smartRequest: parsed.smartRequest,
       encryptionInfoBytes: parsed.encryptionInfoBytes,
-      // The verifier tells us its origin; a platform wallet gets this from
-      // the browser instead. Both sides must agree or the response won't open.
-      verifierOrigin: message.verifierOrigin ?? event.origin,
+      // The requester's origin comes from the browser-set event.origin, never
+      // from the message body: a page could write any origin it liked there.
+      // A platform wallet gets the same value from the browser.
+      verifierOrigin: event.origin,
       replyTo: event.source,
       replyOrigin: event.origin,
     };

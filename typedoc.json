@@ -20,5 +20,6 @@
   "indexFormat": "table",
   "outputFileStrategy": "modules",
   "entryFileName": "index.md",
-  "mergeReadme": false
+  "mergeReadme": false,
+  "gitRevision": "main"
 }

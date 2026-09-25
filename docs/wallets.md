@@ -278,11 +278,12 @@ wallet to say it is ready, sends it the request, and resolves with the sealed
 response the wallet sends back. If the patient declines or closes the tab,
 the getter rejects, and `runCheckin` reports that as `status: "declined"`.
 
-One detail to know: a page cannot see the web origin of the page that opened
-it, so the request message carries your page's origin explicitly. Both sides
-then bind the response to that origin. If they disagree, the response will
-not decrypt. That is deliberate: a response meant for one page cannot be
-opened by another.
+The wallet learns which page is asking from the browser. Every message the
+wallet receives carries an `origin` set by the browser, which the sending page
+cannot change, and the request message carries no origin of its own. The
+wallet shows that origin to the person and binds the response to it, so a
+response meant for one page cannot be opened by another. The full exchange is
+in the [web wallet hand-off](https://smart-health-checkin.org/connectathon/web-wallet-handoff.html).
 
 Browsers only allow a page to open a tab in response to a real click, so call
 `requestCheckin` from a click handler. Automated tests need either a
