@@ -193,12 +193,19 @@ the same way — and the library checks all three the same way. Only the
 credential getter differs. That is why a flow you have tested with the web
 wallet or the mock is the same flow that runs against a real health app.
 
-If you are building a web wallet, the demo wallet is a complete, small
-example:
+If you are building a web wallet, start from the reference web wallet, the
+[SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing-wallet/)
+([source](https://github.com/smart-health-checkin/connectathon/tree/main/testing-wallet),
+[behavior](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md)).
+It matches requests by profile, renders questionnaires, and follows the
+[web wallet hand-off](https://smart-health-checkin.org/connectathon/web-wallet-handoff.html).
+The demo wallet here,
 [`demo/wallet.html`](https://github.com/smart-health-checkin/client/blob/main/demo/wallet.html)
-and [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts).
-It decodes the request, shows which page is asking and a consent screen with
-one checkbox per item, then signs and encrypts a response for that page.
+and [`demo/src/wallet.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts),
+is a shorter sketch of the same exchange: it decodes the request, shows which
+page is asking and a consent screen with one checkbox per item, then signs and
+encrypts a response for that page. It guesses what each item wants and
+doesn't render forms.
 
 ## Specify what the mock returns
 
