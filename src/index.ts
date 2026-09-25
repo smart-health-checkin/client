@@ -73,9 +73,11 @@ export {
 // Wallet-side helpers: the demo wallet app and phone-free testing.
 export {
   buildMockResponse,
+  buildSignedDeviceResponse,
   createMockWalletCredentialGetter,
   fabricateResponse,
   parseWalletRequest,
+  recipientJwkFromEncryptionInfo,
   sealWalletResponse,
   DEMO_HEALTH_CARD_JWS,
   type MockItemSpec,

@@ -16,6 +16,12 @@
       "import": "./dist/fhir/index.js",
       "default": "./dist/fhir/index.js"
     },
+    "./wire": {
+      "bun": "./src/wire/index.ts",
+      "types": "./dist/wire/index.d.ts",
+      "import": "./dist/wire/index.js",
+      "default": "./dist/wire/index.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {

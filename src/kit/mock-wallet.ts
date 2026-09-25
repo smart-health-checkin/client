@@ -271,7 +271,7 @@ function extractSmartRequest(deviceRequestBytes: Uint8Array): SmartCheckinReques
   return validated.value;
 }
 
-function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array): JsonWebKey {
+export function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array): JsonWebKey {
   const decoded = cborDecode(encryptionInfoBytes);
   const key = mapGet(Array.isArray(decoded) ? decoded[1] : undefined, "recipientPublicKey");
   if (!(key instanceof Map)) throw new Error("mock wallet: no recipientPublicKey");
