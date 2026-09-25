@@ -101,6 +101,8 @@ export const API_GROUPS: ApiGroup[] = [
     entries: [
       { name: "parseWalletRequest", what: "Recover the check-in request from a navigator.credentials.get argument." },
       { name: "sealWalletResponse", what: "Sign and HPKE-seal a response, bound to the verifier's origin." },
+      { name: "buildSignedDeviceResponse", what: "Wrap a response in a signed mdoc DeviceResponse, for wallets that seal it themselves." },
+      { name: "recipientJwkFromEncryptionInfo", what: "The verifier's HPKE public key, read from encryptionInfo." },
       { name: "fabricateResponse", what: "Demo data for a request, honouring per-item consent." },
       { name: "ParsedWalletRequest", what: "The request plus the raw DeviceRequest and encryptionInfo bytes." },
       { name: "MockWalletOptions", what: "Per-item specs, a fallback, or a responder function for full control." },

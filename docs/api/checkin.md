@@ -1532,7 +1532,7 @@ type ParsedWalletRequest = {
 };
 ```
 
-Defined in: [src/kit/mock-wallet.ts:196](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L196)
+Defined in: [src/kit/mock-wallet.ts:204](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L204)
 
 #### Properties
 
@@ -1542,7 +1542,7 @@ Defined in: [src/kit/mock-wallet.ts:196](https://github.com/smart-health-checkin
 deviceRequestBytes: Uint8Array;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:198](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L198)
+Defined in: [src/kit/mock-wallet.ts:206](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L206)
 
 ##### encryptionInfoBytes
 
@@ -1550,7 +1550,7 @@ Defined in: [src/kit/mock-wallet.ts:198](https://github.com/smart-health-checkin
 encryptionInfoBytes: Uint8Array;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:199](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L199)
+Defined in: [src/kit/mock-wallet.ts:207](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L207)
 
 ##### smartRequest
 
@@ -1558,7 +1558,7 @@ Defined in: [src/kit/mock-wallet.ts:199](https://github.com/smart-health-checkin
 smartRequest: SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:197](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L197)
+Defined in: [src/kit/mock-wallet.ts:205](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L205)
 
 ***
 
@@ -2527,7 +2527,7 @@ Defined in: [src/kit/web-wallet.ts:22](https://github.com/smart-health-checkin/c
 const DEMO_HEALTH_CARD_JWS: "eyJ6aXAiOiJERUYiLCJhbGciOiJFUzI1NiIsImtpZCI6Im1vY2sta2V5In0.fZHNjtQwEIRfZVVcnZkkGmbAR1gkQFqB-Lus5tBxOhsjx4nszrBR5HdHDquBw4pj293V9VWvsDFCoxeZot7vf5FzLDt-pGFyvG95GKHgmw66Oh1Pdf3yWJYKFwO9QpaJoe-vw3GgID2Tk35nKLTxxZ-iyAXOCiZwy14sua9z85ONZJWut-EHh2hHD43DrtxVUNvrm9m3jnNP4DjOwfC3bSOePtSTA5jROTaSFRTYS1ig71d0s3Pfg4O-zusS6lo8I_yZxLKXjExDZlvR0WDdAo0vvHCEwoO9sM_YH8fQksc5nRUaG6S_Jcki1etXh6I8FmWNlNSzNjLhf2y8HS8c6CETRiGZ84XIiL38ZV4h_CjQuOVhvHm_5XwzOfJICnFuogm24fChzS3v7j4Vh0N1gkLDnjtrLOWM8uKOA_vs4t-QksJEyxi2BFobJ0c5gm3X3SwzOWTqiYMd26wThUJ2U5f1sSiroqyQUjqnlNJv.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" = "eyJ6aXAiOiJERUYiLCJhbGciOiJFUzI1NiIsImtpZCI6Im1vY2sta2V5In0.fZHNjtQwEIRfZVVcnZkkGmbAR1gkQFqB-Lus5tBxOhsjx4nszrBR5HdHDquBw4pj293V9VWvsDFCoxeZot7vf5FzLDt-pGFyvG95GKHgmw66Oh1Pdf3yWJYKFwO9QpaJoe-vw3GgID2Tk35nKLTxxZ-iyAXOCiZwy14sua9z85ONZJWut-EHh2hHD43DrtxVUNvrm9m3jnNP4DjOwfC3bSOePtSTA5jROTaSFRTYS1ig71d0s3Pfg4O-zusS6lo8I_yZxLKXjExDZlvR0WDdAo0vvHCEwoO9sM_YH8fQksc5nRUaG6S_Jcki1etXh6I8FmWNlNSzNjLhf2y8HS8c6CETRiGZ84XIiL38ZV4h_CjQuOVhvHm_5XwzOfJICnFuogm24fChzS3v7j4Vh0N1gkLDnjtrLOWM8uKOA_vs4t-QksJEyxi2BFobJ0c5gm3X3SwzOWTqiYMd26wThUJ2U5f1sSiroqyQUjqnlNJv.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 ```
 
-Defined in: [src/kit/mock-wallet.ts:299](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L299)
+Defined in: [src/kit/mock-wallet.ts:307](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L307)
 
 A structurally real SMART Health Card: a JWS whose payload is the raw-DEFLATEd
 `{ iss, nbf, vc.credentialSubject.fhirBundle }` (one Patient, one Coverage),
@@ -2794,6 +2794,30 @@ Complete a request from the parts an integrator actually cares about:
 
 ***
 
+### buildSignedDeviceResponse()
+
+```ts
+function buildSignedDeviceResponse(input): Promise<Uint8Array<ArrayBufferLike>>;
+```
+
+Defined in: [src/kit/mock-wallet.ts:684](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L684)
+
+Build a signed DeviceResponse carrying the SMART response element.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | \{ `sessionTranscript`: `Uint8Array`; `smartResponseJson`: `string`; \} |
+| `input.sessionTranscript` | `Uint8Array` |
+| `input.smartResponseJson` | `string` |
+
+#### Returns
+
+`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+***
+
 ### createBrowserLocalAuthority()
 
 ```ts
@@ -2910,7 +2934,7 @@ Pair it with an authority built for the hand-off page's origin — or use
 function createMockWalletCredentialGetter(options): (navigatorArgument) => Promise<unknown>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:179](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L179)
+Defined in: [src/kit/mock-wallet.ts:187](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L187)
 
 A drop-in `getCredential` hook for runCheckin: parses the navigator
 argument the same way a platform wallet would and returns a credential-like
@@ -3055,7 +3079,7 @@ response string.
 function fabricateResponse(request, include?): SmartCheckinResponse;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:302](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L302)
+Defined in: [src/kit/mock-wallet.ts:310](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L310)
 
 #### Parameters
 
@@ -3210,7 +3234,7 @@ Defined in: [src/wire/response.ts:206](https://github.com/smart-health-checkin/c
 function parseWalletRequest(navigatorArgument): ParsedWalletRequest;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:203](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L203)
+Defined in: [src/kit/mock-wallet.ts:211](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L211)
 
 Wallet side: recover the SMART request from a navigator.credentials.get argument.
 
@@ -3223,6 +3247,26 @@ Wallet side: recover the SMART request from a navigator.credentials.get argument
 #### Returns
 
 [`ParsedWalletRequest`](#parsedwalletrequest)
+
+***
+
+### recipientJwkFromEncryptionInfo()
+
+```ts
+function recipientJwkFromEncryptionInfo(encryptionInfoBytes): JsonWebKey;
+```
+
+Defined in: [src/kit/mock-wallet.ts:282](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L282)
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `encryptionInfoBytes` | `Uint8Array` |
+
+#### Returns
+
+`JsonWebKey`
 
 ***
 
@@ -3407,7 +3451,7 @@ function sealWalletResponse(input): Promise<{
 }>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:219](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L219)
+Defined in: [src/kit/mock-wallet.ts:227](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L227)
 
 Wallet side: sign and HPKE-seal a SMART response for the verifier.
 `verifierOrigin` is the requesting page's origin — the SessionTranscript
@@ -3461,7 +3505,7 @@ The session id from a hand-off page's location hash, or null.
 function validateResponseAgainstRequest(request, response): ValidationResult<SmartCheckinResponse>;
 ```
 
-Defined in: [src/model/validate.ts:181](https://github.com/smart-health-checkin/client/blob/main/src/model/validate.ts#L181)
+Defined in: [src/model/validate.ts:185](https://github.com/smart-health-checkin/client/blob/main/src/model/validate.ts#L185)
 
 #### Parameters
 
@@ -3502,7 +3546,7 @@ Defined in: [src/model/validate.ts:14](https://github.com/smart-health-checkin/c
 function validateSmartCheckinResponse(v): ValidationResult<SmartCheckinResponse>;
 ```
 
-Defined in: [src/model/validate.ts:105](https://github.com/smart-health-checkin/client/blob/main/src/model/validate.ts#L105)
+Defined in: [src/model/validate.ts:109](https://github.com/smart-health-checkin/client/blob/main/src/model/validate.ts#L109)
 
 #### Parameters
 
