@@ -2800,7 +2800,7 @@ Complete a request from the parts an integrator actually cares about:
 function buildSignedDeviceResponse(input): Promise<Uint8Array<ArrayBufferLike>>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:684](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L684)
+Defined in: [src/kit/mock-wallet.ts:758](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L758)
 
 Build a signed DeviceResponse carrying the SMART response element.
 

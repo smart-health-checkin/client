@@ -370,6 +370,80 @@ export function fabricateResponse(
 }
 
 function fabricateFhirValue(item: SmartCheckinRequestItem): unknown {
+  const content = item.content as { kind: string; profiles?: readonly string[]; resourceTypes?: readonly string[]; questionnaire?: { item?: unknown[] } };
+  // Answer an inline form's own questions rather than a placeholder.
+  if (content.kind === "form.fhir" && Array.isArray(content.questionnaire?.item)) {
+    const value = fabricateBaseFhirValue(item) as Record<string, unknown>;
+    const answers = answerQuestionnaireItems(content.questionnaire!.item as QuestionnaireItemLike[]);
+    if (answers.length) value.item = answers;
+    return value;
+  }
+  // A demographics item asking for a Patient gets a Patient.
+  const wantsPatient =
+    (content.profiles ?? []).some((p) => p.split("|")[0]!.endsWith("/us-core-patient")) ||
+    (content.resourceTypes ?? []).includes("Patient");
+  const value = wantsPatient ? fabricatePatient() : fabricateBaseFhirValue(item);
+  return claimRequestedProfiles(value, content.profiles ?? []);
+}
+
+type QuestionnaireItemLike = { linkId?: string; text?: string; type?: string; answerOption?: Array<Record<string, unknown>>; item?: QuestionnaireItemLike[] };
+
+/** Answer choice questions with their first option and groups recursively; skip the rest. */
+function answerQuestionnaireItems(items: QuestionnaireItemLike[]): unknown[] {
+  return items.flatMap((i): unknown[] => {
+    if (!i.linkId) return [];
+    if (i.type === "group") {
+      const children = answerQuestionnaireItems(i.item ?? []);
+      return children.length ? [{ linkId: i.linkId, ...(i.text ? { text: i.text } : {}), item: children }] : [];
+    }
+    if ((i.type === "choice" || i.type === "open-choice") && i.answerOption?.[0]) {
+      const { valueCoding, valueString, valueInteger } = i.answerOption[0] as Record<string, unknown>;
+      const answer = valueCoding ? { valueCoding } : valueString !== undefined ? { valueString } : valueInteger !== undefined ? { valueInteger } : undefined;
+      return answer ? [{ linkId: i.linkId, ...(i.text ? { text: i.text } : {}), answer: [answer] }] : [];
+    }
+    if (i.type === "boolean") return [{ linkId: i.linkId, ...(i.text ? { text: i.text } : {}), answer: [{ valueBoolean: false }] }];
+    return [];
+  });
+}
+
+function fabricatePatient(): unknown {
+  return {
+    resourceType: "Bundle",
+    type: "collection",
+    entry: [{
+      resource: {
+        resourceType: "Patient",
+        identifier: [{ system: "urn:smart-health-checkin:mock-run", value: crypto.randomUUID() }],
+        name: [{ family: "Demo", given: ["Mock"] }],
+        gender: "unknown",
+        birthDate: "1980-01-01",
+      },
+    }],
+  };
+}
+
+/**
+ * Put each requested exact profile on the fabricated resources of the type it
+ * names (us-core-allergyintolerance on AllergyIntolerance, C4DIC-Coverage on
+ * Coverage), so the result claims what the item asked for.
+ */
+function claimRequestedProfiles(value: unknown, profiles: readonly string[]): unknown {
+  const v = value as { resourceType?: string; entry?: Array<{ resource?: Record<string, unknown> }> } | undefined;
+  if (!profiles.length || v?.resourceType !== "Bundle" || !Array.isArray(v.entry)) return value;
+  for (const entry of v.entry) {
+    const r = entry.resource;
+    if (!r || typeof r.resourceType !== "string") continue;
+    const type = r.resourceType.toLowerCase();
+    const claims = profiles.filter((p) => p.split("|")[0]!.split("/").pop()!.toLowerCase().includes(type));
+    if (claims.length) {
+      const meta = (r.meta ?? {}) as { profile?: string[] };
+      r.meta = { ...meta, profile: [...new Set([...(meta.profile ?? []), ...claims])] };
+    }
+  }
+  return value;
+}
+
+function fabricateBaseFhirValue(item: SmartCheckinRequestItem): unknown {
   // Unique per run: real check-ins are distinct, and duplicate-detecting
   // servers (e.g. public HAPI) reject content-identical re-creates.
   const runId = crypto.randomUUID();

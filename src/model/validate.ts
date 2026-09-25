@@ -213,6 +213,20 @@ export function validateResponseAgainstRequest(
         };
       }
     }
+    // A QuestionnaireResponse answering a form item must echo the requested
+    // canonical exactly, including any |version (spec §5.5).
+    const value = (artifact as { value?: unknown }).value as { resourceType?: unknown; questionnaire?: unknown } | undefined;
+    if (artifact.mediaType === "application/fhir+json" && value?.resourceType === "QuestionnaireResponse") {
+      for (const itemId of artifact.fulfills) {
+        const content = itemsById.get(itemId)?.content as { kind?: string; questionnaireCanonical?: string } | undefined;
+        if (content?.kind === "form.fhir" && content.questionnaireCanonical && value.questionnaire !== content.questionnaireCanonical) {
+          return {
+            ok: false,
+            error: `artifacts[${i}] QuestionnaireResponse.questionnaire ${JSON.stringify(value.questionnaire)} must equal item ${itemId}'s questionnaireCanonical ${JSON.stringify(content.questionnaireCanonical)}`,
+          };
+        }
+      }
+    }
     if (allowedFhirVersions !== undefined && allowedFhirVersions.length > 0) {
       const declared = (artifact as { fhirVersion?: unknown }).fhirVersion;
       if (typeof declared === "string" && !allowedFhirVersions.includes(declared)) {
