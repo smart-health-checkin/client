@@ -6,7 +6,7 @@
 
 export type Level = "start" | "guide" | "reference";
 /** Developers menu groups, in menu order. Every menu entry sits in one. */
-export const MENU_GROUPS = ["Build a check-in page", "Build a wallet", "Test and launch", "Reference"] as const;
+export const MENU_GROUPS = ["Build a check-in page", "Build a wallet", "Testing and production", "Reference"] as const;
 export type MenuGroup = (typeof MENU_GROUPS)[number];
 export type Guide = {
   file: string;
@@ -45,7 +45,7 @@ export const GUIDES: Guide[] = [
     menuNote: "Lookups, health cards, prefill, FHIR", menuGroup: "Build a check-in page" },
   { level: "guide", file: "docs/production.md", slug: "production", title: "Going to production",
     blurb: "Key custody and server-held keys, trust, fallback, privacy, pinning versions, monitoring.",
-    menuNote: "Keys, trust, fallback, privacy", menuGroup: "Test and launch" },
+    menuNote: "Keys, trust, fallback, privacy", menuGroup: "Testing and production" },
   { level: "guide", file: "docs/native-apps.md", slug: "native-apps", title: "Native apps",
     blurb: "An Android or iOS app as the Verifier: run the web flow in a Custom Tab and get the result back over a message channel.",
     menuNote: "Check-in from an Android or iOS app", menuGroup: "Build a check-in page" },
@@ -54,7 +54,7 @@ export const GUIDES: Guide[] = [
     menuNote: "For health-app builders", menuGroup: "Build a wallet" },
   { level: "guide", file: "docs/testing.md", slug: "testing", title: "Testing",
     blurb: "The mock wallet, the connectathon's Testing EHR and Testing Wallet, faults, reading failures, the demos.",
-    menuNote: "Mock wallet, testing tools, failures", menuGroup: "Test and launch" },
+    menuNote: "Mock wallet, testing tools, failures", menuGroup: "Testing and production" },
 
   { level: "reference", file: "docs/web-wallet-handoff.md", slug: "web-wallet-handoff", title: "Web wallet hand-off",
     blurb: "The protocol between an EHR page and a web wallet: three messages and the origin rules.", menuNote: "The web wallet protocol", menuGroup: "Build a wallet" },
