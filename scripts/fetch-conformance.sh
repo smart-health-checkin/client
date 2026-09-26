@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Put the spec's conformance cases, at a pinned ref, into ./spec-conformance/.
 # They live in github.com/smart-health-checkin/spec under conformance/. The ref
-# is a tag or a commit; bump SPEC_CONFORMANCE_REF to take a new set. It is
+# is a tag (fixtures-vN) or a commit; bump SPEC_CONFORMANCE_REF to take a new set. It is
 # fetched once into .cache/ and copied into spec-conformance/ (both gitignored).
 #   scripts/fetch-conformance.sh
 #   SPEC_CONFORMANCE_DIR=../spec/conformance scripts/fetch-conformance.sh   # use a local spec checkout instead
 set -euo pipefail
-SPEC_CONFORMANCE_REF="${SPEC_CONFORMANCE_REF:-faf90484d59fea67e05a8d9322f7f248a0e517fd}"
+SPEC_CONFORMANCE_REF="${SPEC_CONFORMANCE_REF:-fixtures-v2}"
 cd "$(dirname "$0")/.."
 
 if [ -n "${SPEC_CONFORMANCE_DIR:-}" ]; then
@@ -20,8 +20,13 @@ else
     git -C "$TMP" init -q
     git -C "$TMP" remote add origin https://github.com/smart-health-checkin/spec
     git -C "$TMP" sparse-checkout set conformance
-    git -C "$TMP" fetch -q --depth 1 --filter=blob:none origin "$SPEC_CONFORMANCE_REF"
-    git -C "$TMP" -c advice.detachedHead=false checkout -q FETCH_HEAD
+    if [[ "$SPEC_CONFORMANCE_REF" =~ ^[0-9a-f]{40}$ ]]; then
+      git -C "$TMP" fetch -q --depth 1 --filter=blob:none origin "$SPEC_CONFORMANCE_REF"
+      git -C "$TMP" -c advice.detachedHead=false checkout -q FETCH_HEAD
+    else
+      git -C "$TMP" fetch -q --depth 1 --filter=blob:none origin "refs/tags/$SPEC_CONFORMANCE_REF:refs/tags/$SPEC_CONFORMANCE_REF"
+      git -C "$TMP" -c advice.detachedHead=false checkout -q "$SPEC_CONFORMANCE_REF"
+    fi
     mkdir -p "$(dirname "$SRC")"
     mv "$TMP/conformance" "$SRC"
     rm -rf "$TMP"

@@ -115,7 +115,7 @@ bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5   # the kio
 ```
 
 The conformance tests read the spec's fixtures at a pinned tag
-(`SPEC_FIXTURES_REF` in `scripts/fetch-fixtures.sh`, currently `fixtures-v1`).
+(`SPEC_FIXTURES_REF` in `scripts/fetch-fixtures.sh`, currently `fixtures-v2`).
 `bun test` fetches them into the gitignored `fixtures/` on first run; set
 `SPEC_FIXTURES_DIR=../spec/fixtures` to test against a local spec checkout.
 

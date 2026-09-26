@@ -6,7 +6,7 @@
 #   scripts/fetch-fixtures.sh
 #   SPEC_FIXTURES_DIR=../spec/fixtures scripts/fetch-fixtures.sh   # use a local spec checkout instead
 set -euo pipefail
-SPEC_FIXTURES_REF="${SPEC_FIXTURES_REF:-fixtures-v1}"
+SPEC_FIXTURES_REF="${SPEC_FIXTURES_REF:-fixtures-v2}"
 cd "$(dirname "$0")/.."
 
 if [ -n "${SPEC_FIXTURES_DIR:-}" ]; then
