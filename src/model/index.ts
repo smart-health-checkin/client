@@ -25,3 +25,11 @@ export {
   validateSmartCheckinRequest,
   validateSmartCheckinResponse,
 } from "./validate.js";
+
+export {
+  findWallet,
+  loadWalletRegistry,
+  validateWalletRegistry,
+  type WalletRegistry,
+  type WebWalletEntry,
+} from "./registry.js";

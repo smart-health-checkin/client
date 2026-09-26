@@ -3,10 +3,19 @@
 Ask the patient's health app for what your visit needs, and get a verified
 answer back in your own page.
 
-```ts
-import { requestCheckin } from "@smart-health-checkin/client";
+Drop in the picker:
 
-const response = await requestCheckin({
+```html
+<script type="module" src="https://smart-health-checkin.org/client/lib/ui.js"></script>
+<smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
+```
+
+Or call it yourself:
+
+```ts
+import { runCheckin } from "@smart-health-checkin/client";
+
+const result = await runCheckin({
   purpose: "Before your visit",
   items: [{
     id: "allergies",
@@ -19,8 +28,9 @@ const response = await requestCheckin({
   }],
 });
 
-// response.artifacts — decrypted, signature-verified, cross-checked against
-// what you asked for. Prefill your form with it, write it, route on it: yours.
+if (result.status === "completed") {
+  result.response.resources("allergies"); // decrypted, verified, cross-checked
+}
 ```
 
 The patient interaction rides the W3C Digital Credentials API (direct
@@ -38,18 +48,12 @@ has to audit and configure.
 The docs site is at [smart-health-checkin.org/client/docs](https://smart-health-checkin.org/client/docs/);
 the same pages live in this repo, so they read here too.
 
-| Guide | |
+| Track | Guides |
 | --- | --- |
-| [Getting started](docs/getting-started.md) | Install, first request, handling declines, running without a phone |
-| [Request model](docs/requests.md) | Items, FHIR selectors, questionnaires, accepted formats |
-| [Response model](docs/responses.md) | Artifacts, per-item status, asking only for what's missing |
-| [Wallets and browser support](docs/wallets.md) | Platform API, wallet web app, mock, key custody |
-| [Kiosk and front-desk check-in](docs/kiosk.md) | A screen with no wallet hands the request to the patient's phone |
-| [Writing FHIR](docs/fhir.md) | The optional mapping helper — and when not to use it |
-| [Production checklist](docs/production.md) | Trust policy, identity, fallback, pinning |
-| [Server-held keys](docs/server-authority.md) | The two-call seam, if your server holds the verifier key |
-| [Running the demos](demo/README.md) | The URL parameters that configure the clinic demo, wallet, and examples |
-| [API reference](docs/api/index.md) | Generated from source; every export |
+| Add check-in to an EHR page | [Getting started](docs/getting-started.md) · [Wallet picker](docs/picker.md) · [Request model](docs/requests.md) · [Response model](docs/responses.md) · [Offering wallets](docs/wallets.md) · [Wallet registries](docs/registry.md) · [Kiosk](docs/kiosk.md) · [Writing FHIR](docs/fhir.md) · [Production checklist](docs/production.md) · [Server-held keys](docs/server-authority.md) |
+| Build a wallet | [Build a wallet](docs/build-a-wallet.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) |
+| Test and debug | [Test and debug](docs/testing.md) · [Running the demos](demo/README.md) · [Upgrading from 0.1](docs/upgrading.md) |
+| Reference | [API reference](docs/api/index.md), generated from source, one page per entry point |
 
 ## Install
 
@@ -63,19 +67,19 @@ npm install github:smart-health-checkin/client#<commit-sha>
 bun add github:smart-health-checkin/client
 ```
 
-Or with no build step, from the hosted ES modules — moving
-[`/client/lib/checkin.js`](https://smart-health-checkin.org/client/lib/checkin.js) or pinned
-`/client/lib/<version>/checkin.js`:
+Or with no build step, from the hosted ES modules at `/client/lib/`, each self-contained, with pinned copies at `/client/lib/<version>/`:
 
-```html
-<script type="module">
-  import { requestCheckin } from "https://smart-health-checkin.org/client/lib/checkin.js";
-</script>
-```
-
-The optional FHIR helper is a separate entry point,
-`@smart-health-checkin/client/fhir` (or `/client/lib/fhir.js`), so nothing in
-the check-in path pulls it in.
+| Entry point | Hosted file | For |
+| --- | --- | --- |
+| `@smart-health-checkin/client` | `checkin.js` | EHR pages: `runCheckin`, `wallets`, `CheckinResponse` |
+| `/ui` | `ui.js` | `<smart-checkin-picker>` |
+| `/react` | (package only) | `<CheckinPicker>`, `useCheckin` |
+| `/picker` | (package only) | Picker logic for your own UI |
+| `/wallet` | `wallet.js` | Building a wallet: `serveWebWallet`, matching, sealing |
+| `/handoff` | `handoff.js` | Kiosks: `handoffWallet` |
+| `/fhir` | `fhir.js` | Optional: response to a FHIR transaction |
+| `/testing` | `testing.js` | `mockWallet` for demos and tests |
+| `/model`, `/wire` | (package only) | Types, validators, and the protocol bytes |
 
 ## Try it
 
@@ -96,7 +100,10 @@ the shared record couldn't carry.
 | `src/model` | The transport-neutral request/response model and validators (spec §§5–6). |
 | `src/wire` | The mdoc binding as pure byte functions: CBOR, SessionTranscript, HPKE, COSE verification. No DOM. |
 | `src/browser` | Digital Credentials API invocation and the key-custody seam. |
-| `src/kit` | The facade — `requestCheckin` / `runCheckin`, scenarios, responders and their credential getters. |
+| `src/core` | The root module: `runCheckin`, `Wallet`, `CheckinResponse`, errors, health-card trust. |
+| `src/kit` | Internals: the web-wallet and kiosk transports, the mock wallet, sealing. |
+| `src/ui`, `src/react`, `src/picker` | The picker element, its React wrapper, and its logic. |
+| `src/wallet`, `src/handoff`, `src/testing` | Entry points for wallet builders, kiosks, and tests. |
 | `src/fhir` | **Optional companion**, never imported by the rest: response → transaction Bundle, plus a posting helper. |
 | `demo/` | The clinic demo, the demo wallet app, the autofill and kiosk hand-off examples, React and Angular examples. |
 

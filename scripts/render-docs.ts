@@ -10,8 +10,8 @@ import { marked } from "marked";
 import { createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { API_GROUPS, anchorFor } from "./api-index.ts";
-import { GUIDES } from "./site-nav.ts";
+import { API_GROUPS, CHECKED_MODULES, anchorFor } from "./api-index.ts";
+import { GUIDES, TRACKS } from "./site-nav.ts";
 import { CHROME_ASSETS, footer, header } from "./site-chrome.ts";
 import { BASE, OUT_ROOT } from "./site-base.ts";
 
@@ -46,6 +46,8 @@ const DOCS_STYLE = `
   .rail ul + h4 { margin-top:var(--space-6); }
   .rail ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
   .rail li { margin:0; }
+  .rail li.track > span { display:block; margin:var(--space-3) 0 var(--space-1); font-size:var(--fs-xs); font-weight:600; color:var(--fg-3); }
+  .rail li.track:first-child > span { margin-top:0; }
   .rail h4 a { color:inherit; text-decoration:none; }
   .rail h4 a:hover { color:var(--brand); }
   .rail h4 a[aria-current="page"] { color:var(--brand); }
@@ -110,16 +112,19 @@ const DOCS_STYLE = `
 /** The guides in reading order, plus the API reference, with you marked. */
 function rail(slug: string): string {
   const here = (s: string) => (s === slug ? ' aria-current="page"' : "");
-  const guides = GUIDES.filter((g) => existsSync(g.file))
-    .map((g) => `<li><a href="${hrefFor(g.slug)}"${here(g.slug)}>${g.title}</a></li>`)
-    .join("");
+  const guides = TRACKS.map((track) => {
+    const items = GUIDES.filter((g) => g.track === track && existsSync(g.file))
+      .map((g) => `<li><a href="${hrefFor(g.slug)}"${here(g.slug)}>${g.title}</a></li>`)
+      .join("");
+    return `<li class="track"><span>${track}</span><ul>${items}</ul></li>`;
+  }).join("");
   const api = API_GROUPS.map((g) => g.module)
     .filter((m, i, all) => all.indexOf(m) === i)
     .map((m) => `<li><a href="${BASE}/docs/api/${m}.html"${here(`api-${m}`)}>${m}</a></li>`)
     .join("");
   return `<nav class="rail" aria-label="Documentation">
     <h4>Guides</h4>
-    <ul>${guides}</ul>
+    <ul class="tracks">${guides}</ul>
     <h4><a href="${BASE}/docs/api/"${here("api-index")}>API reference</a></h4>
     <ul>${api}</ul>
   </nav>`;
@@ -224,10 +229,11 @@ for (const guide of GUIDES) {
 }
 
 // --- generated API reference pages ------------------------------------
-const runtimeExports = new Set<string>();
-for (const mod of ["../src/index.ts", "../src/fhir/index.ts"]) {
-  const imported = await import(new URL(mod, import.meta.url).href);
-  for (const name of Object.keys(imported)) runtimeExports.add(name);
+const missing: string[] = [];
+for (const { module, source } of CHECKED_MODULES) {
+  const imported = await import(new URL(source, import.meta.url).href);
+  const listed = new Set(API_GROUPS.filter((g) => g.module === module).flatMap((g) => g.entries.map((e) => e.name)));
+  for (const name of Object.keys(imported)) if (!listed.has(name)) missing.push(`${module}: ${name}`);
 }
 
 for (const file of readdirSync("docs/api")) {
@@ -245,8 +251,6 @@ for (const file of readdirSync("docs/api")) {
 }
 
 // --- curated API index (replaces TypeDoc's empty module table) --------
-const listed = new Set(API_GROUPS.flatMap((g) => g.entries.map((e) => e.name)));
-const missing = [...runtimeExports].filter((name) => !listed.has(name));
 if (missing.length) {
   throw new Error(
     `API index is missing ${missing.length} export(s): ${missing.join(", ")}\n` +
@@ -255,6 +259,7 @@ if (missing.length) {
 }
 
 const groupsHtml = API_GROUPS.map((group) => {
+  const importLine = `<p class="blurb"><code>import … from "${group.importPath}"</code></p>`;
   const rows = group.entries
     .map(
       (entry) =>
@@ -264,6 +269,7 @@ const groupsHtml = API_GROUPS.map((group) => {
   return `  <section class="api-group">
     <h2>${group.title}</h2>
     <p class="blurb">${group.blurb}</p>
+    ${importLine}
     <div class="api-list">
 ${rows}
     </div>
@@ -283,15 +289,15 @@ writeFileSync(
   build time to make sure nothing is missing from it.
 </p>
 <p>
-  Most integrations use two: <a href="${BASE}/docs/api/checkin.html#requestcheckin"><code>requestCheckin</code></a>
-  and — only if you want the FHIR mapping —
-  <a href="${BASE}/docs/api/fhir.html#buildcheckinbundle"><code>buildCheckinBundle</code></a>.
+  Most EHR pages use the <a href="${BASE}/docs/api/ui.html">picker element</a>, or
+  <a href="${BASE}/docs/api/checkin.html#runcheckin"><code>runCheckin</code></a> and
+  <a href="${BASE}/docs/api/checkin.html#checkinresponse"><code>CheckinResponse</code></a>.
   For explanation rather than signatures, start with
   <a href="${BASE}/">Getting started</a>.
 </p>
 ${groupsHtml}
 <div class="pager">
-  <span>Full generated pages: <a href="${BASE}/docs/api/checkin.html">checkin</a> · <a href="${BASE}/docs/api/fhir.html">fhir</a></span>
+  <span>Full generated pages: ${["checkin", "ui", "react", "picker", "wallet", "handoff", "fhir", "testing", "model", "wire"].map((m) => `<a href="${BASE}/docs/api/${m}.html">${m}</a>`).join(" · ")}</span>
 </div>`,
   ),
 );
@@ -305,7 +311,7 @@ const redirect = (to: string): string => `<!doctype html>
 for (const stale of ["index.html", "getting-started.html"]) writeFileSync(join(OUT, stale), redirect(`${BASE}/`));
 
 console.log(
-  `docs rendered: ${GUIDES.length} guides, API index (${runtimeExports.size} exports checked) -> ${OUT}`,
+  `docs rendered: ${GUIDES.length} guides, API index (${CHECKED_MODULES.length} modules checked) -> ${OUT}`,
 );
 
 // --- llms.txt: this section, for a model ------------------------------
@@ -323,7 +329,7 @@ writeFileSync(
   [
     "# SMART Health Check-in — JavaScript client",
     "",
-    "> The provider side of SMART Health Check-in as one `await`: ask the patient's health app for what the visit needs and get a verified response back in the page. Install from git (`npm install github:smart-health-checkin/client`) or import the hosted ES module.",
+    "> Add SMART Health Check-in to an EHR page: a drop-in picker, or one call (`runCheckin`) that asks the patient's health app for what the visit needs and returns a verified response. Also a wallet-side module, a kiosk hand-off, and a mock wallet for testing. Install from git (`npm install github:smart-health-checkin/client`) or import the hosted ES modules.",
     "",
     "## Guides",
     ...guides.map((g) => `- [${g.title}](${abs(mdPathFor(g.slug))}): ${g.blurb}`),

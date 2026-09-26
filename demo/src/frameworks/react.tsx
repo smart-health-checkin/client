@@ -2,7 +2,7 @@
 
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import type { SmartCheckinResponse } from "../../../src/index.js";
+import type { CheckinResponse } from "../../../src/index.js";
 import { CheckinPicker } from "../../../src/react/index.js";
 
 const REQUEST = {
@@ -23,15 +23,10 @@ const REQUEST = {
 };
 
 function MedicationCheckin() {
-  const [response, setResponse] = useState<SmartCheckinResponse | undefined>();
+  const [response, setResponse] = useState<CheckinResponse | undefined>();
   const [note, setNote] = useState<string | undefined>();
 
-  const medications =
-    response?.artifacts
-      .filter((a) => a.mediaType === "application/fhir+json")
-      .flatMap((a) => resourcesOf(a.value))
-      .filter((r) => r.resourceType === "MedicationRequest")
-      .map((r) => medicationText(r)) ?? [];
+  const medications = response?.resources("meds", { type: "MedicationRequest" }).map(medicationText) ?? [];
 
   return (
     <div className="card">
@@ -43,7 +38,7 @@ function MedicationCheckin() {
 
       <CheckinPicker
         request={REQUEST}
-        wallets="./wallets.json"
+        registry="./wallets.json"
         mock
         heading="Confirm your medications"
         description="Bring in your medication list from a health app you use."
@@ -62,17 +57,6 @@ function MedicationCheckin() {
       )}
     </div>
   );
-}
-
-function resourcesOf(value: unknown): Array<Record<string, unknown>> {
-  if (!value || typeof value !== "object") return [];
-  const v = value as Record<string, unknown>;
-  if (v.resourceType === "Bundle" && Array.isArray(v.entry)) {
-    return v.entry
-      .map((entry) => (entry as { resource?: unknown }).resource)
-      .filter((r): r is Record<string, unknown> => !!r && typeof r === "object");
-  }
-  return typeof v.resourceType === "string" ? [v] : [];
 }
 
 function medicationText(resource: Record<string, unknown>): string {

@@ -27,8 +27,8 @@ request and this page's origin, so it cannot be read in transit or replayed
 at another site. The page was going to read the plaintext anyway, so keeping
 the key in the page's memory does not widen what the page can see.
 
-The library also supports a server-held key, through the `authority` option
-— the authority being the part of the flow that holds the key and opens the
+The library also supports a server-held key, through the `keys` option
+— key custody being the part of the flow that holds the key and opens the
 response. It is for the narrow case where a deployment does not want the page
 to hold the response at all: a kiosk you do not control, or a policy that
 allows PHI to be decrypted only on a server. The cost is real: no prefill in

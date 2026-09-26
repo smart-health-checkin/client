@@ -1,42 +1,45 @@
 /**
- * `<smart-checkin-picker>`: a drop-in control that lets a patient choose how
- * to answer a SMART Health Check-in request, then runs the check-in.
+ * `<smart-checkin-picker>`: a drop-in control that lets a patient choose a
+ * wallet for a SMART Health Check-in request, then runs the check-in.
  *
  * ```html
  * <script type="module" src="https://smart-health-checkin.org/client/lib/ui.js"></script>
- * <smart-checkin-picker wallets="/wallets.json"></smart-checkin-picker>
+ * <smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
  * <script type="module">
  *   const picker = document.querySelector("smart-checkin-picker");
- *   picker.request = { scenario: "medications" };
+ *   picker.request = { purpose: "Before your visit", items: [ ... ] };
  *   picker.addEventListener("smart-checkin-response", (e) => fill(e.detail.response));
  * </script>
  * ```
  *
  * Attributes:
- * - `wallets`: URL of a wallet registry (wallets.json), or "demo" for the built-in list. Omit for no web wallets.
- * - `platform="off"`: don't offer the device's own wallet.
- * - `remember`: remember the last app used on this site (stored in the browser). Off unless present.
- * - `mock`: offer the simulated responder. Development only.
- * - `mode="pick"`: only choose; the page runs the flow (see the `smart-checkin-choose` event and `setOutcome`).
+ * - `registry`: URL of a wallet registry (wallets.json). Omit for no web wallets.
+ * - `platform="off"`: don't offer the phone's own wallet.
+ * - `remember`: remember the last wallet used on this site (stored in the browser). Off unless present.
+ * - `mock`: offer the simulated wallet. Development only.
+ * - `mode="pick"`: only choose; the page runs the check-in (see `smart-checkin-choose` and `setOutcome`).
  * - `theme`: "light" (default), "dark", or "auto" (follow the device).
  * - `appearance="flat"`: no card border or background.
  * - `footer="off"`: hide the SMART Health Check-in mark.
  * - `heading`, `description`: replace the two lines at the top.
  *
- * Properties: `request` (what to ask for), `strings` (any text), `responders`
- * (a pre-resolved list, instead of the attributes), `checkinOptions`
- * (e.g. a server authority), `origin`.
+ * Properties: `request` (what to ask for), `wallets` (a list from `wallets()`,
+ * instead of the attributes), `strings` (any text), `checkinOptions`
+ * (passed to `runCheckin`, e.g. `keys` or `healthCards`).
  *
  * Events (all bubble and cross shadow roots):
- * - `smart-checkin-choose`: `{ responder, getCredential, cancel }`, fired inside the click.
- * - `smart-checkin-response`: `{ responder, response, outcome }`.
- * - `smart-checkin-declined`: `{ responder }`.
- * - `smart-checkin-error`: `{ responder?, message, outcome? }`.
+ * - `smart-checkin-choose`: `{ wallet, session }`, fired inside the click. In pick mode, run the check-in with `session`.
+ * - `smart-checkin-response`: `{ wallet, response, result }`.
+ * - `smart-checkin-declined`: `{ wallet, result }`.
+ * - `smart-checkin-error`: `{ wallet?, code?, message, result? }`.
  */
 
-import { runCheckin, type CheckinOptions, type CheckinOutcome, type CheckinRequestInput } from "../kit/index.js";
-import { resolveResponders, type Responder, type ResponderPolicy } from "../kit/responders.js";
-import { arrangeResponders, monogram, recallChoice, rememberChoice, startResponder, type StartedResponder } from "../picker/index.js";
+import { runCheckin, type CheckinOptions, type CheckinResult } from "../core/run.js";
+import type { CheckinRequestInput } from "../core/request.js";
+import type { CheckinErrorCode } from "../core/errors.js";
+import { wallets as listWallets, type Wallet, type WalletSession } from "../core/wallets.js";
+import { mockWallet } from "../testing/index.js";
+import { arrangeWallets, monogram, recallChoice, rememberChoice } from "../picker/index.js";
 import { ICONS, STARBURST_SVG } from "./icons.js";
 import { DEFAULT_STRINGS, fill, type PickerStrings } from "./strings.js";
 import { PICKER_CSS } from "./styles.js";
@@ -44,15 +47,16 @@ import { PICKER_CSS } from "./styles.js";
 type View =
   | { kind: "loading" }
   | { kind: "choose" }
-  | { kind: "waiting"; responder: Responder }
-  | { kind: "done"; responder: Responder }
-  | { kind: "declined"; responder: Responder }
-  | { kind: "error"; responder?: Responder; message: string; blocked: boolean };
+  | { kind: "waiting"; wallet: Wallet }
+  | { kind: "done"; wallet: Wallet }
+  | { kind: "declined"; wallet: Wallet }
+  | { kind: "error"; wallet?: Wallet; message: string; code?: CheckinErrorCode };
 
+/** In pick mode, how the page's check-in ended. */
 export type PickerOutcome =
   | { status: "completed" }
   | { status: "declined" }
-  | { status: "error"; message: string };
+  | { status: "failed"; message: string; code?: CheckinErrorCode };
 
 const esc = (s: string): string =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -66,21 +70,20 @@ const HTMLElementBase: typeof HTMLElement =
   typeof HTMLElement === "undefined" ? (class {} as unknown as typeof HTMLElement) : HTMLElement;
 
 export class SmartCheckinPicker extends HTMLElementBase {
-  static observedAttributes = ["wallets", "platform", "remember", "mock", "mode", "heading", "description"];
+  static observedAttributes = ["registry", "platform", "remember", "mock", "mode", "heading", "description"];
 
   /** What to ask the patient for. Required unless `mode="pick"`. */
   request?: CheckinRequestInput;
-  /** Options passed through to `runCheckin` (for example a server-owned authority). */
-  checkinOptions: Omit<CheckinOptions, "getCredential"> = {};
-  /** Verifier origin for the mock responder; defaults to this page's. */
-  origin?: string;
+  /** Passed to `runCheckin`: `keys`, `healthCards`, `fetch`. */
+  checkinOptions: Omit<CheckinOptions, "wallet" | "signal" | "session"> = {};
 
   private _strings: PickerStrings = DEFAULT_STRINGS;
-  private _responders?: Responder[];
-  private resolved: Responder[] = [];
+  private _wallets?: Wallet[];
+  private resolved: Wallet[] = [];
   private view: View = { kind: "loading" };
   private ignoreRemembered = false;
-  private started?: StartedResponder;
+  private session?: WalletSession;
+  private abort?: AbortController;
   private runId = 0;
   private loadId = 0;
   private query = "";
@@ -97,12 +100,12 @@ export class SmartCheckinPicker extends HTMLElementBase {
     this.render();
   }
 
-  /** A pre-resolved responder list (from `resolveResponders`), used instead of the attributes. */
-  get responders(): Responder[] | undefined {
-    return this._responders;
+  /** The wallets to offer (from `wallets()`), instead of the `registry` / `platform` / `mock` attributes. */
+  get wallets(): Wallet[] | undefined {
+    return this._wallets;
   }
-  set responders(value: Responder[] | undefined) {
-    this._responders = value;
+  set wallets(value: Wallet[] | undefined) {
+    this._wallets = value;
     void this.load();
   }
 
@@ -123,39 +126,31 @@ export class SmartCheckinPicker extends HTMLElementBase {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (!this.root || oldValue === newValue) return;
-    if (["wallets", "platform", "mock"].includes(name)) void this.load();
+    if (["registry", "platform", "mock"].includes(name)) void this.load();
     else this.render();
   }
 
   /** In `mode="pick"`, tell the picker how the check-in ended so it can say so. */
   setOutcome(outcome: PickerOutcome): void {
-    const responder = this.view.kind === "waiting" ? this.view.responder : undefined;
-    if (!responder) return;
+    const wallet = this.view.kind === "waiting" ? this.view.wallet : undefined;
+    if (!wallet) return;
     if (outcome.status === "completed") {
-      this.view = { kind: "done", responder };
-      if (this.hasAttribute("remember")) rememberChoice(responder.id);
-    } else if (outcome.status === "declined") this.view = { kind: "declined", responder };
-    else this.view = { kind: "error", responder, message: outcome.message, blocked: /blocked/i.test(outcome.message) };
+      this.view = { kind: "done", wallet };
+      if (this.hasAttribute("remember")) rememberChoice(wallet.id);
+    } else if (outcome.status === "declined") this.view = { kind: "declined", wallet };
+    else this.view = { kind: "error", wallet, message: outcome.message, ...(outcome.code ? { code: outcome.code } : {}) };
     this.render();
   }
 
-  /** Back to the list of apps. */
+  /** Back to the list of wallets, cancelling anything in progress. */
   reset(): void {
-    this.started?.cancel();
-    this.started = undefined;
+    this.session?.cancel();
+    this.abort?.abort();
+    this.session = undefined;
+    this.abort = undefined;
     this.runId++;
-    this.view = this.resolved.length ? { kind: "choose" } : { kind: "loading" };
+    this.view = this.resolved.length || this._wallets ? { kind: "choose" } : { kind: "loading" };
     this.render();
-  }
-
-  private policy(): ResponderPolicy {
-    const wallets = this.getAttribute("wallets");
-    return {
-      platform: this.getAttribute("platform") !== "off",
-      ...(wallets ? { webWallets: wallets === "demo" ? true : wallets } : {}),
-      ...(this.hasAttribute("mock") ? { mock: true } : {}),
-      ...(this.origin ? { origin: this.origin } : {}),
-    };
   }
 
   private async load(): Promise<void> {
@@ -164,7 +159,14 @@ export class SmartCheckinPicker extends HTMLElementBase {
     this.view = { kind: "loading" };
     this.render();
     try {
-      const list = this._responders ?? (await resolveResponders(this.policy()));
+      const registry = this.getAttribute("registry");
+      const list =
+        this._wallets ??
+        (await listWallets({
+          platform: this.getAttribute("platform") !== "off",
+          ...(registry ? { registry } : {}),
+          ...(this.hasAttribute("mock") ? { extra: [mockWallet()] } : {}),
+        }));
       if (id !== this.loadId) return;
       this.resolved = list;
       this.view = { kind: "choose" };
@@ -172,7 +174,7 @@ export class SmartCheckinPicker extends HTMLElementBase {
       if (id !== this.loadId) return;
       this.resolved = [];
       const message = e instanceof Error ? e.message : String(e);
-      this.view = { kind: "error", message: `Couldn't load the list of health apps: ${message}`, blocked: false };
+      this.view = { kind: "error", message: `Couldn't load the list of health apps: ${message}` };
       this.emit("smart-checkin-error", { message });
     }
     this.render();
@@ -180,7 +182,7 @@ export class SmartCheckinPicker extends HTMLElementBase {
 
   private arranged() {
     const preferred = this.hasAttribute("remember") && !this.ignoreRemembered ? recallChoice() : undefined;
-    return arrangeResponders(this.resolved, preferred ? { preferred } : {});
+    return arrangeWallets(this.resolved, preferred ? { preferred } : {});
   }
 
   // ---- interaction. Everything that opens a wallet runs synchronously in the click.
@@ -188,10 +190,9 @@ export class SmartCheckinPicker extends HTMLElementBase {
     const target = (event.target as Element).closest<HTMLElement>("[data-action]");
     if (!target) return;
     const action = target.dataset.action;
-    const byId = (id?: string) => this.resolved.find((r) => r.id === id);
     if (action === "choose") {
-      const responder = byId(target.dataset.id);
-      if (responder) this.choose(responder);
+      const wallet = this.resolved.find((w) => w.id === target.dataset.id);
+      if (wallet) this.choose(wallet);
     } else if (action === "more") {
       this.query = "";
       this.renderDialog();
@@ -205,8 +206,8 @@ export class SmartCheckinPicker extends HTMLElementBase {
     } else if (action === "cancel" || action === "reset") {
       this.reset();
     } else if (action === "retry") {
-      const responder = "responder" in this.view ? this.view.responder : undefined;
-      if (responder) this.choose(responder);
+      const wallet = "wallet" in this.view ? this.view.wallet : undefined;
+      if (wallet) this.choose(wallet);
       else void this.load();
     }
   }
@@ -219,47 +220,57 @@ export class SmartCheckinPicker extends HTMLElementBase {
     if (list) list.innerHTML = this.results();
   }
 
-  private choose(responder: Responder): void {
-    this.started?.cancel();
-    const started = startResponder(responder, this.origin ? { origin: this.origin } : {});
-    this.started = started;
+  private choose(wallet: Wallet): void {
+    this.session?.cancel();
+    this.abort?.abort();
     if (this.dialog.open) this.dialog.close();
     const runId = ++this.runId;
-    this.view = { kind: "waiting", responder };
+    this.view = { kind: "waiting", wallet };
     this.render();
-    this.emit("smart-checkin-choose", { responder, getCredential: started.getCredential, cancel: started.cancel });
-    if (this.getAttribute("mode") === "pick") return;
+
+    if (this.getAttribute("mode") === "pick") {
+      // Open now, inside the click; the page runs the check-in with this session.
+      const session = wallet.open();
+      this.session = session;
+      this.emit("smart-checkin-choose", { wallet, session });
+      return;
+    }
     if (!this.request) {
-      this.view = { kind: "error", responder, message: "This page didn't say what to ask for (the picker's request property is not set).", blocked: false };
+      this.view = { kind: "error", wallet, message: "This page didn't say what to ask for (the picker's request property is not set)." };
       this.render();
       return;
     }
-    void this.run(runId, responder, started, this.request);
+    const abort = new AbortController();
+    this.abort = abort;
+    // runCheckin opens the wallet before its first await, so this is still inside the click.
+    const running = runCheckin(this.request, { ...this.checkinOptions, wallet, signal: abort.signal });
+    this.emit("smart-checkin-choose", { wallet });
+    void running.then(
+      (result) => this.finish(runId, wallet, result),
+      (e: unknown) => this.finishError(runId, wallet, e instanceof Error ? e.message : String(e)),
+    );
   }
 
-  private async run(runId: number, responder: Responder, started: StartedResponder, request: CheckinRequestInput): Promise<void> {
-    let outcome: CheckinOutcome;
-    try {
-      outcome = await runCheckin(request, {
-        ...this.checkinOptions,
-        ...(started.getCredential ? { getCredential: started.getCredential } : {}),
-      });
-    } catch (e) {
-      outcome = { status: "error", error: { stage: "prepare", message: e instanceof Error ? e.message : String(e) } } as CheckinOutcome;
-    }
+  private finish(runId: number, wallet: Wallet, result: CheckinResult): void {
     if (runId !== this.runId) return; // cancelled or superseded
-    if (outcome.status === "completed") {
-      this.view = { kind: "done", responder };
-      if (this.hasAttribute("remember")) rememberChoice(responder.id);
-      this.emit("smart-checkin-response", { responder, response: outcome.response, outcome });
-    } else if (outcome.status === "declined") {
-      this.view = { kind: "declined", responder };
-      this.emit("smart-checkin-declined", { responder });
+    if (result.status === "completed") {
+      this.view = { kind: "done", wallet };
+      if (this.hasAttribute("remember")) rememberChoice(wallet.id);
+      this.emit("smart-checkin-response", { wallet, response: result.response, result });
+    } else if (result.status === "declined") {
+      this.view = { kind: "declined", wallet };
+      this.emit("smart-checkin-declined", { wallet, result });
     } else {
-      const message = outcome.error?.message ?? "the check-in could not be completed";
-      this.view = { kind: "error", responder, message, blocked: /blocked/i.test(message) };
-      this.emit("smart-checkin-error", { responder, message, outcome });
+      this.view = { kind: "error", wallet, message: result.error.message, code: result.error.code };
+      this.emit("smart-checkin-error", { wallet, code: result.error.code, message: result.error.message, result });
     }
+    this.render();
+  }
+
+  private finishError(runId: number, wallet: Wallet, message: string): void {
+    if (runId !== this.runId) return;
+    this.view = { kind: "error", wallet, message };
+    this.emit("smart-checkin-error", { wallet, message });
     this.render();
   }
 
@@ -272,15 +283,16 @@ export class SmartCheckinPicker extends HTMLElementBase {
     return esc(fill(this._strings[key], values));
   }
 
-  private icon(r: Responder, extra = ""): string {
+  private icon(r: Wallet, extra = ""): string {
     if (r.kind === "platform") return `<span class="icon${extra}" part="icon">${isMobile() ? ICONS.phone : ICONS.qr}</span>`;
+    if (r.kind === "handoff") return `<span class="icon${extra}" part="icon">${ICONS.qr}</span>`;
     if (r.kind === "mock") return `<span class="icon${extra}" part="icon">${ICONS.flask}</span>`;
     if (r.iconUrl) return `<span class="icon${extra}" part="icon"><img alt="" src="${esc(r.iconUrl)}" data-fallback="${esc(r.name)}"></span>`;
     const m = monogram(r.name);
     return `<span class="icon letter${extra}" part="icon" style="background:${m.color}" aria-hidden="true">${esc(m.letter)}</span>`;
   }
 
-  private primaryButton(r: Responder, remembered: boolean, only: boolean): string {
+  private primaryButton(r: Wallet, remembered: boolean, only: boolean): string {
     let name: string, detail: string, glyph: string;
     if (r.kind === "platform") {
       const mobile = isMobile();
@@ -295,12 +307,12 @@ export class SmartCheckinPicker extends HTMLElementBase {
     return `<button class="primary" part="primary" data-action="choose" data-id="${esc(r.id)}"><span class="glyph">${glyph}</span><span class="text"><span class="name">${name}</span>${detail ? `<span class="detail">${detail}</span>` : ""}</span></button>`;
   }
 
-  private row(r: Responder): string {
+  private row(r: Wallet): string {
     const detail = esc(r.description ?? "");
     return `<li><button class="row" part="row" data-action="choose" data-id="${esc(r.id)}">${this.icon(r)}<span class="text"><span class="name">${esc(r.name)}</span>${detail ? `<span class="detail">${detail}</span>` : ""}</span>${ICONS.chevron}</button></li>`;
   }
 
-  private moreRow(more: Responder[]): string {
+  private moreRow(more: Wallet[]): string {
     const peek = more.slice(0, 3).map((r) => this.icon(r)).join("");
     return `<li><button class="row" part="row more" data-action="more"><span class="stack">${peek}</span><span class="text"><span class="name">${this.t("moreTitle")}</span><span class="detail">${this.t("moreDetail", { count: more.length })}</span></span>${ICONS.chevron}</button></li>`;
   }
@@ -342,22 +354,22 @@ export class SmartCheckinPicker extends HTMLElementBase {
     if (v.kind === "loading") body = this.header() + this.status(`<span class="spinner"></span>`, this.t("loading"), "");
     else if (v.kind === "choose") body = this.chooseView();
     else if (v.kind === "waiting") {
-      const web = v.responder.kind === "web";
+      const web = v.wallet.kind === "web";
       body = this.status(
         `<span class="spinner" aria-hidden="true"></span>`,
-        web ? this.t("waitingWebTitle", { name: v.responder.name }) : this.t("waitingPlatformTitle"),
+        web ? this.t("waitingWebTitle", { name: v.wallet.name }) : this.t("waitingPlatformTitle"),
         web ? this.t("waitingWebDetail") : this.t("waitingPlatformDetail"),
         web ? `<div class="actions"><button class="button" data-action="cancel">${this.t("cancel")}</button></div>` : "",
       );
     } else if (v.kind === "done") {
-      body = this.status(`<span class="badge ok">${ICONS.check}</span>`, this.t("doneTitle", { name: v.responder.name }), this.t("doneDetail"), `<button class="link" data-action="different">${this.t("shareAgain")}</button>`);
+      body = this.status(`<span class="badge ok">${ICONS.check}</span>`, this.t("doneTitle", { name: v.wallet.name }), this.t("doneDetail"), `<button class="link" data-action="different">${this.t("shareAgain")}</button>`);
     } else if (v.kind === "declined") {
-      body = this.status(`<span class="badge warn">${ICONS.alert}</span>`, this.t("declinedTitle"), this.t("declinedDetail", { name: v.responder.name }), this.actions());
+      body = this.status(`<span class="badge warn">${ICONS.alert}</span>`, this.t("declinedTitle"), this.t("declinedDetail", { name: v.wallet.name }), this.actions());
     } else {
       body = this.status(
         `<span class="badge warn">${ICONS.alert}</span>`,
-        this.t(v.blocked ? "blockedTitle" : "errorTitle"),
-        v.blocked ? this.t("blockedDetail") : this.t("errorDetail", { message: v.message }),
+        this.t(v.code === "blocked" ? "blockedTitle" : "errorTitle"),
+        v.code === "blocked" ? this.t("blockedDetail") : this.t("errorDetail", { message: v.message }),
         this.actions(),
       );
     }
@@ -377,8 +389,8 @@ export class SmartCheckinPicker extends HTMLElementBase {
   }
 
   // The full list behind "more": every app except the platform wallet, which is always the main button.
-  private selectable(): Responder[] {
-    return arrangeResponders(this.resolved).all.filter((r) => r.kind !== "platform");
+  private selectable(): Wallet[] {
+    return arrangeWallets(this.resolved).all.filter((r) => r.kind !== "platform");
   }
 
   private renderDialog(): void {

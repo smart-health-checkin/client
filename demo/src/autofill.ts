@@ -1,20 +1,14 @@
 /**
  * Autofill sketch: the provider's own form, prefilled by the patient's app
- * via `await requestCheckin(...)`, which then asks only for what the shared
+ * via `await wallet.start(request)`, which then asks only for what the shared
  * record couldn't carry.
  *
  * Deliberately compact — this gestures at the capability rather than being a
  * production intake form. Two taps fill a gap: a symptom chip and a severity.
  */
 
-import {
-  CheckinFlowError,
-  createBrowserLocalAuthority,
-  createMockWalletCredentialGetter,
-  createWebWalletCredentialGetter,
-  detectDcApiSupport,
-  requestCheckin,
-} from "../../src/index.js";
+import { detectDcApiSupport, platformWallet, webWallet, type Wallet } from "../../src/index.js";
+import { mockWallet } from "../../src/testing/index.js";
 
 const ALLERGY_REVIEW = {
   purpose: "Review your allergy list before your visit",
@@ -70,12 +64,12 @@ const walletParam = params.get("wallet") ?? (params.get("mock") === "1" ? "auto"
 // asks the device's own. "demo" is the wallet's registry id, "app" its old name.
 const wallet: "platform" | "app" | "auto" =
   walletParam === "platform" ? "platform" : walletParam === "auto" || walletParam === "mock" ? "auto" : "app";
-const credentialGetter =
+const chosenWallet: Wallet =
   wallet === "app"
-    ? createWebWalletCredentialGetter({ walletUrl: "./wallet.html" })
+    ? webWallet({ id: "demo", name: "Demo Health Wallet", walletUrl: "./wallet.html" })
     : wallet === "auto"
-      ? createMockWalletCredentialGetter({ origin: location.origin })
-      : undefined;
+      ? mockWallet()
+      : platformWallet();
 
 const rows: Row[] = [];
 let outputTab: "fhir" | "native" = "fhir";
@@ -126,42 +120,42 @@ async function prefill(): Promise<void> {
   button.disabled = true;
   button.textContent = "Waiting for your health app…";
   try {
-    const response = await requestCheckin(ALLERGY_REVIEW, {
-      authority: createBrowserLocalAuthority({ origin: location.origin }),
-      ...(credentialGetter ? { getCredential: credentialGetter } : {}),
-    });
-    for (const artifact of response.artifacts) {
-      if (artifact.mediaType !== "application/fhir+json") continue;
-      for (const resource of extractResources(artifact.value)) {
-        if (resource.resourceType !== "AllergyIntolerance") continue;
-        const reactions = reactionTexts(resource);
-        const criticality =
-          typeof resource.criticality === "string" ? resource.criticality : undefined;
-        const name = codeText(resource) ?? "(unnamed allergy)";
-        const existing = rows.find((r) => sameAllergen(r.name, name));
-        if (existing) {
-          // The app confirms something the person already typed: keep their
-          // answers, but let the record's detail close the gap.
-          existing.reportedReactions = reactions;
-          existing.criticality = criticality;
-          existing.confirmedByApp = true;
-          existing.gaps = gapsFor(reactions, criticality);
-          continue;
-        }
-        rows.push({
-          name,
-          reportedReactions: reactions,
-          criticality,
-          symptoms: new Set(
-            SYMPTOM_TAGS.filter((tag) => reactions.some((r) => matchesTag(tag.label, r))).map(
-              (tag) => tag.label,
-            ),
-          ),
-          severity: "",
-          removed: false,
-          gaps: gapsFor(reactions, criticality),
-        });
+    const result = await chosenWallet.start(ALLERGY_REVIEW);
+    if (result.status !== "completed" || !result.response) {
+      el("status-note").textContent =
+        result.status === "declined"
+          ? "Nothing was shared. You can fill the form at the front desk instead."
+          : `Could not prefill: ${result.status === "failed" ? result.error.message : "the response stayed on the server"}`;
+      return;
+    }
+    for (const resource of result.response.resources("allergies", { type: "AllergyIntolerance" })) {
+      const reactions = reactionTexts(resource);
+      const criticality =
+        typeof resource.criticality === "string" ? resource.criticality : undefined;
+      const name = codeText(resource) ?? "(unnamed allergy)";
+      const existing = rows.find((r) => sameAllergen(r.name, name));
+      if (existing) {
+        // The app confirms something the person already typed: keep their
+        // answers, but let the record's detail close the gap.
+        existing.reportedReactions = reactions;
+        existing.criticality = criticality;
+        existing.confirmedByApp = true;
+        existing.gaps = gapsFor(reactions, criticality);
+        continue;
       }
+      rows.push({
+        name,
+        reportedReactions: reactions,
+        criticality,
+        symptoms: new Set(
+          SYMPTOM_TAGS.filter((tag) => reactions.some((r) => matchesTag(tag.label, r))).map(
+            (tag) => tag.label,
+          ),
+        ),
+        severity: "",
+        removed: false,
+        gaps: gapsFor(reactions, criticality),
+      });
     }
     const missing = rows.filter(needsDetail).length;
     el("status-note").textContent = !rows.length
@@ -172,10 +166,7 @@ async function prefill(): Promise<void> {
     el("review-card").hidden = false;
     render();
   } catch (e) {
-    el("status-note").textContent =
-      e instanceof CheckinFlowError && e.outcome.status === "declined"
-        ? "Nothing was shared — you can fill the form at the front desk instead."
-        : `Could not prefill: ${e instanceof Error ? e.message : String(e)}`;
+    el("status-note").textContent = `Could not prefill: ${e instanceof Error ? e.message : String(e)}`;
   } finally {
     button.disabled = false;
     button.textContent = "Prefill from your health app";
@@ -448,17 +439,6 @@ function matchesTag(tagLabel: string, reactionText: string): boolean {
   const tag = tagLabel.toLowerCase();
   const reaction = reactionText.toLowerCase();
   return reaction.includes(tag) || tag.includes(reaction.split(" ")[0]!);
-}
-
-function extractResources(value: unknown): Array<Record<string, unknown>> {
-  if (!value || typeof value !== "object") return [];
-  const v = value as Record<string, unknown>;
-  if (v.resourceType === "Bundle" && Array.isArray(v.entry)) {
-    return v.entry
-      .map((entry) => (entry as { resource?: unknown }).resource)
-      .filter((r): r is Record<string, unknown> => !!r && typeof r === "object");
-  }
-  return typeof v.resourceType === "string" ? [v] : [];
 }
 
 function codeText(resource: Record<string, unknown>): string | undefined {

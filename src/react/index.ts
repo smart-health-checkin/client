@@ -11,18 +11,19 @@
  */
 
 import { createElement, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { CheckinFlowError, requestCheckin, type CheckinOptions, type CheckinRequestInput } from "../kit/index.js";
-import { resolveResponders, type Responder, type ResponderPolicy } from "../kit/responders.js";
-import type { SmartCheckinResponse } from "../model/index.js";
-import { startResponder } from "../picker/index.js";
+import type { CheckinOptions, CheckinResult } from "../core/run.js";
+import type { CheckinRequestInput } from "../core/request.js";
+import type { CheckinResponse } from "../core/response.js";
+import type { CheckinErrorCode } from "../core/errors.js";
+import { wallets as listWallets, type Wallet, type WalletSession, type WalletsOptions } from "../core/wallets.js";
 import { defineCheckinPicker, type PickerOutcome, type SmartCheckinPicker } from "../ui/picker-element.js";
 import type { PickerStrings } from "../ui/strings.js";
 
 export type CheckinPickerProps = {
   /** What to ask for. Required unless `mode="pick"`. */
   request?: CheckinRequestInput;
-  /** Wallet registry URL, or "demo". Omit for no web wallets. */
-  wallets?: string;
+  /** Wallet registry URL. Omit for no web wallets. */
+  registry?: string;
   /** Offer the device's own wallet (default true). */
   platform?: boolean;
   /** Remember the last app used on this site (default false). */
@@ -38,15 +39,15 @@ export type CheckinPickerProps = {
   heading?: string;
   description?: string;
   strings?: Partial<PickerStrings>;
-  /** A pre-resolved responder list, instead of `wallets` / `platform` / `mock`. */
-  responders?: Responder[];
-  checkinOptions?: Omit<CheckinOptions, "getCredential">;
+  /** The wallets to offer (from `wallets()`), instead of `registry` / `platform` / `mock`. */
+  wallets?: Wallet[];
+  checkinOptions?: Omit<CheckinOptions, "wallet" | "signal" | "session">;
   className?: string;
   style?: CSSProperties;
-  onChoose?: (detail: { responder: Responder; getCredential?: (arg: unknown) => Promise<unknown>; cancel: () => void }) => void;
-  onResponse?: (detail: { responder: Responder; response: SmartCheckinResponse }) => void;
-  onDeclined?: (detail: { responder: Responder }) => void;
-  onError?: (detail: { responder?: Responder; message: string }) => void;
+  onChoose?: (detail: { wallet: Wallet; session?: WalletSession }) => void;
+  onResponse?: (detail: { wallet: Wallet; response: CheckinResponse; result: CheckinResult }) => void;
+  onDeclined?: (detail: { wallet: Wallet; result?: CheckinResult }) => void;
+  onError?: (detail: { wallet?: Wallet; code?: CheckinErrorCode; message: string }) => void;
   /** Receives the element, e.g. to call `setOutcome` in pick mode. */
   elementRef?: (element: (SmartCheckinPicker & HTMLElement) | null) => void;
 };
@@ -65,8 +66,8 @@ export function CheckinPicker(props: CheckinPickerProps) {
     if (props.request !== undefined) el.request = props.request;
     if (props.strings) el.strings = props.strings;
     if (props.checkinOptions) el.checkinOptions = props.checkinOptions;
-    if (props.responders) el.responders = props.responders;
-  }, [props.request, props.strings, props.checkinOptions, props.responders]);
+    if (props.wallets) el.wallets = props.wallets;
+  }, [props.request, props.strings, props.checkinOptions, props.wallets]);
 
   useEffect(() => {
     const el = ref.current;
@@ -92,7 +93,7 @@ export function CheckinPicker(props: CheckinPickerProps) {
 
   return createElement("smart-checkin-picker", {
     ref: setRef,
-    ...(props.wallets ? { wallets: props.wallets } : {}),
+    ...(props.registry ? { registry: props.registry } : {}),
     ...(props.platform === false ? { platform: "off" } : {}),
     ...(props.remember ? { remember: "" } : {}),
     ...(props.mock ? { mock: "" } : {}),
@@ -107,50 +108,47 @@ export function CheckinPicker(props: CheckinPickerProps) {
   });
 }
 
-export type CheckinState = {
-  status: "idle" | "waiting" | "done" | "declined" | "error";
-  response?: SmartCheckinResponse;
-  error?: string;
-};
-
 /**
- * Resolve responders and run the flow, for pages that draw their own UI.
- * Call `start(responder)` directly from a click handler.
+ * For pages drawing their own buttons: the wallets to offer, and `start`,
+ * which runs a check-in with one of them. Call `start(wallet)` from a click
+ * handler; it opens a web wallet's tab inside the click.
  */
-export function useCheckin(request: CheckinRequestInput, policy: ResponderPolicy, options: Omit<CheckinOptions, "getCredential"> = {}) {
-  const [responders, setResponders] = useState<Responder[]>([]);
-  const [state, setState] = useState<CheckinState>({ status: "idle" });
+export function useCheckin(
+  request: CheckinRequestInput,
+  options: WalletsOptions & Omit<CheckinOptions, "wallet" | "signal" | "session"> = {},
+) {
+  const [list, setList] = useState<Wallet[]>([]);
+  const [status, setStatus] = useState<"idle" | "waiting" | CheckinResult["status"]>("idle");
+  const [result, setResult] = useState<CheckinResult | undefined>();
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     let live = true;
-    void resolveResponders(policy).then((list) => {
-      if (live) setResponders(list);
+    void listWallets(optionsRef.current).then((l) => {
+      if (live) setList(l);
     });
     return () => {
       live = false;
     };
-  }, [policy]);
+  }, [options.registry, options.platform]);
 
   const start = useCallback(
-    (responder = responders.find((r) => r.isDefault)) => {
-      if (!responder) return Promise.resolve();
-      // Synchronous: opens a web wallet's tab while the click still allows it.
-      const started = startResponder(responder, policy.origin ? { origin: policy.origin } : {});
-      setState({ status: "waiting" });
-      return requestCheckin(request, { ...options, ...(started.getCredential ? { getCredential: started.getCredential } : {}) }).then(
-        (response) => setState({ status: "done", response }),
-        (e: unknown) =>
-          setState(
-            e instanceof CheckinFlowError && e.outcome.status === "declined"
-              ? { status: "declined" }
-              : { status: "error", error: e instanceof Error ? e.message : String(e) },
-          ),
-      );
+    (wallet: Wallet | undefined = list[0]) => {
+      if (!wallet) return Promise.resolve(undefined);
+      const { keys, healthCards, fetch } = optionsRef.current;
+      const running = wallet.start(request, { ...(keys ? { keys } : {}), ...(healthCards ? { healthCards } : {}), ...(fetch ? { fetch } : {}) });
+      setStatus("waiting");
+      return running.then((r) => {
+        setResult(r);
+        setStatus(r.status);
+        return r;
+      });
     },
-    [request, policy, options, responders],
+    [request, list],
   );
 
-  return { ...state, responders, start };
+  return { wallets: list, start, status, result, response: result?.status === "completed" ? result.response : undefined };
 }
 
 export type { PickerOutcome };

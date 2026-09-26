@@ -1,26 +1,17 @@
 /**
  * Demo Health Wallet — a wallet **web app** that answers SMART Health
- * Check-in requests over the web-wallet postMessage protocol.
+ * Check-in requests over the web-wallet hand-off, using `serveWebWallet`.
  *
- * It runs the real responder side: it parses the DeviceRequest, shows a
- * consent screen with per-item choice, then signs (COSE) and HPKE-seals a
- * DeviceResponse bound to the verifier's origin. The data it holds is
+ * The library does the protocol: it accepts one request from the opener,
+ * takes the EHR's origin from the browser, and seals the answer to it. This
+ * file is the wallet's own part: a consent screen with per-item choice. The data it holds is
  * fabricated demo content — this is a stand-in for a platform wallet, not a
  * real record store.
  */
 
-import {
-  WEB_WALLET_READY_MESSAGE_TYPE,
-  WEB_WALLET_REQUEST_MESSAGE_TYPE,
-  WEB_WALLET_RESPONSE_MESSAGE_TYPE,
-  buildMockResponse,
-  parseWalletRequest,
-  sealWalletResponse,
-  type MockItemSpec, type MockItemSpecs, DEMO_HEALTH_CARD_JWS,
-  type SmartCheckinRequest,
-  type SmartCheckinRequestItem,
-  type SmartCheckinResponse,
-} from "../../src/index.js";
+import type { SmartCheckinRequest, SmartCheckinRequestItem, SmartCheckinResponse } from "../../src/index.js";
+import { serveWebWallet, type WebWalletAnswer } from "../../src/wallet/index.js";
+import { buildMockResponse, DEMO_HEALTH_CARD_JWS, type MockItemSpec, type MockItemSpecs } from "../../src/testing/index.js";
 
 /**
  * Two demo wallets, holding different records, so a registry with more than
@@ -415,72 +406,23 @@ function specFor(item: SmartCheckinRequestItem): MockItemSpec {
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
 
-type Pending = {
-  requestId?: string;
-  smartRequest: SmartCheckinRequest;
-  encryptionInfoBytes: Uint8Array;
-  verifierOrigin: string;
-  replyTo: MessageEventSource;
-  replyOrigin: string;
-};
-
-let pending: Pending | undefined;
-
-function reply(message: Record<string, unknown>): void {
-  if (!pending) return;
-  (pending.replyTo as Window).postMessage(
-    { type: WEB_WALLET_RESPONSE_MESSAGE_TYPE, requestId: pending.requestId, ...message },
-    pending.replyOrigin,
-  );
-}
-
 function showError(message: string): void {
   const error = el("error");
   error.hidden = false;
   error.textContent = message;
 }
 
-window.addEventListener("message", (event: MessageEvent) => {
-  const data = event.data as { type?: string } | null;
-  if (!data || typeof data !== "object" || data.type !== WEB_WALLET_REQUEST_MESSAGE_TYPE) return;
-  if (!event.source) return;
-
-  const message = data as {
-    credentialRequestOptions?: unknown;
-    requestId?: string;
-  };
-  // Only the page that opened this wallet may ask it for anything, and an
-  // opaque origin can't be replied to.
-  if (event.source !== window.opener || event.origin === "null") return;
-  try {
-    const parsed = parseWalletRequest(message.credentialRequestOptions);
-    pending = {
-      requestId: message.requestId,
-      smartRequest: parsed.smartRequest,
-      encryptionInfoBytes: parsed.encryptionInfoBytes,
-      // The requester's origin comes from the browser-set event.origin, never
-      // from the message body: a page could write any origin it liked there.
-      // A platform wallet gets the same value from the browser.
-      verifierOrigin: event.origin,
-      replyTo: event.source,
-      replyOrigin: event.origin,
-    };
-    renderConsent(pending);
-  } catch (e) {
-    showError(`Could not read the request: ${e instanceof Error ? e.message : String(e)}`);
-    pending = {
-      requestId: message.requestId,
-      smartRequest: {} as SmartCheckinRequest,
-      encryptionInfoBytes: new Uint8Array(),
-      verifierOrigin: event.origin,
-      replyTo: event.source,
-      replyOrigin: event.origin,
-    };
-    reply({ outcome: "error", message: e instanceof Error ? e.message : String(e) });
-  }
+// The library handles the hand-off; each request shows the consent screen
+// and resolves with the patient's answer.
+const served = serveWebWallet({
+  onRequest: ({ request, origin }) =>
+    new Promise<WebWalletAnswer>((answer) => renderConsent({ smartRequest: request, verifierOrigin: origin }, answer)),
+  onInvalidRequest: (message) => showError(`Could not read the request: ${message}`),
 });
 
-function renderConsent(request: Pending): void {
+type Pending = { smartRequest: SmartCheckinRequest; verifierOrigin: string };
+
+function renderConsent(request: Pending, answer: (a: WebWalletAnswer) => void): void {
   el("waiting").hidden = true;
   el("consent").hidden = false;
   el("requester-origin").textContent = request.verifierOrigin;
@@ -532,11 +474,8 @@ function renderConsent(request: Pending): void {
     list.append(li);
   }
 
-  (el("share") as HTMLButtonElement).onclick = () => void share(request);
-  (el("decline") as HTMLButtonElement).onclick = () => {
-    reply({ outcome: "declined" });
-    window.close();
-  };
+  (el("share") as HTMLButtonElement).onclick = () => share(request, answer);
+  (el("decline") as HTMLButtonElement).onclick = () => answer({ declined: true });
 }
 
 function describeArtifact(artifact: {
@@ -560,38 +499,25 @@ function describeArtifact(artifact: {
   return "will share: health data";
 }
 
-async function share(request: Pending): Promise<void> {
+function share(request: Pending, answer: (a: WebWalletAnswer) => void): void {
   const shareButton = el("share") as HTMLButtonElement;
   shareButton.disabled = true;
   shareButton.textContent = "Sharing…";
-  try {
-    const selected = new Set(
-      [...document.querySelectorAll<HTMLInputElement>('#items input[type="checkbox"]')]
-        .filter((input) => input.checked)
-        .map((input) => input.dataset.itemId!),
-    );
-    const full = respond(request.smartRequest);
-    // honour per-item consent: drop what wasn't selected
-    const smartResponse: SmartCheckinResponse = {
-      ...full,
-      artifacts: full.artifacts.filter((a) => a.fulfills.some((id) => selected.has(id))),
-      requestStatus: full.requestStatus.map((status) =>
-        selected.has(status.item) ? status : { item: status.item, status: "declined" as const },
-      ),
-    };
-    const credential = await sealWalletResponse({
-      smartResponse,
-      encryptionInfoBytes: request.encryptionInfoBytes,
-      verifierOrigin: request.verifierOrigin,
-    });
-    reply({ outcome: "approved", credential });
-    window.close();
-  } catch (e) {
-    showError(`Could not build the response: ${e instanceof Error ? e.message : String(e)}`);
-    reply({ outcome: "error", message: e instanceof Error ? e.message : String(e) });
-    shareButton.disabled = false;
-    shareButton.textContent = "Share selected";
-  }
+  const selected = new Set(
+    [...document.querySelectorAll<HTMLInputElement>('#items input[type="checkbox"]')]
+      .filter((input) => input.checked)
+      .map((input) => input.dataset.itemId!),
+  );
+  const full = respond(request.smartRequest);
+  // Honour per-item consent: drop what wasn't selected. The library seals it.
+  const response: SmartCheckinResponse = {
+    ...full,
+    artifacts: full.artifacts.filter((a) => a.fulfills.some((id) => selected.has(id))),
+    requestStatus: full.requestStatus.map((status) =>
+      selected.has(status.item) ? status : { item: status.item, status: "declined" as const },
+    ),
+  };
+  answer({ response });
 }
 
 // Brand this wallet instance.
@@ -602,10 +528,6 @@ const tagEl = document.querySelector(".wallet-tag");
 if (tagEl) tagEl.textContent = brand.tagline;
 document.documentElement.style.setProperty("--accent", brand.accent);
 
-// Tell the opener we're ready for a request.
-if (window.opener) {
-  (window.opener as Window).postMessage({ type: WEB_WALLET_READY_MESSAGE_TYPE }, "*");
-} else {
-  el("waiting").textContent =
-    "Open this wallet from a check-in page — it answers requests sent to it.";
+if (!served.opened) {
+  el("waiting").textContent = "Open this wallet from a check-in page. It answers requests sent to it.";
 }

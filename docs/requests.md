@@ -114,34 +114,16 @@ one, otherwise plain FHIR". List only formats you can actually process: if an
 app returns a format that is not in the item's `accept` list, the library
 rejects the response.
 
-## Three ways to pass a request
+## Two ways to pass a request
 
-`requestCheckin` and `runCheckin` accept a request in three forms:
+`runCheckin`, `wallet.start`, and the picker's `request` property take either form:
 
-```ts
-await requestCheckin({ purpose, items });          // inline (boilerplate filled in)
-await requestCheckin(myFullSmartCheckinRequest);   // a complete request object
-await requestCheckin({ scenario: "visit-prep" });  // a named scenario
-```
+| Form | When |
+| --- | --- |
+| `{ purpose, items }` | The usual one. The library fills in the protocol fields and a unique id. |
+| A complete `SmartCheckinRequest` | When you built or stored the whole object yourself. |
 
-The first form is the usual one: you give `purpose` and `items`, and the
-library fills in the protocol fields. If you want the completed request
-object — to inspect it, cache it, or send it somewhere — `buildRequest(init)`
-returns it. `registerScenario(name, init)` stores a request under a name, so
-that a URL or a configuration file can refer to it:
-
-```ts
-import { registerScenario } from "@smart-health-checkin/client";
-
-registerScenario("visit-prep", {
-  purpose: "Before your visit",
-  items: [ /* … */ ],
-});
-```
-
-The library ships with a few named scenarios (`visit-prep`, `insurance-only`,
-`new-patient`, `phq2-dayof`, `allergy-review`, `medlist-refresh`). They exist
-for the demo pages. Write your own.
+`checkinRequest({ purpose, items })` returns the completed, validated request, for when you want to inspect it, cache it, or send it somewhere. A malformed request throws.
 
 ## What must not go in a request
 
@@ -150,8 +132,6 @@ tells the app where to send the answer: no credentials, no callback URLs, no
 claims about who you are. `purpose` and `title` are text for the patient to
 read, and a health app must not treat them as evidence of anything. Your
 identity is established by the browser, which tells the app which web origin
-is asking. The spec also defines an optional mechanism, called reader
-authentication, by which the asking page signs its request; you do not need
-it to get started.
+is asking. 
 
 Next: [Response model](responses.md)

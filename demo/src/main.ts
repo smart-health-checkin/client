@@ -3,24 +3,16 @@
  *
  * The point of the code below is the shape of the integration:
  *
- *   const response = await requestCheckin(request, { getCredential });
- *   // …then this page decides what to do with it.
+ *   const result = await wallet.start(request);
+ *   // …then this page decides what to do with result.response.
  *
  * Posting to FHIR happens explicitly afterwards, using the optional `fhir`
  * helper — the check-in kit itself has no idea a FHIR server exists.
  */
 
-import {
-  SCENARIOS,
-  CheckinFlowError,
-  createBrowserLocalAuthority,
-  credentialGetterFor,
-  requestCheckin,
-  resolveResponders,
-  type Responder,
-  type SmartCheckinRequest,
-  type SmartCheckinResponse,
-} from "../../src/index.js";
+import { wallets, type SmartCheckinRequest, type SmartCheckinResponse, type Wallet } from "../../src/index.js";
+import { mockWallet } from "../../src/testing/index.js";
+import { DEMO_REQUESTS } from "./requests.js";
 import { explainResponse, renderExplorer } from "./explore.js";
 import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.js";
 
@@ -33,23 +25,19 @@ const DEMO_PATIENT_NAME = "Jordan Reyes (demo)";
 const DEMO_APPOINTMENT = "Appointment/demo-visit";
 
 /**
- * The relying party declares what it accepts and which one leads; the kit
- * resolves that into the list this page renders. `wallets=<url>` swaps in a
- * different registry. The demo wallet leads because it works in any browser;
- * a real deployment would more likely name "platform".
+ * The wallets this page offers: the phone's own, the registry's web wallets
+ * (`wallets=<url>` swaps in a different registry), and the mock. Unavailable
+ * ones stay in the menu with the reason, since this is a developer demo. The
+ * demo wallet leads because it works in any browser; a real deployment would
+ * more likely lead with the platform wallet.
  */
-async function loadResponders(registryUrl: string | null): Promise<Responder[]> {
-  return resolveResponders({
-    platform: true,
-    webWallets: registryUrl ?? "./wallets.json",
-    mock: true,
-    origin: location.origin,
-    default: "demo",
-  });
+async function loadWallets(registryUrl: string | null): Promise<Wallet[]> {
+  return wallets({ registry: registryUrl ?? "./wallets.json", extra: [mockWallet()], includeUnavailable: true });
 }
 
-let RESPONDERS: Responder[] = [];
-const defaultResponderId = (): string => RESPONDERS.find((r) => r.isDefault)?.id ?? "platform";
+let WALLETS: Wallet[] = [];
+const defaultWalletId = (): string =>
+  (WALLETS.find((w) => w.id === "demo" && w.available) ?? WALLETS.find((w) => w.available))?.id ?? "platform";
 
 type WalletMode = string;
 type AfterMode = "none" | PostMode;
@@ -81,15 +69,15 @@ function readSettings(): Settings {
   const passthrough = p.get("request") ? decodeRequestParam(p.get("request")!) : null;
   const scenarioKey = passthrough
     ? null
-    : p.get("scenario") && SCENARIOS[p.get("scenario")!]
+    : p.get("scenario") && DEMO_REQUESTS[p.get("scenario")!]
       ? p.get("scenario")!
       : DEFAULT_SCENARIO;
   const after = p.get("post");
   const walletParam = p.get("wallet") ?? (p.get("mock") === "1" ? "auto" : p.get("mock"));
   return {
-    request: passthrough ?? SCENARIOS[scenarioKey!]!.request,
+    request: passthrough ?? DEMO_REQUESTS[scenarioKey!]!.request,
     scenarioKey,
-    wallet: walletParam ?? defaultResponderId(),
+    wallet: walletParam ?? defaultWalletId(),
     after: after === "transaction" || after === "individual" ? after : "none",
     patient: p.get("patient") ?? DEMO_PATIENT,
     appointment: p.get("appointment") ?? DEMO_APPOINTMENT,
@@ -106,11 +94,11 @@ function setParam(key: string, value: string, dropWhen?: string): void {
   location.hash = `#${p.toString()}`;
 }
 
-function responderFor(id: WalletMode): Responder | undefined {
+function walletFor(id: WalletMode): Wallet | undefined {
   // back-compat with the old ?wallet=app / auto values
   const aliases: Record<string, string> = { app: "demo", auto: "mock" };
   const wanted = aliases[id] ?? id;
-  return RESPONDERS.find((r) => r.id === wanted);
+  return WALLETS.find((w) => w.id === wanted);
 }
 
 function hostOf(url: string): string {
@@ -189,7 +177,7 @@ function render(): void {
   const s = readSettings();
 
   const scenarioSelect = el("scenario-select") as HTMLSelectElement;
-  const options = Object.keys(SCENARIOS).map((key) => {
+  const options = Object.keys(DEMO_REQUESTS).map((key) => {
     const option = document.createElement("option");
     option.value = key;
     option.textContent = key;
@@ -297,7 +285,7 @@ function render(): void {
       : `Caution: this page will post shared data to ${hostOf(s.fhirBase)}. Only proceed with test data and a server you recognize.`;
   }
 
-  const responder = responderFor(s.wallet);
+  const responder = walletFor(s.wallet);
   const statusNote = el("status-note");
   const start = el("start") as HTMLButtonElement;
   const updateStart = (): void => {
@@ -307,7 +295,7 @@ function render(): void {
   if (!responder) {
     statusNote.textContent = "No responder selected.";
   } else if (!responder.available) {
-    statusNote.textContent = `${responder.name} isn't available here${responder.reason ? ` (${responder.reason})` : ""}. Pick another from the button's menu.`;
+    statusNote.textContent = `${responder.name} isn't available here${responder.unavailableReason ? ` (${responder.unavailableReason})` : ""}. Pick another from the button's menu.`;
   } else if (responder.kind === "platform") {
     statusNote.textContent =
       "Your own health app answers through the Digital Credentials API — on a desktop, the browser offers a QR code to scan with your phone.";
@@ -332,10 +320,10 @@ function render(): void {
  * A split button: the primary action uses the current responder, the caret
  * opens the rest. The list comes from the kit; the rendering is ours.
  */
-function renderResponderMenu(s: Settings, current: Responder | undefined): void {
+function renderResponderMenu(s: Settings, current: Wallet | undefined): void {
   const menu = el("responder-menu");
   menu.innerHTML = "";
-  for (const responder of RESPONDERS) {
+  for (const responder of WALLETS) {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "responder-item";
@@ -346,7 +334,7 @@ function renderResponderMenu(s: Settings, current: Responder | undefined): void 
     const note = document.createElement("span");
     note.textContent = responder.available
       ? (responder.description ?? "")
-      : `Not available here${responder.reason ? ` — ${responder.reason}` : ""}`;
+      : `Not available here${responder.unavailableReason ? ` — ${responder.unavailableReason}` : ""}`;
     item.append(name, note);
     item.onclick = () => {
       el("responder-menu").hidden = true;
@@ -367,18 +355,20 @@ async function checkIn(s: Settings): Promise<void> {
   start.textContent = "Waiting for your health app…";
 
   try {
-    // 1. Ask, and await the validated response. This is the entire kit API.
-    const chosen = responderFor(s.wallet);
-    const getCredential = chosen ? credentialGetterFor(chosen, { origin: location.origin }) : undefined;
-    const response = await requestCheckin(s.request, {
-      authority: createBrowserLocalAuthority({ origin: location.origin }),
-      ...(getCredential ? { getCredential } : {}),
-    });
+    // 1. Ask the chosen wallet (inside the click), and await the result.
+    const chosen = walletFor(s.wallet);
+    if (!chosen) throw new Error("no wallet selected");
+    const result = await chosen.start(s.request);
+    if (result.status !== "completed" || !result.response) {
+      renderOutcome(result.status, s, undefined, result.status === "failed" ? `${result.error.message} (${result.error.code})` : undefined);
+      return;
+    }
+    const response = result.response.json;
     showArtifact("response", "SMART response (verified and validated)", response);
     renderOutcome("completed", s, response);
 
     // 2. From here it is ordinary application code. This page happens to post
-    //    FHIR using the optional helper — the kit was not involved.
+    //    FHIR using the optional helper; the check-in library was not involved.
     if (s.after !== "none" && s.fhirBase) {
       const bundle = buildCheckinBundle({
         request: s.request,
@@ -392,14 +382,10 @@ async function checkIn(s: Settings): Promise<void> {
       renderCreatedLinks(posted.result, s.fhirBase);
     } else {
       el("outcome-note").textContent =
-        "The response stayed in this page — see Developer detail for exactly what came back.";
+        "The response stayed in this page. See Developer detail for exactly what came back.";
     }
   } catch (e) {
-    if (e instanceof CheckinFlowError) {
-      renderOutcome(e.outcome.status, s, e.outcome.response, e.outcome.error?.message);
-    } else {
-      renderOutcome("error", s, undefined, e instanceof Error ? e.message : String(e));
-    }
+    renderOutcome("failed", s, undefined, e instanceof Error ? e.message : String(e));
   } finally {
     running = false;
     start.disabled = false;
@@ -410,8 +396,7 @@ async function checkIn(s: Settings): Promise<void> {
 const HEADLINES: Record<string, string> = {
   completed: "You're checked in",
   declined: "Check-in cancelled",
-  unsupported: "Check-in isn't available in this browser",
-  error: "Check-in didn't finish",
+  failed: "Check-in didn't finish",
 };
 
 function renderOutcome(
@@ -494,5 +479,5 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("hashchange", render);
 
-RESPONDERS = await loadResponders(params().get("wallets"));
+WALLETS = await loadWallets(params().get("wallets"));
 render();

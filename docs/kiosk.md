@@ -35,30 +35,29 @@ screen is told so; it does not sit waiting.
 
 ## The kiosk
 
-```ts
-import { runCheckin, createHandoff } from "@smart-health-checkin/client";
+The phone is just another wallet. `handoffWallet` posts the request to your mailbox, shows the QR code, and waits.
 
-const outcome = await runCheckin(myRequest, createHandoff({
-  mailbox: myMailbox,                         // yours — see "The mailbox" below
+```ts
+import { handoffWallet } from "@smart-health-checkin/client/handoff";
+
+const phone = handoffWallet({
+  mailbox: myMailbox,                         // yours; see "The mailbox" below
   handoffUrl: "/checkin/handoff.html",        // the page the phone opens
   onWaiting: ({ url }) => drawMyQrCode(url),  // the session id rides in the fragment
-}));
+});
+
+const result = await phone.start(myRequest);
 ```
 
-`createHandoff` returns the two options `runCheckin` needs. The first is the
-*authority* — the part of the flow that holds the key and opens the response.
-`createHandoff` sets it up for the web origin of the hand-off page, because a
-health app binds its answer to the page that asked, and that page is the one
-on the phone. The second is a credential getter that puts the request in the
-mailbox, calls `onWaiting` with the URL to show as a QR code, and waits for
-the answer. The key never leaves the screen. The outcome is the usual one —
-`completed`, `declined`, or an error — and the response has passed the same
-checks as any other.
+- The key stays on the kiosk. `handoffWallet` binds it to the hand-off page's origin, because the health app answers the page that asked, and that page is on the phone.
+- The result is the usual one: `completed`, `declined`, or `failed`, after the same checks as any check-in.
+- Offer it next to other wallets: `wallets({ extra: [phone] })`, or the picker's `wallets` property.
+- Cancel with an `AbortSignal`: `phone.start(myRequest, { signal })`.
 
 ## The phone page
 
 ```ts
-import { fetchHandoff, answerHandoff, sessionIdFromHash } from "@smart-health-checkin/client";
+import { fetchHandoff, answerHandoff, sessionIdFromHash } from "@smart-health-checkin/client/handoff";
 
 const sessionId = sessionIdFromHash(location.hash)!;
 const { envelope, request } = await fetchHandoff(myMailbox, sessionId);
@@ -67,13 +66,9 @@ showMyConsentScreen(request);                         // purpose and item titles
 myShareButton.onclick = () => answerHandoff(myMailbox, sessionId, envelope);
 ```
 
-`fetchHandoff` reads the request from the mailbox and decodes it, so the page
-can show the patient what is being asked for. `answerHandoff` calls
-`navigator.credentials.get` with exactly what the screen prepared and puts
-whatever the health app returned back in the mailbox. It accepts an optional
-credential getter, so the same choices as on any page — a web wallet, or the
-mock — work on the phone too. The demo's hand-off page shows the usual list
-of responders, with the platform wallet first.
+- `fetchHandoff` reads and decodes the request, so the page can show what's asked.
+- `answerHandoff` asks a wallet with exactly what the kiosk prepared, and posts the answer back. It uses the phone's own wallet unless you pass another, for example a web wallet from `wallets({ registry })`.
+- Call it from the click handler, so a web wallet's tab can open.
 
 ## The mailbox
 
@@ -117,7 +112,7 @@ written exactly once.
 
 Only the web origin. A health app binds its response to the page that asked
 it. On a kiosk that page is the hand-off page on the phone, not the screen,
-so the screen has to open the response expecting that origin. `createHandoff`
+so the screen has to open the response expecting that origin. `handoffWallet`
 arranges that. Everything after the answer arrives is the same as on any
 page, and the [production checklist](production.md) applies unchanged. A
 kiosk in a public place should also clear its screen after a timeout, and

@@ -1,131 +1,51 @@
 /**
- * Public barrel: the check-in protocol surface.
+ * `@smart-health-checkin/client`: add SMART Health Check-in to an EHR page.
  *
- * The library's job ends when your code has a validated SmartCheckinResponse.
- * FHIR writing is a separate, optional module — import it from
- * `./fhir/index.ts` (built as `fhir.js` on the site) if you want it.
+ *   const result = await runCheckin(request);                     // the phone's own wallet
+ *   const options = await wallets({ registry: "/wallets.json" }); // or let the patient choose
+ *   button.onclick = () => options[1].start(request).then(show);
+ *
+ *   if (result.status === "completed") result.response.resources("allergies");
+ *
+ * Other entry points: `/ui` (the picker element), `/react`, `/picker`,
+ * `/wallet` (building a wallet), `/handoff` (kiosks), `/fhir`, `/testing`,
+ * `/model`, `/wire`.
  */
 
+export { runCheckin, type CheckinOptions, type CheckinResult, type KeyCustody } from "./core/run.js";
+export { checkinRequest, type CheckinRequestInit, type CheckinRequestInput } from "./core/request.js";
 export {
-  requestCheckin,
-  runCheckin,
-  resolveRequest,
-  buildRequest,
-  registerScenario,
-  resolveScenario,
-  SCENARIOS,
-  CheckinFlowError,
-  type CheckinOptions,
-  type CheckinOutcome,
-  type CheckinRequestInit,
-  type CheckinRequestInput,
-  type Scenario,
-} from "./kit/index.js";
-
+  customWallet,
+  platformWallet,
+  wallets,
+  webWallet,
+  type Wallet,
+  type WalletSession,
+  type WalletsOptions,
+} from "./core/wallets.js";
+export { CheckinError, WalletDeclinedError, type CheckinErrorCode } from "./core/errors.js";
+export { CheckinResponse, type FhirResource, type ItemStatus, type ResourceEntry } from "./core/response.js";
 export {
-  validateResponseAgainstRequest,
-  validateSmartCheckinRequest,
-  validateSmartCheckinResponse,
-  type FhirCanonical,
-  type FhirProfileCollectionRef,
-  type FhirResourceType,
-  type FhirVersion,
-  type SmartArtifact,
-  type SmartArtifactBase,
-  type SmartCheckinContentSelector,
-  type SmartCheckinItemStatus,
-  type SmartCheckinRequest,
-  type SmartCheckinRequestItem,
-  type SmartCheckinResponse,
-  type SmartHealthCheckinAcceptedMediaType,
-  type ValidationResult,
-} from "./model/index.js";
-
-// Protocol identifiers and the raw DC API argument shape, for callers that
-// inspect or construct wire material directly.
+  configureHealthCardTrust,
+  healthCardTrust,
+  VCI_DIRECTORY_URL,
+  type HealthCard,
+  type HealthCardTrust,
+} from "./core/health-cards.js";
 export {
-  MDOC_DOC_TYPE,
-  MDOC_NAMESPACE,
-  PROTOCOL_ID,
-  SMART_REQUEST_INFO_KEY,
-  SMART_RESPONSE_ELEMENT_ID,
-  type OrgIsoMdocNavigatorArgument,
-} from "./wire/request.js";
-
-// The wire layer, for anyone building a server-held-key authority in this
-// language: the same functions the browser-local authority is made of.
-export { buildDcapiSessionTranscript, buildOrgIsoMdocRequest } from "./wire/request.js";
-export { openWalletResponse } from "./wire/response.js";
-export { verifyDeviceResponseSignatures } from "./wire/verify.js";
-
-export {
-  createBrowserLocalAuthority,
-  createServerAuthority,
   detectDcApiSupport,
-  extractDcapiResponse,
   type CredentialCompletion,
-  type DcapiMdocResponse,
   type DcApiSupport,
   type PreparedCredentialRequest,
-  type VerifierAuthority,
+  type PresentationContext,
 } from "./browser/index.js";
-
-// Wallet-side helpers: the demo wallet app and phone-free testing.
-export {
-  buildMockResponse,
-  buildSignedDeviceResponse,
-  createMockWalletCredentialGetter,
-  fabricateResponse,
-  parseWalletRequest,
-  recipientJwkFromEncryptionInfo,
-  sealWalletResponse,
-  DEMO_HEALTH_CARD_JWS,
-  type MockItemSpec,
-  type MockItemSpecs,
-  type MockWalletOptions,
-  type ParsedWalletRequest,
-} from "./kit/mock-wallet.js";
-
-export type { FetchLike } from "./fetch-like.js";
-
-export {
-  DEMO_WALLET_REGISTRY,
-  findWallet,
-  loadWalletRegistry,
-  validateWalletRegistry,
-  type WalletRegistry,
-  type WebWalletEntry,
-} from "./kit/wallet-registry.js";
-
-export {
-  credentialGetterFor,
-  resolveResponders,
-  type Responder,
-  type ResponderPolicy,
-} from "./kit/responders.js";
-
-export {
-  createWebWalletCredentialGetter,
-  openWebWallet,
-  WalletDeclinedError,
-  WEB_WALLET_READY_MESSAGE_TYPE,
-  WEB_WALLET_REQUEST_MESSAGE_TYPE,
-  WEB_WALLET_RESPONSE_MESSAGE_TYPE,
-  type WebWalletCredential,
-  type WebWalletOptions,
-  type WebWalletResponseMessage,
-} from "./kit/web-wallet.js";
-
-// A kiosk or front-desk screen hands the request to the patient's phone.
-export {
-  answerHandoff,
-  createHandoff,
-  createHandoffCredentialGetter,
-  fetchHandoff,
-  handoffUrlFor,
-  sessionIdFromHash,
-  type HandoffAnswer,
-  type HandoffEnvelope,
-  type HandoffMailbox,
-  type HandoffOptions,
-} from "./kit/handoff.js";
+export type {
+  SmartArtifact,
+  SmartCheckinContentSelector,
+  SmartCheckinItemStatus,
+  SmartCheckinRequest,
+  SmartCheckinRequestItem,
+  SmartCheckinResponse,
+  WalletRegistry,
+  WebWalletEntry,
+} from "./model/index.js";

@@ -2,9 +2,9 @@
  * Angular example: the same flow, rendered by Angular through a service that
  * wraps the vanilla async core.
  *
- * There is no Angular (or React) code inside the library. A binding owns three
- * things, and this service shows all three: the responder list the component
- * renders (resolved from a policy), the one call, and its state.
+ * The library has no Angular bindings; this service is all it takes: the
+ * wallets to offer (from `wallets()`), `wallet.start(request)` inside the
+ * click, and the result as state.
  */
 
 import "@angular/compiler"; // JIT: this page has no Angular build step
@@ -12,61 +12,42 @@ import { Component, Injectable, inject, signal } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { provideZonelessChangeDetection } from "@angular/core";
 import {
-  CheckinFlowError,
-  credentialGetterFor,
-  requestCheckin,
-  resolveResponders,
+  wallets,
   type CheckinRequestInput,
-  type Responder,
-  type ResponderPolicy,
-  type SmartCheckinResponse,
+  type CheckinResponse,
+  type Wallet,
+  type WalletsOptions,
 } from "../../../src/index.js";
+import { mockWallet } from "../../../src/testing/index.js";
 
-type Status = "idle" | "waiting" | "done" | "declined" | "error";
+type Status = "idle" | "waiting" | "completed" | "declined" | "failed";
 
 @Injectable({ providedIn: "root" })
 export class CheckinService {
-  readonly responders = signal<Responder[]>([]);
+  readonly wallets = signal<Wallet[]>([]);
   readonly status = signal<Status>("idle");
-  readonly response = signal<SmartCheckinResponse | undefined>(undefined);
+  readonly response = signal<CheckinResponse | undefined>(undefined);
   readonly error = signal<string | undefined>(undefined);
-  private policy?: ResponderPolicy;
 
-  /** Who may answer in this browser; availability and the default come back in the list. */
-  async configure(policy: ResponderPolicy): Promise<void> {
-    this.policy = policy;
-    this.responders.set(await resolveResponders(policy));
+  /** The wallets to offer in this browser. */
+  async configure(options: WalletsOptions): Promise<void> {
+    this.wallets.set(await wallets(options));
   }
 
-  async request(input: CheckinRequestInput, responder = this.responders().find((r) => r.isDefault)): Promise<void> {
-    if (!responder) return;
+  /** Call from the click handler: a web wallet's tab opens inside the click. */
+  async request(input: CheckinRequestInput, wallet: Wallet): Promise<void> {
+    const running = wallet.start(input);
     this.status.set("waiting");
     this.error.set(undefined);
-    try {
-      this.response.set(await requestCheckin(input, {
-        getCredential: credentialGetterFor(responder, { origin: this.policy?.origin }),
-      }));
-      this.status.set("done");
-    } catch (e) {
-      if (e instanceof CheckinFlowError && e.outcome.status === "declined") {
-        this.status.set("declined");
-      } else {
-        this.error.set(e instanceof Error ? e.message : String(e));
-        this.status.set("error");
-      }
-    }
+    const result = await running;
+    this.status.set(result.status);
+    if (result.status === "completed") this.response.set(result.response);
+    if (result.status === "failed") this.error.set(result.error.message);
   }
 }
 
-// What this page accepts, and which one leads. The demo wallet leads because
-// it works in any browser; a real deployment would more likely say "platform".
-const POLICY: ResponderPolicy = {
-  platform: true,
-  webWallets: "./wallets.json",
-  mock: true,
-  default: "demo",
-  origin: location.origin,
-};
+// The wallets this page offers: the phone's own, the demo registry, and the mock.
+const WALLETS: WalletsOptions = { registry: "./wallets.json", extra: [mockWallet()] };
 
 const REQUEST = {
   purpose: "Confirm your medications before your visit",
@@ -96,15 +77,15 @@ const REQUEST = {
         the vanilla and React examples use.
       </p>
 
-      <!-- Rendering is the page's business: one control per responder, the default leading. -->
+      <!-- This page draws its own buttons; <smart-checkin-picker> would also work here. -->
       <div class="choices">
-        @for (r of checkin.responders(); track r.id) {
+        @for (w of checkin.wallets(); track w.id; let first = $first) {
           <button
-            [class]="r.isDefault ? 'smart-btn primary' : 'smart-btn'"
-            [disabled]="!r.available || checkin.status() === 'waiting'"
-            [title]="r.reason ?? r.description ?? ''"
-            (click)="start(r)">
-            {{ r.kind === "platform" ? "Prefill from my health app" : r.name }}
+            [class]="first ? 'smart-btn primary' : 'smart-btn'"
+            [disabled]="checkin.status() === 'waiting'"
+            [title]="w.description ?? ''"
+            (click)="start(w)">
+            {{ w.kind === "platform" ? "Prefill from my health app" : w.name }}
           </button>
         }
       </div>
@@ -115,7 +96,7 @@ const REQUEST = {
       @if (checkin.status() === "declined") {
         <p class="note">Nothing was shared — fill the form manually.</p>
       }
-      @if (checkin.status() === "error") {
+      @if (checkin.status() === "failed") {
         <p class="note error">{{ checkin.error() }}</p>
       }
       @if (medications().length) {
@@ -132,33 +113,20 @@ export class AppComponent {
   readonly checkin = inject(CheckinService);
 
   constructor() {
-    void this.checkin.configure(POLICY);
+    void this.checkin.configure(WALLETS);
   }
 
   medications = () => {
     const response = this.checkin.response();
     if (!response) return [] as string[];
-    return response.artifacts
-      .filter((a) => a.mediaType === "application/fhir+json")
-      .flatMap((a) => resourcesOf((a as { value: unknown }).value))
-      .filter((r) => r.resourceType === "MedicationRequest")
+    return response
+      .resources("meds", { type: "MedicationRequest" })
       .map((r) => (r.medicationCodeableConcept as { text?: string } | undefined)?.text ?? "(unnamed)");
   };
 
-  start(responder?: Responder): void {
-    void this.checkin.request(REQUEST, responder);
+  start(wallet: Wallet): void {
+    void this.checkin.request(REQUEST, wallet);
   }
-}
-
-function resourcesOf(value: unknown): Array<Record<string, unknown>> {
-  if (!value || typeof value !== "object") return [];
-  const v = value as Record<string, unknown>;
-  if (v.resourceType === "Bundle" && Array.isArray(v.entry)) {
-    return v.entry
-      .map((entry) => (entry as { resource?: unknown }).resource)
-      .filter((r): r is Record<string, unknown> => !!r && typeof r === "object");
-  }
-  return typeof v.resourceType === "string" ? [v] : [];
 }
 
 void bootstrapApplication(AppComponent, {

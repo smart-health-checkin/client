@@ -15,7 +15,7 @@
  *   bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5
  */
 import { id, init, lookup } from "@instantdb/core";
-import type { HandoffAnswer, HandoffEnvelope, HandoffMailbox } from "../../src/index.js";
+import type { HandoffAnswer, HandoffEnvelope, HandoffMailbox } from "../../src/handoff/index.js";
 
 export const INSTANT_APP_ID = "9cc51106-8018-43b8-8a37-fd8f414fdde5";
 

@@ -132,31 +132,31 @@ reference:
 { "handledByServer": true, "reference": "encounter-8821/checkin-3" }
 ```
 
-In the second case `runCheckin` resolves with `status: "completed"`, no
-`response`, and your reference in `outcome.serverReference`. `requestCheckin`
-throws, because its purpose is to hand you the response. Prefilling the page
-is impossible in this mode by design; that is the trade you are making.
+In the second case the result has `status: "completed"`, no `response`, and
+your reference in `result.serverReference`. Prefilling the page is impossible
+in this mode by design; that is the trade you are making.
 
 ## Using it from the page
 
 ```ts
 import { runCheckin } from "@smart-health-checkin/client";
 
-const outcome = await runCheckin(myRequest, {
-  authority: { server: "/checkin-api" },
+const result = await runCheckin(myRequest, {
+  wallet,                          // the one the patient chose
+  keys: { server: "/checkin-api" },
 });
 
-if (outcome.status === "completed") {
-  if (outcome.response) prefillMyForm(outcome.response); // server returned data
-  else showMyReceipt(outcome.serverReference);            // server kept it
+if (result.status === "completed") {
+  if (result.response) prefillMyForm(result.response); // server returned data
+  else showMyReceipt(result.serverReference);           // server kept it
 }
 ```
 
 The built-in client posts with `credentials: "include"`, so the browser sends
 your session cookie and the server can tie the check-in to the signed-in
 patient. If your server wants a header instead — a bearer token, a CSRF
-token — pass an object of your own that implements `VerifierAuthority`. It
-has two methods, one per call.
+token — pass an object of your own that implements `KeyCustody` as `keys`.
+It has two methods, one per call.
 
 ## Security requirements
 

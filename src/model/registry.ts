@@ -1,17 +1,14 @@
 /**
- * Web-wallet registry.
+ * Web-wallet registry: the `wallets.json` format.
  *
  * A platform wallet is chosen by the operating system; a *web* wallet is a
  * site, so somebody has to decide which one to open. This is the data model
- * for that list: a default of one (the demo wallet), or a list you supply
- * inline or fetch from a URL, so a deployment can offer whatever wallets it
- * recognizes and let the person pick at the moment they click.
- *
- * Deliberately data, not UI. Rendering a picker is the page's business — see
- * the demo for one implementation.
+ * for that list, supplied inline or fetched from a URL, so a deployment
+ * offers the wallets it recognizes. `wallets()` turns it into `Wallet`s, and
+ * `<smart-checkin-picker>` renders them.
  */
 
-import type { ValidationResult } from "../model/index.js";
+import type { ValidationResult } from "./types.js";
 import type { FetchLike } from "../fetch-like.js";
 
 export type WebWalletEntry = {
@@ -23,7 +20,7 @@ export type WebWalletEntry = {
   walletUrl: string;
   /** One line for a picker menu. */
   description?: string;
-  /** Icon for a picker menu; must be same-origin or CORS-readable. */
+  /** Icon for a picker. Prefer a `data:` URL: loading a remote icon tells the wallet's server someone is on your page. */
   iconUrl?: string;
   /** Where to learn about or install the wallet. */
   homepage?: string;
@@ -35,20 +32,6 @@ export type WalletRegistry = {
   /** Free-form label for where this list came from. */
   source?: string;
   wallets: WebWalletEntry[];
-};
-
-/** The list every deployment starts with: this project's demo wallet. */
-export const DEMO_WALLET_REGISTRY: WalletRegistry = {
-  source: "built-in",
-  wallets: [
-    {
-      id: "demo",
-      name: "Demo Health Wallet",
-      walletUrl: "https://smart-health-checkin.org/client/demo/wallet.html",
-      description: "This project's reference wallet, holding fabricated records.",
-      homepage: "https://smart-health-checkin.org/client/demo/",
-    },
-  ],
 };
 
 export function validateWalletRegistry(value: unknown): ValidationResult<WalletRegistry> {
@@ -94,11 +77,9 @@ export function validateWalletRegistry(value: unknown): ValidationResult<WalletR
  * not a question to answer by accident.
  */
 export async function loadWalletRegistry(
-  source?: string | WalletRegistry | WebWalletEntry[],
+  source: string | WalletRegistry | WebWalletEntry[],
   options: { fetchImpl?: FetchLike } = {},
 ): Promise<WalletRegistry> {
-  if (source === undefined) return DEMO_WALLET_REGISTRY;
-
   if (Array.isArray(source)) {
     const candidate = { wallets: source, source: "inline" };
     const validation = validateWalletRegistry(candidate);

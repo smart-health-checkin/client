@@ -1,6 +1,6 @@
 {
   "name": "@smart-health-checkin/client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -9,24 +9,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./fhir": {
-      "bun": "./src/fhir/index.ts",
-      "types": "./dist/fhir/index.d.ts",
-      "import": "./dist/fhir/index.js",
-      "default": "./dist/fhir/index.js"
-    },
-    "./wire": {
-      "bun": "./src/wire/index.ts",
-      "types": "./dist/wire/index.d.ts",
-      "import": "./dist/wire/index.js",
-      "default": "./dist/wire/index.js"
-    },
-    "./picker": {
-      "bun": "./src/picker/index.ts",
-      "types": "./dist/picker/index.d.ts",
-      "import": "./dist/picker/index.js",
-      "default": "./dist/picker/index.js"
     },
     "./ui": {
       "bun": "./src/ui/index.ts",
@@ -39,6 +21,48 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js",
       "default": "./dist/react/index.js"
+    },
+    "./picker": {
+      "bun": "./src/picker/index.ts",
+      "types": "./dist/picker/index.d.ts",
+      "import": "./dist/picker/index.js",
+      "default": "./dist/picker/index.js"
+    },
+    "./wallet": {
+      "bun": "./src/wallet/index.ts",
+      "types": "./dist/wallet/index.d.ts",
+      "import": "./dist/wallet/index.js",
+      "default": "./dist/wallet/index.js"
+    },
+    "./handoff": {
+      "bun": "./src/handoff/index.ts",
+      "types": "./dist/handoff/index.d.ts",
+      "import": "./dist/handoff/index.js",
+      "default": "./dist/handoff/index.js"
+    },
+    "./fhir": {
+      "bun": "./src/fhir/index.ts",
+      "types": "./dist/fhir/index.d.ts",
+      "import": "./dist/fhir/index.js",
+      "default": "./dist/fhir/index.js"
+    },
+    "./testing": {
+      "bun": "./src/testing/index.ts",
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js",
+      "default": "./dist/testing/index.js"
+    },
+    "./model": {
+      "bun": "./src/model/index.ts",
+      "types": "./dist/model/index.d.ts",
+      "import": "./dist/model/index.js",
+      "default": "./dist/model/index.js"
+    },
+    "./wire": {
+      "bun": "./src/wire/index.ts",
+      "types": "./dist/wire/index.d.ts",
+      "import": "./dist/wire/index.js",
+      "default": "./dist/wire/index.js"
     },
     "./package.json": "./package.json"
   },

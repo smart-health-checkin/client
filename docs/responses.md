@@ -1,103 +1,99 @@
 # Response model
 
-A response has two parts. `artifacts` is the data the patient shared.
-`requestStatus` has one entry per item in your request and says what happened
-to that item. Read both: a response with no artifacts and a `declined` status
-is a normal, successful exchange — the patient was asked, and said no.
+A completed check-in gives you a `CheckinResponse`: the full response as received, plus lookups by the item ids in your request.
 
 ```ts
-const response = await requestCheckin(myRequest);
-
-response.artifacts;      // [{ id, mediaType, fulfills: [...], value, fhirVersion? }]
-response.requestStatus;  // [{ item: "allergies", status: "fulfilled" }]
+const result = await wallet.start(myRequest);
+if (result.status === "completed") {
+  const response = result.response;
+  response.status("allergies");    // "fulfilled"
+  response.resources("allergies"); // FHIR resources for that item
+  response.json;                   // everything, as received
+}
 ```
 
-## What the library has verified
+## What's already been checked
 
-By the time `requestCheckin` returns, the library has done three things to
-the response.
+By the time you have a `CheckinResponse`, the library has:
 
-It has decrypted it. The response was encrypted to a key your page created
-for this one request, and the encryption is tied to your page's web origin. A
-response captured from another page, or replayed later, will not decrypt.
+- **Decrypted it** with a key your page made for this one request, bound to your page's origin. A response captured elsewhere or replayed won't decrypt.
+- **Checked the signatures** on the response and on the data it carries.
+- **Matched it to your request:** the same request id, one status per item, every artifact pointing at a real item, and only formats that item accepts.
+- **Checked every SMART Health Card** against the trust you configured (see [below](#smart-health-cards)).
 
-It has checked the signatures. The health app signs the response, and the
-data it carries is signed by whoever issued it. The library verifies both and
-checks every piece of data against the signed digests.
+It hasn't judged the content. A response can pass every check and carry a medication list that's a year old. Whether the data is right is for you and the clinician.
 
-It has matched the response to the request. The response names the request it
-answers; every artifact points at a real item; every artifact's format is one
-that item accepted; and there is exactly one status per item.
+## Lookups
 
-What the library has not done is judge the content. A response can pass every
-check and still carry a medication list that is a year out of date. Whether
-the data is correct and current is for you and the clinician to decide.
+| Method | Returns |
+| --- | --- |
+| `json` | The full response as received: `requestStatus`, and every artifact with its `fulfills` item ids and value. Plain JSON, safe to store or send to your server. |
+| `status(itemId)` | That item's status (table below) |
+| `resources(itemId, { type? })` | The item's FHIR resources, from Bundles and accepted health cards, optionally one resource type |
+| `form(itemId)` | A form item's QuestionnaireResponse |
+| `entries(itemId)` | The item's resources with where each came from: a Bundle or a card, and the card's trust result |
+| `healthCards(itemId)` | Every health card for the item, accepted or not |
+| `artifacts(itemId)` | The raw artifacts that fulfill the item |
+| `items()` | Every item in your request, with its status and artifacts |
+| `resolve(entry, reference)` | Follow a reference within the entry's own Bundle or card |
+
+`JSON.stringify(response)` gives the same JSON as `response.json`.
+
+How the lookups handle the awkward cases:
+
+- **One artifact, several items.** An artifact that fulfills "problems" and "allergies" shows up under both.
+- **Bundles and single resources** are both unwrapped into resources.
+- **References are left as sent.** Bundles use `urn:uuid:` references, health cards use `resource:0`; `resolve` follows either.
 
 ## Per-item status
 
 | Status | Means |
 | --- | --- |
 | `fulfilled` | Shared as asked |
-| `partial` | Some of it — e.g. two of five years of history |
-| `unavailable` | The app doesn't have it |
+| `partial` | Some of it, for example two of five years of history |
+| `unavailable` | The health app doesn't have it |
 | `declined` | The patient chose not to share this item |
-| `unsupported` | The app can't handle this kind of ask |
-| `error` | Something went wrong on the wallet side |
+| `unsupported` | The health app can't handle this kind of ask |
+| `error` | Something went wrong in the health app |
 
-Declined and partial items are normal. Show the patient what did come through,
-and offer your own form for the rest. Do not treat a partial share as a
-failure of the whole check-in.
+Declined and partial items are normal. Show what came through, and offer your own form for the rest.
 
 ```ts
-const byItem = new Map(response.requestStatus.map((s) => [s.item, s.status]));
-for (const item of myRequest.items) {
-  const status = byItem.get(item.id);
-  if (status !== "fulfilled") askMyFormAbout(item);
+for (const item of response.items()) {
+  if (item.status !== "fulfilled") askMyFormAbout(item.id);
 }
 ```
 
-## Reading artifacts
+## SMART Health Cards
 
-Each artifact lists the items it satisfies in `fulfills`. One artifact can
-satisfy several items — a clinical summary can cover both "problems" and
-"allergies" — and one item can be satisfied by several artifacts.
-
-For a FHIR artifact, `value` is a single resource or a Bundle. This helper
-returns the resources for one item:
+A health card is signed by its issuer: a lab, a pharmacy, a state registry. The library checks each card before you see the response, against trust you set once:
 
 ```ts
-function resourcesFor(response, itemId) {
-  return response.artifacts
-    .filter((a) => a.fulfills.includes(itemId) && a.mediaType === "application/fhir+json")
-    .flatMap((a) => {
-      const v = a.value;
-      return v?.resourceType === "Bundle"
-        ? (v.entry ?? []).map((e) => e.resource).filter(Boolean)
-        : [v];
-    });
-}
+import { configureHealthCardTrust } from "@smart-health-checkin/client";
 
-const allergies = resourcesFor(response, "allergies")
-  .filter((r) => r.resourceType === "AllergyIntolerance");
+configureHealthCardTrust({ directory: "vci" });                       // issuers in the VCI directory
+configureHealthCardTrust({ issuers: ["https://issuer.example"] });    // named issuers
+configureHealthCardTrust({ keys: { "https://issuer.example": jwks } }); // keys you ship, no fetch
 ```
 
-A SMART Health Card artifact carries `value.verifiableCredential`, an array of
-signed tokens (JWS strings). If you store health cards, store the tokens as
-they are. The token is what carries the issuer's signature; unpack it into
-plain FHIR and the signature is gone.
+`accept` decides which cards `resources()` includes:
+
+| `accept` | Trusted issuer, valid signature | Other issuer, valid signature | Invalid signature |
+| --- | --- | --- | --- |
+| `"trusted"` (default) | Included | Left out | Left out |
+| `"any-valid"` (connectathon) | Included | Included | Left out |
+| `"everything"` (debugging) | Included | Included | Included |
+
+- Every card appears in `healthCards()` and `entries()`, whatever `accept` says, with `valid`, `trusted`, `accepted`, and a `reason` when it isn't.
+- Pass trust for one check-in with `runCheckin(request, { healthCards: { accept: "any-valid" } })`, or `checkinOptions` on the picker.
+- If you store health cards, store the JWS as received (`card.jws`). The issuer's signature is in the token; unpacked FHIR loses it.
 
 ## Prefill, then ask only for what's missing
 
-The most useful thing to do with a response is to shorten what you ask the
-patient.
-
-Records often arrive incomplete. US Core requires an allergy record to name
-the substance and the clinical status, but not the reaction or how serious it
-is, so many records say only "Latex". Your form can look at what arrived and
-ask only for the missing parts:
+Records often arrive incomplete. US Core requires an allergy's substance and status, but not the reaction or severity, so many records say only "Latex". Ask only for what's missing:
 
 ```ts
-const rows = allergies.map((a) => ({
+const rows = response.resources("allergies", { type: "AllergyIntolerance" }).map((a) => ({
   name: a.code?.text,
   reactions: (a.reaction ?? []).flatMap((r) => r.manifestation ?? []).map((m) => m.text),
   criticality: a.criticality,
@@ -108,25 +104,13 @@ const needsDetail = rows.filter(
 );
 ```
 
-The patient then confirms what the record already said and adds what it did
-not. Record which fields the patient typed and which came from the app; a
-nurse reconciling the list later will want to know. The
-[allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
-does this end to end, including a path for patients who type everything in.
+The [allergy example](https://smart-health-checkin.org/client/demo/autofill.html) does this end to end. Two rules:
 
-Two rules follow:
-
-- Keep the manual path. The patient must always be able to type the
-  information in, and it must land in the same review as the prefilled data.
-- Keep the provenance. "From the app", "typed by the patient", and "from the
-  app, confirmed by the patient" are different facts, and they matter later.
+- **Keep the manual path.** The patient can always type it in, and it lands in the same review as prefilled data.
+- **Keep the provenance.** "From the app", "typed by the patient", and "from the app, confirmed" are different facts.
 
 ## Storing the response
 
-The library does not store the response or write it anywhere; that part is
-yours. If you want to write it to a FHIR server, [Writing FHIR](fhir.md)
-describes an optional module that does. Whatever you do with it, mark the
-data as supplied by the patient wherever it ends up, so that anyone reading it
-later can tell it apart from what a clinician entered.
+The library doesn't store anything. Send `response.json` to your server, or map it to FHIR with the optional [FHIR module](fhir.md). Wherever it lands, mark it as supplied by the patient.
 
-Next: [Wallets and browser support](wallets.md) · [Writing FHIR](fhir.md)
+Next: [Offering wallets](wallets.md) · [Writing FHIR](fhir.md)

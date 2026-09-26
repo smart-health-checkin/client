@@ -1,66 +1,57 @@
 /**
- * Picker logic without UI.
+ * Picker logic without UI, for pages drawing their own picker.
  *
- * `resolveResponders` says who can answer in this browser. This module turns
- * that list into what a picker shows, and starts the chosen one correctly:
- *
- * - `arrangeResponders` groups and orders the options: the platform wallet
- *   leads when this browser can reach one, unavailable options are hidden,
- *   web wallets follow in registry order, and a long list is split into the
- *   first few and "more".
- * - `startResponder` must be called synchronously inside the click. It opens
- *   a web wallet's tab right away (browsers block tabs opened later) and
- *   returns the credential getter to hand to `requestCheckin`.
+ * - `arrangeWallets` groups and orders what `wallets()` returned: the phone's
+ *   wallet leads when this browser can reach it, unavailable wallets are
+ *   hidden, web wallets follow in registry order, and a long list is split
+ *   into the first few and "more".
  * - `rememberChoice` / `recallChoice` keep the last choice per site, off
  *   unless the page asks for it.
+ * - `monogram` gives a letter tile for a wallet without an icon.
  *
- * `<smart-checkin-picker>` (from `@smart-health-checkin/client/ui`) is built
- * on these; use them directly to draw your own picker.
+ * Start the chosen wallet with `wallet.start(request)` inside the click.
+ * `<smart-checkin-picker>` (from `@smart-health-checkin/client/ui`) is built on these.
  */
 
-import type { Responder } from "../kit/responders.js";
-import { credentialGetterFor } from "../kit/responders.js";
-import { createWebWalletCredentialGetter, openWebWallet } from "../kit/web-wallet.js";
+import type { Wallet } from "../core/wallets.js";
 
 export type ArrangeOptions = {
   /** Show every web wallet inline up to this many (default 5). */
   inlineMax?: number;
   /** Past `inlineMax`, show this many inline and the rest under "more" (default 4). */
   inlineShown?: number;
-  /** Keep unavailable responders instead of hiding them (for debugging). */
+  /** Keep unavailable wallets instead of hiding them (for debugging). */
   includeUnavailable?: boolean;
-  /** A responder id to lead with, e.g. from `recallChoice`. */
+  /** A wallet id to lead with, e.g. from `recallChoice`. */
   preferred?: string;
 };
 
-export type ArrangedResponders = {
+export type ArrangedWallets = {
   /** The one to present as the main action; undefined when nothing is available. */
-  primary?: Responder;
-  /** Web wallets (and the mock) shown under the primary action. */
-  inline: Responder[];
-  /** Web wallets behind "more", for long registries. Empty when everything fits. */
-  more: Responder[];
-  /** Every shown responder, in display order. */
-  all: Responder[];
-  /** The remembered responder when `preferred` matched an available one. */
-  remembered?: Responder;
+  primary?: Wallet;
+  /** Wallets listed under the main action. */
+  inline: Wallet[];
+  /** Wallets behind "more", for long registries. Empty when everything fits. */
+  more: Wallet[];
+  /** Every shown wallet, in display order. */
+  all: Wallet[];
+  /** The remembered wallet when `preferred` matched an available one. */
+  remembered?: Wallet;
 };
 
 /**
- * Group and order responders for display.
- *
- * The primary action is the remembered choice if there is one, else the
- * platform wallet when available, else the only option when there is exactly
- * one. Everything else is listed in the order given.
+ * Group and order wallets for display. The main action is the remembered
+ * choice if there is one, else the platform wallet when available, else the
+ * only option when there is exactly one. The rest keep their order.
  */
-export function arrangeResponders(responders: Responder[], options: ArrangeOptions = {}): ArrangedResponders {
+export function arrangeWallets(list: ReadonlyArray<Wallet>, options: ArrangeOptions = {}): ArrangedWallets {
   const inlineMax = options.inlineMax ?? 5;
   const inlineShown = Math.min(options.inlineShown ?? 4, inlineMax);
-  const shown = options.includeUnavailable ? responders : responders.filter((r) => r.available);
-  const remembered = options.preferred ? shown.find((r) => r.id === options.preferred) : undefined;
-  const platform = shown.find((r) => r.kind === "platform");
+  const shown = options.includeUnavailable ? [...list] : list.filter((w) => w.available);
+  const remembered = options.preferred ? shown.find((w) => w.id === options.preferred) : undefined;
+  const platform = shown.find((w) => w.kind === "platform");
   const primary = remembered ?? platform ?? (shown.length === 1 ? shown[0] : undefined);
-  const listed = shown.filter((r) => r !== primary);
+  const listed = shown.filter((w) => w !== primary);
   const inline = listed.length > inlineMax ? listed.slice(0, inlineShown) : listed;
   const more = listed.length > inlineMax ? listed.slice(inlineShown) : [];
   return {
@@ -72,44 +63,18 @@ export function arrangeResponders(responders: Responder[], options: ArrangeOptio
   };
 }
 
-export type StartedResponder = {
-  /** Pass to `requestCheckin` / `runCheckin` as `getCredential`; undefined means the platform default. */
-  getCredential?: (navigatorArgument: unknown) => Promise<unknown>;
-  /** Close a web wallet's tab; the pending check-in then ends as declined. No-op for the platform wallet. */
-  cancel(): void;
-};
+const STORAGE_KEY = "smart-health-checkin:last-wallet";
 
-/**
- * Start a responder. Call this synchronously in the click handler, before any
- * `await`: for a web wallet it opens the tab now, while the browser still
- * allows it, and returns a getter that talks to that tab. For the platform
- * wallet `getCredential` is undefined (the flow uses `navigator.credentials.get`).
- */
-export function startResponder(responder: Responder, options: { origin?: string } = {}): StartedResponder {
-  if (responder.kind === "web" && responder.wallet) {
-    const target = responder.wallet.target ? { target: responder.wallet.target } : {};
-    const opened = openWebWallet({ walletUrl: responder.wallet.walletUrl, ...target });
-    return {
-      getCredential: createWebWalletCredentialGetter({ walletUrl: responder.wallet.walletUrl, ...target, window: opened }),
-      cancel: () => opened?.close(),
-    };
-  }
-  const getCredential = credentialGetterFor(responder, options);
-  return { ...(getCredential ? { getCredential } : {}), cancel: () => {} };
-}
-
-const STORAGE_KEY = "smart-health-checkin:last-responder";
-
-/** Remember the responder the person used, in this browser, for this site. */
-export function rememberChoice(responderId: string, key = STORAGE_KEY): void {
+/** Remember the wallet the patient used, in this browser, for this site. */
+export function rememberChoice(walletId: string, key = STORAGE_KEY): void {
   try {
-    localStorage.setItem(key, responderId);
+    localStorage.setItem(key, walletId);
   } catch {
     // Storage can be unavailable (private mode, blocked site data); remembering is optional.
   }
 }
 
-/** The responder id remembered for this site, if any. */
+/** The wallet id remembered for this site, if any. */
 export function recallChoice(key = STORAGE_KEY): string | undefined {
   try {
     return localStorage.getItem(key) ?? undefined;
@@ -118,7 +83,7 @@ export function recallChoice(key = STORAGE_KEY): string | undefined {
   }
 }
 
-/** Forget the remembered responder. */
+/** Forget the remembered wallet. */
 export function forgetChoice(key = STORAGE_KEY): void {
   try {
     localStorage.removeItem(key);

@@ -110,6 +110,34 @@ Defined in: [src/fhir/index.ts:38](https://github.com/smart-health-checkin/clien
 
 ***
 
+### FetchLike
+
+```ts
+type FetchLike = (input, init?) => Promise<Response>;
+```
+
+Defined in: [src/fetch-like.ts:9](https://github.com/smart-health-checkin/client/blob/main/src/fetch-like.ts#L9)
+
+The minimal fetch signature the library accepts, so callers can inject their
+own client — auth headers, retries, tracing — without the library
+depending on any particular one.
+
+Lives on its own because both the check-in path and the optional FHIR
+helper need it, and the check-in path must never import the FHIR module.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | `string` \| `URL` \| `Request` |
+| `init?` | `RequestInit` |
+
+#### Returns
+
+`Promise`\<`Response`\>
+
+***
+
 ### PostMode
 
 ```ts
@@ -225,17 +253,11 @@ case use `buildCheckinBundle` alone and send it yourself.
 | Parameter | Type |
 | ------ | ------ |
 | `plan` | [`CheckinBundle`](#checkinbundle) |
-| `options` | \{ `fetchImpl?`: [`FetchLike`](checkin.md#fetchlike); `fhirBase`: `string`; `mode?`: [`PostMode`](#postmode); \} |
-| `options.fetchImpl?` | [`FetchLike`](checkin.md#fetchlike) |
+| `options` | \{ `fetchImpl?`: [`FetchLike`](#fetchlike); `fhirBase`: `string`; `mode?`: [`PostMode`](#postmode); \} |
+| `options.fetchImpl?` | [`FetchLike`](#fetchlike) |
 | `options.fhirBase` | `string` |
 | `options.mode?` | [`PostMode`](#postmode) |
 
 #### Returns
 
 `Promise`\<[`PostResult`](#postresult)\>
-
-## References
-
-### FetchLike
-
-Re-exports [FetchLike](checkin.md#fetchlike)

@@ -17,11 +17,11 @@ The hosted file bundles everything it needs.
 ```html
 <script type="module" src="https://smart-health-checkin.org/client/lib/ui.js"></script>
 
-<smart-checkin-picker wallets="/wallets.json"></smart-checkin-picker>
+<smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
 
 <script type="module">
   const picker = document.querySelector("smart-checkin-picker");
-  picker.request = { scenario: "allergy-review" };
+  picker.request = myRequest;
   picker.addEventListener("smart-checkin-response", (e) => {
     fillTheForm(e.detail.response);
   });
@@ -42,8 +42,8 @@ import "@smart-health-checkin/client/ui"; // registers <smart-checkin-picker>
 import { CheckinPicker } from "@smart-health-checkin/client/react";
 
 <CheckinPicker
-  request={request}
-  wallets="/wallets.json"
+  request={myRequest}
+  registry="/wallets.json"
   onResponse={({ response }) => setResponse(response)}
   onDeclined={() => setNote("Nothing was shared.")}
 />
@@ -55,7 +55,7 @@ import { CheckinPicker } from "@smart-health-checkin/client/react";
 
 | Attribute | What it does |
 |---|---|
-| `wallets` | URL of a wallet registry (`wallets.json`), or `demo` for the built-in list. Omit it for no web wallets. |
+| `registry` | URL of a [wallet registry](registry.md) (`wallets.json`). Omit it for no web wallets. |
 | `platform="off"` | Don't offer the phone's own wallet. |
 | `remember` | Remember the last app used on this site, in this browser. Off unless present. |
 | `mock` | Offer a simulated response. Development only. |
@@ -69,10 +69,10 @@ import { CheckinPicker } from "@smart-health-checkin/client/react";
 
 | Property | What it does |
 |---|---|
-| `request` | What to ask for: a request, `{ purpose, items }`, or `{ scenario }`. Required unless `mode="pick"`. |
+| `request` | What to ask for: `{ purpose, items }` or a complete request. Required unless `mode="pick"`. |
 | `strings` | Replace any text, for wording or translation. See `DEFAULT_STRINGS`. |
-| `responders` | A list from `resolveResponders`, used instead of `wallets`, `platform`, and `mock`. |
-| `checkinOptions` | Passed to `runCheckin`, for example a server-owned authority. |
+| `wallets` | A list from `wallets()`, used instead of `registry`, `platform`, and `mock`. Use it to add a kiosk hand-off or your own wallets. |
+| `checkinOptions` | Passed to `runCheckin`: `keys` for server-held keys, `healthCards` for card trust. |
 
 ## Events
 
@@ -80,10 +80,10 @@ All events bubble and cross shadow roots.
 
 | Event | `detail` | When |
 |---|---|---|
-| `smart-checkin-choose` | `{ responder, getCredential, cancel }` | The patient picked an app. Fired inside the click. |
-| `smart-checkin-response` | `{ responder, response, outcome }` | The check-in finished and the response validated. |
-| `smart-checkin-declined` | `{ responder }` | The patient closed the wallet or declined. |
-| `smart-checkin-error` | `{ responder?, message }` | Anything else went wrong, including a registry that wouldn't load. |
+| `smart-checkin-choose` | `{ wallet, session? }` | The patient picked a wallet. In pick mode, `session` is the opened wallet. |
+| `smart-checkin-response` | `{ wallet, response, result }` | The check-in finished; `response` is a [`CheckinResponse`](responses.md). |
+| `smart-checkin-declined` | `{ wallet, result }` | The patient closed the wallet or declined. |
+| `smart-checkin-error` | `{ wallet?, code?, message, result? }` | Anything else went wrong, including a registry that wouldn't load. `code` is a [`CheckinErrorCode`](getting-started.md#when-it-doesnt-complete). |
 
 ## Styling
 
@@ -119,19 +119,20 @@ Prefer `data:` URLs in your registry. An icon loaded from a wallet's own server 
 
 Use `mode="pick"` when your page runs the check-in itself, for example to inspect the raw response.
 
-1. Listen for `smart-checkin-choose`. Its `getCredential` is ready to use: for a web wallet it talks to the tab the picker just opened; for the phone's wallet it's `undefined`, meaning the platform default.
-2. Run the flow with it: `runCheckin(request, { getCredential })`, or your own code.
-3. Tell the picker how it ended, so it can say so: `picker.setOutcome({ status: "completed" })`, `{ status: "declined" }`, or `{ status: "error", message }`.
+1. Listen for `smart-checkin-choose`. Its `session` is the chosen wallet, already opened inside the click.
+2. Run the flow with it: `runCheckin(myRequest, { wallet, session })`, or pass `session.getCredential` to your own code.
+3. Tell the picker how it ended: `picker.setOutcome({ status: "completed" })`, `{ status: "declined" }`, or `{ status: "failed", message, code? }`.
 
 ## Build your own
 
 `@smart-health-checkin/client/picker` has the logic without the UI.
 
 | Function | What it does |
-|---|---|
-| `arrangeResponders(responders)` | Returns `{ primary, inline, more }`: what leads, what's listed, and what's behind "more". |
-| `startResponder(responder)` | Call it in the click handler, before any `await`. Opens a web wallet's tab and returns `{ getCredential, cancel }`. |
+| --- | --- |
+| `arrangeWallets(list)` | Returns `{ primary, inline, more }`: what leads, what's listed, and what's behind "more". |
 | `rememberChoice(id)`, `recallChoice()` | Keep the last choice for this site, if you want that. |
 | `monogram(name)` | The letter and color for a wallet without an icon. |
 
-In React, `useCheckin(request, policy)` from `@smart-health-checkin/client/react` does the same for pages drawing their own buttons.
+Start the chosen wallet with `wallet.start(myRequest)` in the click handler, before any `await`.
+
+In React, `useCheckin(myRequest, { registry })` from `@smart-health-checkin/client/react` gives you the wallets and `start(wallet)` for your own buttons.

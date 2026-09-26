@@ -4,13 +4,9 @@
  * sealed answer comes back through the mailbox — only this page can open it.
  */
 import QRCode from "qrcode";
-import {
-  createHandoff,
-  runCheckin,
-  SCENARIOS,
-  type CheckinOutcome,
-  type SmartCheckinRequest,
-} from "../../src/index.js";
+import { type CheckinResult, type SmartCheckinRequest } from "../../src/index.js";
+import { handoffWallet } from "../../src/handoff/index.js";
+import { DEMO_REQUESTS } from "./requests.js";
 import { instantMailbox } from "./mailbox-instant.js";
 import { explainResponse, renderExplorer } from "./explore.js";
 
@@ -23,7 +19,7 @@ let controller: AbortController | null = null;
 
 function scenarioKey(): string {
   const key = params().get("scenario");
-  return key && SCENARIOS[key] ? key : DEFAULT_SCENARIO;
+  return key && DEMO_REQUESTS[key] ? key : DEFAULT_SCENARIO;
 }
 
 function setStatus(text: string): void {
@@ -41,7 +37,7 @@ function renderAsk(request: SmartCheckinRequest): void {
   }
 }
 
-function renderOutcome(outcome: CheckinOutcome): void {
+function renderOutcome(outcome: CheckinResult): void {
   const section = el("outcome");
   section.hidden = false;
   el("qr-panel").hidden = true;
@@ -50,41 +46,41 @@ function renderOutcome(outcome: CheckinOutcome): void {
     : outcome.status === "declined" ? "Check-in cancelled"
     : "Check-in didn't finish";
   el("outcome-headline").textContent = headline;
-  el("error").textContent = outcome.error ? `${outcome.error.stage}: ${outcome.error.message}` : "";
+  el("error").textContent = outcome.status === "failed" ? `${outcome.error.code}: ${outcome.error.message}` : "";
   const explore = el("explore");
   explore.innerHTML = "";
-  if (outcome.response) void explainResponse(outcome.request, outcome.response).then((view) => renderExplorer(explore, view));
+  if (outcome.status === "completed" && outcome.response) {
+    void explainResponse(outcome.request, outcome.response.json).then((view) => renderExplorer(explore, view));
+  }
   setStatus("");
 }
 
 async function start(): Promise<void> {
   controller?.abort();
   controller = new AbortController();
-  const request = SCENARIOS[scenarioKey()]!.request;
+  const request = DEMO_REQUESTS[scenarioKey()]!.request;
   renderAsk(request);
   el("outcome").hidden = true;
   el("qr-panel").hidden = false;
   (el("qr") as HTMLCanvasElement).getContext("2d")?.clearRect(0, 0, 400, 400);
   setStatus("Preparing…");
 
-  const outcome = await runCheckin(request, {
-    ...createHandoff({
-      mailbox: instantMailbox,
-      handoffUrl: HANDOFF_URL,
-      signal: controller.signal,
-      onWaiting: async ({ url }) => {
-        await QRCode.toCanvas(el("qr") as HTMLCanvasElement, url, { width: 260, margin: 1 });
-        (el("open-here") as HTMLAnchorElement).href = url;
-        setStatus("Scan with your phone's camera and follow the link. This screen updates when your phone has answered.");
-      },
-    }),
+  // The phone is just another wallet: handoffWallet posts the request and waits.
+  const phone = handoffWallet({
+    mailbox: instantMailbox,
+    handoffUrl: HANDOFF_URL,
+    onWaiting: async ({ url }) => {
+      await QRCode.toCanvas(el("qr") as HTMLCanvasElement, url, { width: 260, margin: 1 });
+      (el("open-here") as HTMLAnchorElement).href = url;
+      setStatus("Scan with your phone's camera and follow the link. This screen updates when your phone has answered.");
+    },
   });
-  renderOutcome(outcome);
+  renderOutcome(await phone.start(request, { signal: controller.signal }));
 }
 
 // demo controls: scenario
 const select = el("scenario-select") as HTMLSelectElement;
-for (const [key, scenario] of Object.entries(SCENARIOS)) {
+for (const [key, scenario] of Object.entries(DEMO_REQUESTS)) {
   const option = document.createElement("option");
   option.value = key;
   option.textContent = scenario.label;

@@ -13,6 +13,8 @@
  * implementations stay compatible.
  */
 
+import { CheckinError, WalletDeclinedError } from "../core/errors.js";
+
 export const WEB_WALLET_REQUEST_MESSAGE_TYPE = "digital-credentials/web-wallet/request" as const;
 export const WEB_WALLET_RESPONSE_MESSAGE_TYPE = "digital-credentials/web-wallet/response" as const;
 export const WEB_WALLET_READY_MESSAGE_TYPE = "digital-credentials/web-wallet/ready" as const;
@@ -74,14 +76,6 @@ function watchForReady(win: Window, origin: string): void {
   setTimeout(() => window.removeEventListener("message", onMessage), 10 * 60_000);
 }
 
-/** Thrown when the person closes or declines in the wallet app. */
-export class WalletDeclinedError extends Error {
-  readonly name = "NotAllowedError";
-  constructor(message = "the request was declined in the wallet") {
-    super(message);
-  }
-}
-
 export function createWebWalletCredentialGetter(options: WebWalletOptions) {
   const timeoutMs = options.timeoutMs ?? 5 * 60_000;
   // An empty features string makes window.open use a tab.
@@ -93,7 +87,7 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
     const walletOrigin = walletUrl.origin;
     const popup = options.window && !options.window.closed ? options.window : window.open(walletUrl.href, "smart-checkin-wallet", features);
     if (!popup) {
-      throw new Error("the wallet tab was blocked — allow pop-ups for this site and try again");
+      throw new CheckinError("blocked", "the browser blocked the wallet's tab; allow pop-ups for this site and try again");
     }
 
     const requestId = crypto.randomUUID();
@@ -143,7 +137,7 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
           if (message.outcome === "approved") {
             finish(() => resolve(message.credential));
           } else if (message.outcome === "error") {
-            finish(() => reject(new Error(`wallet error: ${message.message}`)));
+            finish(() => reject(new CheckinError("wallet-error", message.message ?? "the wallet reported an error")));
           } else {
             finish(() => reject(new WalletDeclinedError()));
           }
@@ -156,7 +150,7 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
 
         const timer = setTimeout(() => {
           popup.close();
-          finish(() => reject(new Error("timed out waiting for the wallet")));
+          finish(() => reject(new CheckinError("timeout", "the wallet didn't answer in time")));
         }, timeoutMs);
 
         window.addEventListener("message", onMessage);

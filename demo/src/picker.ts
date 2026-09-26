@@ -1,7 +1,8 @@
 // Demo of <smart-checkin-picker>: canned situations (a fixed responder list,
 // so any browser can show the phone-wallet cases) and a live mode.
-import type { Responder } from "../../src/index.js";
+import { customWallet, platformWallet, webWallet, type Wallet } from "../../src/index.js";
 import { STARBURST_ICON_URL, type SmartCheckinPicker } from "../../src/ui/index.js";
+import { DEMO_REQUESTS } from "./requests.js";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const picker = $("picker") as SmartCheckinPicker & HTMLElement;
@@ -22,18 +23,16 @@ const WALLETS: Array<[string, string, string, string?]> = [
   ["carecard", "CareCard", "Insurance and health cards", glyph("#E63946", "#FFF", "M10 16h28v18H10zM10 20h28v4H10z")],
 ];
 
-const platform = (available: boolean): Responder => ({
-  id: "platform", kind: "platform", name: "Your own health app", available, isDefault: false,
-  ...(available ? {} : { reason: "this browser has no Digital Credentials API" }),
-});
-const webWallets = (n: number): Responder[] =>
-  WALLETS.slice(0, n).map(([id, name, description, iconUrl]) => ({
-    id, kind: "web", name, description, available: true, isDefault: false,
-    ...(iconUrl ? { iconUrl } : {}),
-    wallet: { id, name, description, walletUrl: "./wallet.html", ...(iconUrl ? { iconUrl } : {}) },
-  }));
+// A platform wallet that looks available (or not) whatever this browser is, for the canned situations.
+const platform = (available: boolean): Wallet => {
+  const real = platformWallet();
+  return customWallet({ id: "platform", kind: "platform", name: real.name, available, open: real.open });
+};
+const webWallets = (n: number): Wallet[] =>
+  WALLETS.slice(0, n).map(([id, name, description, iconUrl]) =>
+    webWallet({ id, name, description, walletUrl: "./wallet.html", ...(iconUrl ? { iconUrl } : {}) }));
 
-const SITUATIONS: Record<string, () => Responder[] | undefined> = {
+const SITUATIONS: Record<string, () => Wallet[] | undefined> = {
   live: () => undefined,
   connectathon: () => [platform(true), ...webWallets(2)],
   "no-api": () => [platform(false), ...webWallets(2)],
@@ -55,12 +54,12 @@ function apply(): void {
   else picker.removeAttribute("appearance");
   if (situation === "live") {
     picker.removeAttribute("mode");
-    picker.setAttribute("wallets", "./wallets.json");
+    picker.setAttribute("registry", "./wallets.json");
     picker.setAttribute("mock", "");
-    picker.responders = undefined;
+    picker.wallets = undefined;
   } else {
     picker.setAttribute("mode", "pick"); // canned lists: choosing is the demo; nothing runs
-    picker.responders = SITUATIONS[situation]!();
+    picker.wallets = SITUATIONS[situation]!();
   }
 }
 
@@ -69,7 +68,7 @@ const realOpen = window.open.bind(window);
 window.open = ((...args: Parameters<typeof window.open>) =>
   ($("situation") as HTMLSelectElement).value === "live" ? realOpen(...args) : null) as typeof window.open;
 
-picker.request = { scenario: "allergy-review" };
+picker.request = DEMO_REQUESTS["allergy-review"]!.request;
 for (const id of ["situation", "skin", "theme", "appearance", "remember"]) $(id).addEventListener("change", apply);
 apply();
 
@@ -77,16 +76,16 @@ const show = (line: string) => {
   log.textContent = (log.textContent === "Events from the picker appear here." ? "" : log.textContent + "\n") + line;
 };
 picker.addEventListener("smart-checkin-choose", (e) => {
-  const { responder } = (e as CustomEvent).detail as { responder: Responder };
-  show(`choose → ${responder.id}`);
+  const { wallet } = (e as CustomEvent).detail as { wallet: Wallet };
+  show(`choose → ${wallet.id}`);
   // In the canned situations nothing runs; pretend the patient shared, after a moment.
   if (picker.getAttribute("mode") === "pick") {
     setTimeout(() => picker.setOutcome({ status: "completed" }), 1200);
   }
 });
 picker.addEventListener("smart-checkin-response", (e) => {
-  const { responder, response } = (e as CustomEvent).detail;
-  show(`response from ${responder.id}: ${response.artifacts.length} artifact(s), statuses ${JSON.stringify(response.requestStatus.map((s: { item: string; status: string }) => `${s.item}=${s.status}`))}`);
+  const { wallet, response } = (e as CustomEvent).detail;
+  show(`response from ${wallet.id}: ${response.json.artifacts.length} artifact(s), statuses ${JSON.stringify(response.items().map((i: { id: string; status?: string }) => `${i.id}=${i.status}`))}`);
 });
-picker.addEventListener("smart-checkin-declined", (e) => show(`declined in ${(e as CustomEvent).detail.responder.id}`));
-picker.addEventListener("smart-checkin-error", (e) => show(`error: ${(e as CustomEvent).detail.message}`));
+picker.addEventListener("smart-checkin-declined", (e) => show(`declined in ${(e as CustomEvent).detail.wallet.id}`));
+picker.addEventListener("smart-checkin-error", (e) => show(`error (${(e as CustomEvent).detail.code ?? "load"}): ${(e as CustomEvent).detail.message}`));

@@ -2,7 +2,15 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "src/index.ts",
-    "src/fhir/index.ts"
+    "src/ui/index.ts",
+    "src/react/index.ts",
+    "src/picker/index.ts",
+    "src/wallet/index.ts",
+    "src/handoff/index.ts",
+    "src/fhir/index.ts",
+    "src/testing/index.ts",
+    "src/model/index.ts",
+    "src/wire/index.ts"
   ],
   "out": "docs/api",
   "name": "@smart-health-checkin/client API",

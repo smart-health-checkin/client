@@ -19,11 +19,12 @@ it. If you use your own FHIR client, you never load it.
 ## Build, inspect, then send
 
 ```ts
-const response = await requestCheckin(myRequest);
+const result = await wallet.start(myRequest);
+if (result.status !== "completed" || !result.response) return;
 
 const plan = buildCheckinBundle({
-  request: myRequest,
-  response,
+  request: result.request,
+  response: result.response.json,
   context: { patient: "Patient/123", appointment: "Appointment/456" },
 });
 

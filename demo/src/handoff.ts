@@ -4,14 +4,9 @@
  * person choose who answers, and sends the wallet's sealed credential back.
  * Nothing is opened here; this page cannot read the response.
  */
-import {
-  answerHandoff,
-  credentialGetterFor,
-  fetchHandoff,
-  resolveResponders,
-  sessionIdFromHash,
-  type Responder,
-} from "../../src/index.js";
+import { wallets, type Wallet } from "../../src/index.js";
+import { answerHandoff, fetchHandoff, sessionIdFromHash } from "../../src/handoff/index.js";
+import { mockWallet } from "../../src/testing/index.js";
 import { instantMailbox } from "./mailbox-instant.js";
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
@@ -43,30 +38,23 @@ async function main(): Promise<void> {
   el("ask").hidden = false;
   el("note").textContent = "";
 
-  // The same policy a check-in page uses; here the platform wallet leads,
-  // because this page is meant to be open on the phone that has one.
-  const responders = await resolveResponders({
-    platform: true,
-    webWallets: "./wallets.json",
-    mock: true,
-    origin: location.origin,
-    default: "platform",
-  });
+  // The same wallets a check-in page offers; the phone's own leads, because
+  // this page is meant to be open on the phone that has one.
+  const offered = await wallets({ registry: "./wallets.json", extra: [mockWallet()] });
   const choices = el("choices");
-  for (const responder of responders) render(responder);
+  offered.forEach((wallet, index) => render(wallet, index === 0));
 
-  function render(responder: Responder): void {
+  function render(responder: Wallet, primary: boolean): void {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = responder.isDefault ? "smart-btn primary" : "smart-btn";
+    button.className = primary ? "smart-btn primary" : "smart-btn";
     button.textContent = responder.kind === "platform" ? "Share from my health app" : responder.name;
-    button.disabled = !responder.available;
-    button.title = responder.reason ?? responder.description ?? "";
+    button.title = responder.description ?? "";
     button.onclick = async () => {
       for (const b of choices.querySelectorAll("button")) (b as HTMLButtonElement).disabled = true;
       el("note").textContent = responder.kind === "web" ? "Choose what to share in the wallet tab…" : "Asking your wallet…";
       try {
-        const answer = await answerHandoff(instantMailbox, sessionId!, envelope, credentialGetterFor(responder, { origin: location.origin }));
+        const answer = await answerHandoff(instantMailbox, sessionId!, envelope, responder);
         el("ask").hidden = true;
         el("done").hidden = false;
         el("done-headline").textContent = "declined" in answer ? "Nothing was shared" : "Sent to the kiosk";

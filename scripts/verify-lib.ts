@@ -15,26 +15,28 @@ const ui = await import(here("../_site/lib/ui.js"));
 if (typeof ui.SmartCheckinPicker !== "function" || typeof ui.defineCheckinPicker !== "function") throw new Error("ui.js does not export the picker element");
 if (!String(ui.PICKER_CSS).includes("--smart-checkin-accent")) throw new Error("ui.js is missing the picker styles");
 
-const request = checkin.buildRequest({
+const testing = await import(here("../_site/lib/testing.js"));
+const walletLib = await import(here("../_site/lib/wallet.js"));
+if (typeof walletLib.serveWebWallet !== "function") throw new Error("wallet.js does not export serveWebWallet");
+
+const request = checkin.checkinRequest({
   purpose: "hosted bundle smoke test",
   items: [
     { id: "a", title: "A", content: { kind: "selection.fhir" }, accept: ["application/fhir+json"] },
   ],
 });
-if (request.type !== "smart-health-checkin-request") throw new Error("buildRequest is broken");
+if (request.type !== "smart-health-checkin-request") throw new Error("checkinRequest is broken");
 
 const support = checkin.detectDcApiSupport();
 if (typeof support?.state !== "string") throw new Error("detectDcApiSupport is broken");
 
-// Reaches the wire layer (CBOR + WebCrypto), so a stub cannot pass.
-const walletRequest = await checkin.createMockWalletCredentialGetter({
-  origin: "https://example.org",
-});
-const prepared = await checkin
-  .createBrowserLocalAuthority({ origin: "https://example.org" })
-  .prepareCredentialRequest({ request });
-const credential = await walletRequest(prepared.navigatorArgument);
-if (!credential?.data?.response) throw new Error("wire layer did not produce a sealed response");
+// A whole check-in through the hosted bundles: the mock wallet seals over the
+// wire layer (CBOR, COSE, HPKE) and checkin.js opens and validates it.
+(globalThis as { location?: unknown }).location ??= { origin: "https://example.org", href: "https://example.org/" };
+const result = await testing.mockWallet().start(request);
+if (result.status !== "completed" || !result.response?.status("a")) {
+  throw new Error(`hosted check-in round trip failed: ${JSON.stringify(result.status === "failed" ? result.error : result.status)}`);
+}
 
 const plan = fhir.buildCheckinBundle({
   request,
@@ -66,5 +68,5 @@ if (checkinSize < 20_000) {
 
 console.log(
   `hosted bundles OK — checkin.js ${(checkinSize / 1024).toFixed(1)}KB (${Object.keys(checkin).length} exports), ` +
-    `fhir.js ${(fhirSize / 1024).toFixed(1)}KB, wire round-trip verified`,
+    `fhir.js ${(fhirSize / 1024).toFixed(1)}KB, full check-in round trip verified`,
 );

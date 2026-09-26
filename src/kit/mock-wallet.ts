@@ -249,11 +249,11 @@ export async function sealWalletResponse(input: {
 function extractRequestData(arg: unknown): { deviceRequest: string; encryptionInfo: string } {
   const requests = (arg as { digital?: { requests?: unknown } })?.digital?.requests;
   if (!Array.isArray(requests) || requests.length === 0) {
-    throw new Error("mock wallet: navigator argument has no digital.requests");
+    throw new Error("navigator argument has no digital.requests");
   }
   const data = (requests[0] as { data?: { deviceRequest?: unknown; encryptionInfo?: unknown } }).data;
   if (typeof data?.deviceRequest !== "string" || typeof data?.encryptionInfo !== "string") {
-    throw new Error("mock wallet: request data missing deviceRequest/encryptionInfo");
+    throw new Error("request data missing deviceRequest/encryptionInfo");
   }
   return { deviceRequest: data.deviceRequest, encryptionInfo: data.encryptionInfo };
 }
@@ -261,32 +261,32 @@ function extractRequestData(arg: unknown): { deviceRequest: string; encryptionIn
 function extractSmartRequest(deviceRequestBytes: Uint8Array): SmartCheckinRequest {
   const docRequests = mapGet(cborDecode(deviceRequestBytes), "docRequests");
   if (!Array.isArray(docRequests) || docRequests.length === 0) {
-    throw new Error("mock wallet: DeviceRequest has no docRequests");
+    throw new Error("DeviceRequest has no docRequests");
   }
   const itemsRequestTag = mapGet(docRequests[0], "itemsRequest");
   if (!(itemsRequestTag instanceof CborTag) || !(itemsRequestTag.value instanceof Uint8Array)) {
-    throw new Error("mock wallet: itemsRequest is not tag24");
+    throw new Error("itemsRequest is not tag24");
   }
   const requestJson = mapGet(
     mapGet(cborDecode(itemsRequestTag.value), "requestInfo"),
     SMART_REQUEST_INFO_KEY,
   );
   if (typeof requestJson !== "string") {
-    throw new Error("mock wallet: requestInfo carrier missing");
+    throw new Error("requestInfo carrier missing");
   }
   const validated = validateSmartCheckinRequest(JSON.parse(requestJson));
-  if (!validated.ok) throw new Error(`mock wallet: invalid request: ${validated.error}`);
+  if (!validated.ok) throw new Error(`invalid request: ${validated.error}`);
   return validated.value;
 }
 
 export function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array): JsonWebKey {
   const decoded = cborDecode(encryptionInfoBytes);
   const key = mapGet(Array.isArray(decoded) ? decoded[1] : undefined, "recipientPublicKey");
-  if (!(key instanceof Map)) throw new Error("mock wallet: no recipientPublicKey");
+  if (!(key instanceof Map)) throw new Error("no recipientPublicKey");
   const x = key.get(-2);
   const y = key.get(-3);
   if (!(x instanceof Uint8Array) || !(y instanceof Uint8Array)) {
-    throw new Error("mock wallet: recipientPublicKey is not EC2");
+    throw new Error("recipientPublicKey is not EC2");
   }
   const b64u = (bytes: Uint8Array): string =>
     btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");

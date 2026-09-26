@@ -14,10 +14,11 @@
  * sealed credential coming back.
  */
 
-import { createBrowserLocalAuthority, type VerifierAuthority } from "../browser/index.js";
+import { createBrowserLocalAuthority } from "../browser/index.js";
 import type { SmartCheckinRequest } from "../model/index.js";
 import { parseWalletRequest } from "./mock-wallet.js";
-import { WalletDeclinedError } from "./web-wallet.js";
+import { isDecline, WalletDeclinedError } from "../core/errors.js";
+import { customWallet, platformWallet, type Wallet } from "../core/wallets.js";
 
 /** What the kiosk posts for the phone to pick up. */
 export type HandoffEnvelope = {
@@ -103,30 +104,6 @@ export function createHandoffCredentialGetter(
   };
 }
 
-/**
- * Everything a kiosk passes to `runCheckin` / `requestCheckin`:
- *
- * ```ts
- * const outcome = await runCheckin(request, createHandoff({
- *   mailbox, handoffUrl: "/handoff.html",
- *   onWaiting: ({ url }) => drawQr(url),
- * }));
- * ```
- *
- * The key lives in this page, as usual; the session transcript is computed
- * for the hand-off page's origin, because that is where the wallet will be
- * asked.
- */
-export function createHandoff(options: HandoffOptions): {
-  authority: VerifierAuthority;
-  getCredential: (navigatorArgument: unknown) => Promise<unknown>;
-} {
-  return {
-    authority: createBrowserLocalAuthority({ origin: new URL(options.handoffUrl, here()).origin }),
-    getCredential: createHandoffCredentialGetter(options),
-  };
-}
-
 /** Phone side, step one: pick the request up and recover what it asks for, to show the person. */
 export async function fetchHandoff(
   mailbox: HandoffMailbox,
@@ -147,12 +124,13 @@ export async function answerHandoff(
   mailbox: HandoffMailbox,
   sessionId: string,
   envelope: HandoffEnvelope,
-  getCredential: (navigatorArgument: unknown) => Promise<unknown> = (args) =>
-    navigator.credentials.get(args as CredentialRequestOptions),
+  wallet: Wallet = platformWallet(),
 ): Promise<HandoffAnswer> {
+  // Opened before the first await, so a web wallet's tab opens inside the click.
+  const session = wallet.open();
   let answer: HandoffAnswer;
   try {
-    const credential = (await getCredential(envelope.navigatorArgument)) as
+    const credential = (await session.getCredential(envelope.navigatorArgument)) as
       | { protocol?: unknown; data?: unknown }
       | null
       | undefined;
@@ -161,8 +139,8 @@ export async function answerHandoff(
         ? { credential: { protocol: String(credential.protocol ?? "org-iso-mdoc"), data: credential.data } }
         : { declined: true };
   } catch (e) {
-    const err = e as { name?: string; message?: string };
-    if (err?.name === "NotAllowedError" || err?.name === "AbortError") {
+    const err = e as { message?: string };
+    if (isDecline(e)) {
       answer = { declined: true, ...(err.message ? { reason: err.message } : {}) };
     } else {
       throw e;
@@ -170,4 +148,23 @@ export async function answerHandoff(
   }
   await mailbox.answer(sessionId, answer);
   return answer;
+}
+
+/**
+ * A kiosk's "use your phone" option as a wallet: posts the request to the
+ * mailbox, calls `onWaiting` with the URL to show as a QR code, and waits for
+ * the phone's answer.
+ */
+export function handoffWallet(options: Omit<HandoffOptions, "signal"> & { name?: string; description?: string }): Wallet {
+  return customWallet({
+    id: "handoff",
+    kind: "handoff",
+    name: options.name ?? "Use your phone",
+    description: options.description ?? "Scan a code with your phone and answer there",
+    keys: createBrowserLocalAuthority({ origin: new URL(options.handoffUrl, here()).origin }),
+    open() {
+      const controller = new AbortController();
+      return { getCredential: createHandoffCredentialGetter({ ...options, signal: controller.signal }), cancel: () => controller.abort() };
+    },
+  });
 }

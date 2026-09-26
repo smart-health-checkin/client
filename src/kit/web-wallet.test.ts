@@ -58,5 +58,5 @@ test("messages from any other origin are ignored", async () => {
   const pending = get({});
   b.fromWallet({ type: WEB_WALLET_READY_MESSAGE_TYPE });
   expect(b.sentToWallet).toHaveLength(0);
-  await expect(pending).rejects.toThrow(/timed out/);
+  await expect(pending).rejects.toMatchObject({ code: "timeout" });
 });

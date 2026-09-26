@@ -33,9 +33,12 @@ bun build src/index.ts --outdir $OUT/lib --format esm --minify
 mv $OUT/lib/index.js $OUT/lib/checkin.js
 bun build src/fhir/index.ts --outdir $OUT/lib --format esm --minify
 mv $OUT/lib/index.js $OUT/lib/fhir.js
-# <smart-checkin-picker>, self-contained: one <script type="module"> line on any page
-bun build src/ui/index.ts --outdir $OUT/lib --format esm --minify
-mv $OUT/lib/index.js $OUT/lib/ui.js
+# Each entry point as one self-contained file: <smart-checkin-picker> in ui.js,
+# wallet builders' wallet.js, kiosks' handoff.js, and testing.js for demos.
+for entry in ui wallet handoff testing; do
+  bun build src/$entry/index.ts --outdir $OUT/lib --format esm --minify
+  mv $OUT/lib/index.js $OUT/lib/$entry.js
+done
 # docs: narrative guides + generated API reference, all from repo markdown
 bun run docs >/dev/null
 bun scripts/render-docs.ts
@@ -46,7 +49,7 @@ VERSION=$(bun -e 'console.log(require("./package.json").version)')
 mkdir -p "$OUT/lib/$VERSION"
 cp $OUT/lib/checkin.js "$OUT/lib/$VERSION/checkin.js"
 cp $OUT/lib/fhir.js "$OUT/lib/$VERSION/fhir.js"
-cp $OUT/lib/ui.js "$OUT/lib/$VERSION/ui.js"
+for entry in ui wallet handoff testing; do cp $OUT/lib/$entry.js "$OUT/lib/$VERSION/$entry.js"; done
 printf '{"version":"%s"}\n' "$VERSION" > $OUT/lib/version.json
 
 touch $OUT/.nojekyll
