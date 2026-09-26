@@ -30,3 +30,8 @@
 .pg-clinic[data-pg-skin="portal-blue"]:not(.dark) { --pg-bg: #F7F4F1; --pg-ink: #22262B; }
 .pg-clinic[data-pg-skin="clinic-teal"] { --pg-head: #0B3B3C; --pg-head-ink: #00E0B9; --pg-font: "Nunito Sans", sans-serif; }
 .pg-clinic[data-pg-skin="clinic-teal"]:not(.dark) { --pg-bg: #FFFFFF; --pg-ink: #0F2A2A; }
+
+/* The one-button example: a form field, the button, and its note. */
+.pg-form { display: grid; gap: var(--space-3); max-width: 26rem; }
+.pg-form textarea { font-family: var(--font-sans); resize: vertical; }
+.pg-form > p { margin: 0; min-height: 1.5em; font-size: var(--fs-sm); }

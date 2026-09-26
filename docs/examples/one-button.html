@@ -1,0 +1,22 @@
+<div class="pg-example" data-button-example>
+  <p>This is the first example running, with a simulated wallet in place of the phone's, so it works in any browser and nothing opens. Choose what the wallet does, then press the button. <b>Shared</b> answers with made-up data.</p>
+  <div class="pg-controls">
+    <label class="smart-field"><span class="lbl">Outcome</span>
+      <select class="smart-select" data-pg="outcome">
+        <option value="shared" selected>Shared</option>
+        <option value="declined">Declined</option>
+        <option value="cancelled">Cancelled: the patient closed the wallet</option>
+        <option value="error">Error</option>
+      </select>
+    </label>
+  </div>
+  <div class="pg-form">
+    <label class="smart-field"><span class="lbl">Allergies</span>
+      <textarea class="smart-input" rows="4" data-pg="allergies" placeholder="Type them, or fill them in from your health app"></textarea>
+    </label>
+    <div><button type="button" class="smart-btn primary" id="fill-from-app">Fill in from my health app</button></div>
+    <p id="checkin-note" aria-live="polite"></p>
+  </div>
+</div>
+<link rel="stylesheet" href="/docs/examples/picker.css">
+<script type="module" src="/docs/examples/one-button.js"></script>

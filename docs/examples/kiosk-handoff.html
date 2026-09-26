@@ -1,0 +1,151 @@
+<div class="xd-figure xd-wide">
+<svg class="xd" viewBox="0 0 880 536" role="img" aria-labelledby="kh-title kh-desc">
+  <title id="kh-title">Kiosk hand-off, step by step</title>
+  <desc id="kh-desc">Three columns: the kiosk page, your mailbox between the devices, and the hand-off page on the patient's phone. Step 1, start: on the kiosk, phone.start(request) makes the request and a key pair, keeps the private key, and posts the request with the public key to the mailbox under a random session id. Step 2, scan: onWaiting gives the kiosk a URL carrying the session id, which it shows as a QR code; the patient scans it, and on the phone fetchHandoff picks the request up from the mailbox and shows what is asked. Step 3, share: the patient picks a wallet in the picker and answerHandoff asks it; the wallet seals its answer to the kiosk's public key, while the kiosk waits on the mailbox. Step 4, return: the sealed answer goes back through the mailbox, which cannot read it; the kiosk opens it with its private key, verifies it and checks it against the request, and start() resolves with a CheckinResult.</desc>
+  <defs>
+    <marker id="kh-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="kh-ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-soft" d="M0 0 L10 5 L0 10 z"/></marker>
+  </defs>
+
+  <rect class="band" x="0" y="72" width="880" height="104"/>
+  <rect class="band" x="0" y="288" width="880" height="112"/>
+
+  <g transform="translate(64 18)"><rect class="ico" x="0" y="0" width="34" height="24" rx="3"/><path class="ico" d="M17 24 v10 M8 38 h18"/></g>
+  <text x="108" y="36" class="head">Kiosk page</text>
+  <text x="108" y="53" class="code">handoffWallet()</text>
+
+  <g transform="translate(352 22)"><path class="ico" d="M0 14 h16 M24 14 h16 M8 6 l-8 8 8 8 M32 6 l8 8 -8 8"/></g>
+  <text x="400" y="36" class="head">Your mailbox</text>
+  <text x="400" y="53" class="sub">sees only public material</text>
+
+  <g transform="translate(584 14)"><rect class="ico" x="0" y="0" width="22" height="38" rx="4"/><path class="ico" d="M8 33 h6"/></g>
+  <text x="616" y="36" class="head">Hand-off page</text>
+  <text x="616" y="53" class="sub">on the patient's phone, with its wallet</text>
+
+  <line class="lane" x1="340" y1="68" x2="340" y2="528"/>
+  <line class="lane" x1="560" y1="68" x2="560" y2="528"/>
+
+  <g><circle class="num" cx="28" cy="98" r="12"/><text x="28" y="102.5" text-anchor="middle" class="num-t">1</text><text x="28" y="127" text-anchor="middle" class="step">START</text></g>
+  <g><circle class="num" cx="28" cy="204" r="12"/><text x="28" y="208.5" text-anchor="middle" class="num-t">2</text><text x="28" y="233" text-anchor="middle" class="step">SCAN</text></g>
+  <g><circle class="num" cx="28" cy="314" r="12"/><text x="28" y="318.5" text-anchor="middle" class="num-t">3</text><text x="28" y="343" text-anchor="middle" class="step">SHARE</text></g>
+  <g><circle class="num" cx="28" cy="426" r="12"/><text x="28" y="430.5" text-anchor="middle" class="num-t">4</text><text x="28" y="455" text-anchor="middle" class="step">RETURN</text></g>
+
+  <!-- 1 START -->
+  <rect class="box" x="56" y="84" width="268" height="80" rx="8"/>
+  <text x="72" y="106" class="code">phone.start(request)</text>
+  <text x="72" y="126" class="s">Makes the request and a key pair.</text>
+  <g transform="translate(72 138)"><circle class="key" cx="6" cy="6" r="5"/><path class="key" d="M11 6 h14 M21 6 v5 M25 6 v4"/></g>
+  <text x="104" y="149" class="s">The private key stays here.</text>
+  <path class="arrow" d="M324 112 H 350" marker-end="url(#kh-ah)"/>
+  <text x="450" y="94" text-anchor="middle" class="code">mailbox.post</text>
+  <rect class="chip" x="356" y="101" width="188" height="22" rx="11"/>
+  <text x="450" y="116" text-anchor="middle" class="chip-t">request + public key</text>
+  <text x="450" y="144" text-anchor="middle" class="sub">under a random session id</text>
+
+  <!-- 2 SCAN -->
+  <rect class="box" x="56" y="190" width="268" height="72" rx="8"/>
+  <text x="72" y="212" class="code">onWaiting({ url })</text>
+  <text x="72" y="232" class="s">You show url as a QR code.</text>
+  <text x="72" y="250" class="s">It carries the session id.</text>
+  <g transform="translate(282 204)">
+    <rect class="qr" x="0" y="0" width="8" height="8"/><rect class="qr" x="14" y="0" width="4" height="4"/><rect class="qr" x="22" y="0" width="8" height="8"/>
+    <rect class="qr" x="10" y="8" width="4" height="4"/><rect class="qr" x="18" y="12" width="4" height="4"/>
+    <rect class="qr" x="0" y="22" width="8" height="8"/><rect class="qr" x="12" y="18" width="4" height="4"/><rect class="qr" x="22" y="22" width="4" height="4"/><rect class="qr" x="26" y="16" width="4" height="4"/>
+  </g>
+  <path class="arrow-soft" d="M326 238 C 420 262, 500 256, 570 236" marker-end="url(#kh-ahs)"/>
+  <text x="450" y="280" text-anchor="middle" class="sub">the patient scans the code</text>
+  <path class="arrow" d="M544 112 C 610 112, 640 140, 660 186" marker-end="url(#kh-ah)"/>
+  <rect class="box" x="576" y="190" width="288" height="72" rx="8"/>
+  <text x="592" y="212" class="code">fetchHandoff(mailbox, id)</text>
+  <text x="592" y="232" class="s">Picks up the request and shows the</text>
+  <text x="592" y="250" class="s">patient what the kiosk asks for.</text>
+
+  <!-- 3 SHARE -->
+  <path class="arrow" d="M760 262 V 296" marker-end="url(#kh-ah)"/>
+  <rect class="box" x="576" y="300" width="288" height="88" rx="8"/>
+  <text x="592" y="322" class="code">answerHandoff(…, wallet)</text>
+  <text x="592" y="342" class="s">The patient picks a wallet in the</text>
+  <text x="592" y="360" class="s">picker, and the wallet seals its</text>
+  <text x="592" y="378" class="s">answer to the kiosk's public key.</text>
+  <rect class="box off" x="56" y="312" width="268" height="60" rx="8"/>
+  <text x="72" y="336" class="s off-t">Waits for the answer:</text>
+  <text x="72" y="356" class="code">mailbox.waitForAnswer</text>
+
+  <!-- 4 RETURN -->
+  <path class="arrow" d="M720 388 V 420 C 720 432, 710 436, 690 436 H 330" marker-end="url(#kh-ah)"/>
+  <g transform="translate(366 416)"><rect class="lock" x="0" y="10" width="26" height="20" rx="3"/><path class="lock open" d="M6 10 v-4 a7 7 0 0 1 14 0 v4"/></g>
+  <text x="400" y="428" class="t" style="font-size:13px">Sealed answer</text>
+  <text x="400" y="458" class="code">mailbox.answer</text>
+  <text x="400" y="476" class="sub">only the kiosk can open it</text>
+  <rect class="box" x="56" y="412" width="268" height="108" rx="8"/>
+  <text x="72" y="436" class="t">Opens it with its key</text>
+  <text x="72" y="456" class="s">Verifies it and checks it against</text>
+  <text x="72" y="474" class="s">the request, as for any check-in.</text>
+  <rect class="pill-ok" x="72" y="486" width="190" height="22" rx="11"/>
+  <text x="167" y="501" text-anchor="middle" class="pill-ok-t">start() → CheckinResult</text>
+</svg>
+</div>
+<div class="xd-figure xd-narrow">
+<svg class="xd" viewBox="0 0 360 752" role="img" aria-labelledby="khn-title khn-desc">
+  <title id="khn-title">Kiosk hand-off, step by step</title>
+  <desc id="khn-desc">Step 1, start, on the kiosk page: phone.start(request) makes the request and a key pair and keeps the private key; the request and public key go to your mailbox under a random session id. Step 2, scan: on the kiosk, onWaiting gives a URL carrying the session id, shown as a QR code; the patient scans it, and on the phone's hand-off page fetchHandoff picks the request up and shows what is asked. Step 3, share, on the hand-off page: the patient picks a wallet in the picker and answerHandoff asks it; the wallet seals its answer to the kiosk's public key. Step 4, return: the sealed answer goes back through the mailbox, which cannot read it; the kiosk opens it with its key, verifies it and checks it against the request, and start() resolves with a CheckinResult.</desc>
+  <defs>
+    <marker id="khn-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="khn-ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-soft" d="M0 0 L10 5 L0 10 z"/></marker>
+  </defs>
+
+  <!-- 1 START: kiosk -->
+  <circle class="num" cx="22" cy="16" r="11"/><text x="22" y="20.5" text-anchor="middle" class="num-t">1</text>
+  <text x="42" y="20.5" class="step">KIOSK PAGE</text>
+  <rect class="box" x="8" y="34" width="344" height="80" rx="8"/>
+  <text x="24" y="56" class="code">phone.start(request)</text>
+  <text x="24" y="76" class="s">Makes the request and a key pair.</text>
+  <g transform="translate(24 88)"><circle class="key" cx="6" cy="6" r="5"/><path class="key" d="M11 6 h14 M21 6 v5 M25 6 v4"/></g>
+  <text x="56" y="99" class="s">The private key stays here.</text>
+  <path class="arrow" d="M180 114 V 164" marker-end="url(#khn-ah)"/>
+  <rect class="chip" x="66" y="124" width="228" height="22" rx="11"/>
+  <text x="180" y="139" text-anchor="middle" class="chip-t">request + public key, to the mailbox</text>
+
+  <!-- 2 SCAN: kiosk, then phone -->
+  <circle class="num" cx="22" cy="180" r="11"/><text x="22" y="184.5" text-anchor="middle" class="num-t">2</text>
+  <text x="42" y="184.5" class="step">KIOSK PAGE</text>
+  <rect class="box" x="8" y="198" width="344" height="72" rx="8"/>
+  <text x="24" y="220" class="code">onWaiting({ url })</text>
+  <text x="24" y="240" class="s">You show url as a QR code.</text>
+  <text x="24" y="258" class="s">It carries the session id.</text>
+  <g transform="translate(308 214)">
+    <rect class="qr" x="0" y="0" width="8" height="8"/><rect class="qr" x="14" y="0" width="4" height="4"/><rect class="qr" x="22" y="0" width="8" height="8"/>
+    <rect class="qr" x="10" y="8" width="4" height="4"/><rect class="qr" x="18" y="12" width="4" height="4"/>
+    <rect class="qr" x="0" y="22" width="8" height="8"/><rect class="qr" x="12" y="18" width="4" height="4"/><rect class="qr" x="22" y="22" width="4" height="4"/><rect class="qr" x="26" y="16" width="4" height="4"/>
+  </g>
+  <path class="arrow-soft" d="M180 270 V 318" marker-end="url(#khn-ahs)"/>
+  <text x="192" y="298" class="sub">the patient scans the code</text>
+  <text x="42" y="338.5" class="step">HAND-OFF PAGE, ON THE PHONE</text>
+  <rect class="box" x="8" y="350" width="344" height="72" rx="8"/>
+  <text x="24" y="372" class="code">fetchHandoff(mailbox, id)</text>
+  <text x="24" y="392" class="s">Picks up the request and shows the</text>
+  <text x="24" y="410" class="s">patient what the kiosk asks for.</text>
+
+  <!-- 3 SHARE: phone -->
+  <path class="arrow" d="M180 422 V 448" marker-end="url(#khn-ah)"/>
+  <circle class="num" cx="22" cy="464" r="11"/><text x="22" y="468.5" text-anchor="middle" class="num-t">3</text>
+  <text x="42" y="468.5" class="step">HAND-OFF PAGE</text>
+  <rect class="box" x="8" y="482" width="344" height="72" rx="8"/>
+  <text x="24" y="504" class="code">answerHandoff(…, wallet)</text>
+  <text x="24" y="524" class="s">The patient picks a wallet in the picker, and</text>
+  <text x="24" y="542" class="s">it seals its answer to the kiosk's public key.</text>
+
+  <!-- 4 RETURN: kiosk -->
+  <path class="arrow" d="M180 554 V 616" marker-end="url(#khn-ah)"/>
+  <g transform="translate(196 568)"><rect class="lock" x="0" y="10" width="26" height="20" rx="3"/><path class="lock open" d="M6 10 v-4 a7 7 0 0 1 14 0 v4"/></g>
+  <text x="232" y="584" class="t" style="font-size:13px">Sealed answer</text>
+  <text x="232" y="602" class="sub">through the mailbox</text>
+  <circle class="num" cx="22" cy="632" r="11"/><text x="22" y="636.5" text-anchor="middle" class="num-t">4</text>
+  <text x="42" y="636.5" class="step">KIOSK PAGE</text>
+  <rect class="box" x="8" y="650" width="344" height="94" rx="8"/>
+  <text x="24" y="674" class="t">Opens it with its key</text>
+  <text x="24" y="694" class="s">Verifies it and checks it against the request.</text>
+  <rect class="pill-ok" x="24" y="708" width="190" height="22" rx="11"/>
+  <text x="119" y="723" text-anchor="middle" class="pill-ok-t">start() → CheckinResult</text>
+</svg>
+</div>

@@ -8,18 +8,16 @@
  * example's Outcome says. "Shared" answers with made-up data through the
  * library's mock wallet, so the picker decrypts and checks a real response.
  */
-import { customWallet, platformWallet, type Wallet, type WalletSession } from "../../src/index.js";
-import { createMockWalletCredentialGetter } from "../../src/testing/mock.js";
+import { customWallet, platformWallet, type Wallet } from "../../src/index.js";
+import { simulatedSession, type Outcome } from "./simulated.js";
 import { STARBURST_ICON_URL } from "../../src/ui/icons.js";
 import type { SmartCheckinPicker } from "../../src/ui/picker-element.js";
 import { DEMO_REQUESTS } from "../../demo/src/requests.js";
 import { pageIsDark, watchPageTheme } from "../../demo/src/site.js";
 
 type Picker = SmartCheckinPicker & HTMLElement;
-type Outcome = "shared" | "declined" | "cancelled" | "error" | "never";
 
 const REQUEST = DEMO_REQUESTS["allergy-review"]!.request;
-const ANSWER_AFTER_MS = 1600;
 
 const glyph = (bg: string, fg: string, path: string) =>
   "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" fill="${bg}"/><path d="${path}" fill="${fg}"/></svg>`);
@@ -35,30 +33,6 @@ const WEB_WALLETS: Array<[string, string, string, string?]> = [
   ["aspen", "Aspen PHR", "Personal health record", glyph("#6D597A", "#FFF", "M24 9l12 22H12zM22 31h4v8h-4z")],
   ["carecard", "CareCard", "Insurance and health cards", glyph("#E63946", "#FFF", "M10 16h28v18H10zM10 20h28v4H10z")],
 ];
-
-const named = (name: string, message: string): Error => Object.assign(new Error(message), { name });
-const shareMadeUpData = createMockWalletCredentialGetter({ origin: location.origin });
-
-/** A wallet session that answers as `outcome()` says, after a moment. */
-function simulatedSession(outcome: () => Outcome): WalletSession {
-  let stop!: (e: Error) => void;
-  const stopped = new Promise<never>((_, reject) => (stop = reject));
-  stopped.catch(() => {}); // cancelled before it was asked
-  const answer = async (navigatorArgument: unknown): Promise<unknown> => {
-    const chosen = outcome();
-    if (chosen === "never") return new Promise(() => {});
-    await new Promise((r) => setTimeout(r, ANSWER_AFTER_MS));
-    // A wallet reports a patient who said no, or closed it, the way the Digital Credentials API does.
-    if (chosen === "declined") throw named("NotAllowedError", "The patient said no.");
-    if (chosen === "cancelled") throw named("AbortError", "The patient closed the wallet.");
-    if (chosen === "error") throw new Error("The health app stopped before it answered.");
-    return shareMadeUpData(navigatorArgument);
-  };
-  return {
-    getCredential: (navigatorArgument) => Promise.race([stopped, answer(navigatorArgument)]),
-    cancel: () => stop(named("AbortError", "Cancelled")),
-  };
-}
 
 /** The phone's wallet, shown as available or not whatever this browser is. */
 const phone = (available: boolean, outcome: () => Outcome): Wallet =>

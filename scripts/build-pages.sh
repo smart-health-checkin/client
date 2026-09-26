@@ -40,7 +40,7 @@ scripts/build-lib.sh "$OUT/lib"
 bun run docs >/dev/null
 bun scripts/render-docs.ts
 # The guides' live examples (docs/examples/, placed by render-docs.ts).
-bun build docs/examples/picker.ts --outdir $OUT/docs/examples --format esm --minify
+bun build docs/examples/picker.ts docs/examples/one-button.ts --outdir $OUT/docs/examples --format esm --minify
 cp docs/examples/picker.css $OUT/docs/examples/picker.css
 bun scripts/apply-chrome.ts
 

@@ -3,11 +3,11 @@
 A wallet is anything that can answer a check-in request: the phone's own wallet, a wallet on the web, a kiosk hand-off, or a mock. Your page decides which to offer; the patient picks one.
 
 - **Most pages:** drop in [the picker](#the-picker). It lists the wallets, runs the check-in, and hands you the result.
-- **Your own UI:** call [`wallets()`](#kinds-of-wallet) and start the one the patient picks.
+- **Your own buttons:** start the wallets yourself; see [Without the picker](#without-the-picker).
 
 ## The picker
 
-`<smart-checkin-picker>` shows the patient the wallets they can use, runs the check-in with the one they pick, and tells your page what came back.
+[`<smart-checkin-picker>`](api/ui.md#smartcheckinpicker) shows the patient the wallets they can use, runs the check-in with the one they pick, and tells your page what came back.
 
 ```html
 <script type="module" src="https://smart-health-checkin.org/client/lib/0.4.3/ui.js"></script>
@@ -45,11 +45,11 @@ import { CheckinPicker } from "@smart-health-checkin/client/react";
 />
 ```
 
-`<CheckinPicker>` renders the same element. React is needed only for this module.
+[`<CheckinPicker>`](api/react.md#checkinpicker) renders the same element, and its props are [`CheckinPickerProps`](api/react.md#checkinpickerprops). React is needed only for this module.
 
 ### In Angular, Vue, and others
 
-Import `@smart-health-checkin/client/ui` once, allow the element, and set `request` as a property, not an attribute.
+Import [`@smart-health-checkin/client/ui`](api/ui.md) once, allow the element, and set [`request`](api/ui.md#request) as a property, not an attribute.
 
 Angular (standalone component):
 
@@ -83,7 +83,7 @@ Vue: tell the compiler the tag is a custom element (`isCustomElement: (tag) => t
 
 ### TypeScript and the element
 
-TypeScript doesn't yet know the tag. Type lookups yourself, and cast events:
+TypeScript doesn't yet know the tag. Type lookups yourself with [`SmartCheckinPicker`](api/ui.md#smartcheckinpicker), and cast events:
 
 ```ts
 import type { CheckinResponse } from "@smart-health-checkin/client";
@@ -96,43 +96,43 @@ picker.addEventListener("smart-checkin-response", (e) => {
 });
 ```
 
-In React, `<CheckinPicker>` is fully typed; writing `<smart-checkin-picker>` in JSX isn't.
+In React, [`<CheckinPicker>`](api/react.md#checkinpicker) is fully typed; writing `<smart-checkin-picker>` in JSX isn't.
 
 ### Attributes
 
 | Attribute | What it does |
 | --- | --- |
-| `registry` | URL of a [wallet registry](#registries-and-icons). Omit it for no web wallets. |
-| `platform="off"` | Don't offer the phone's own wallet. |
-| `remember` | Remember the last app used on this site, in this browser. Off unless present. |
-| `mock` | Offer a simulated response. Development only. |
-| `mode="pick"` | Only choose; your page runs the check-in. See [Pick only](#pick-only). |
-| `theme` | `light` (default), `dark`, or `auto` to follow the device. |
-| `appearance="flat"` | No card border or background. |
-| `footer="off"` | Hide the SMART Health Check-in mark. |
-| `motion` | `subtle` (default) or `none`. See [Motion](#motion). |
-| `heading`, `description` | Replace the two lines at the top. |
+| [`registry`](api/ui.md#attributes) | URL of a [wallet registry](#registries-and-icons). Omit it for no web wallets. |
+| [`platform="off"`](api/ui.md#attributes) | Don't offer the phone's own wallet. |
+| [`remember`](api/ui.md#attributes) | Remember the last app used on this site, in this browser. Off unless present. |
+| [`mock`](api/ui.md#attributes) | Offer a simulated response. Development only. |
+| [`mode="pick"`](api/ui.md#attributes) | Only choose; your page runs the check-in. See [Pick only](#pick-only). |
+| [`theme`](api/ui.md#attributes) | `light` (default), `dark`, or `auto` to follow the device. |
+| [`appearance="flat"`](api/ui.md#attributes) | No card border or background. |
+| [`footer="off"`](api/ui.md#attributes) | Hide the SMART Health Check-in mark. |
+| [`motion`](api/ui.md#attributes) | `subtle` (default) or `none`. See [Motion](#motion). |
+| [`heading`](api/ui.md#attributes), [`description`](api/ui.md#attributes) | Replace the two lines at the top. |
 
 ### Properties
 
 | Property | What it does |
 | --- | --- |
-| `request` | What to ask for. Required unless `mode="pick"`. |
-| `motion` | `"subtle"` or `"none"`; reflects the `motion` attribute. |
-| `wallets` | A list from `wallets()`, used instead of `registry`, `platform`, and `mock`. Use it to add a kiosk hand-off or your own wallets. |
-| `checkinOptions` | Passed to `runCheckin`: `keys` for server-held keys, `healthCards` for card trust. |
-| `strings` | Replace any text, for wording or translation. See `DEFAULT_STRINGS`. |
+| [`request`](api/ui.md#request) | What to ask for. Required unless `mode="pick"`. |
+| [`motion`](api/ui.md#motion) | `"subtle"` or `"none"`; reflects the `motion` attribute. |
+| [`wallets`](api/ui.md#wallets) | A list from [`wallets()`](api/checkin.md#wallets), used instead of `registry`, `platform`, and `mock`. Use it to add a kiosk hand-off or your own wallets. |
+| [`checkinOptions`](api/ui.md#checkinoptions) | Passed to [`runCheckin`](api/checkin.md#runcheckin): [`keys`](api/checkin.md#keys) for server-held keys, [`healthCards`](api/checkin.md#healthcards-1) for card trust. |
+| [`strings`](api/ui.md#strings) | Replace any text, for wording or translation. See [`DEFAULT_STRINGS`](api/ui.md#defaultstrings). |
 
 ### Events
 
-All events bubble and cross shadow roots.
+All events bubble and cross shadow roots. [`SmartCheckinPickerEventMap`](api/ui.md#smartcheckinpickereventmap) types each one's `detail`.
 
 | Event | `detail` | When |
 | --- | --- | --- |
-| `smart-checkin-response` | `{ wallet, response, result }` | The check-in finished. `response` is a [`CheckinResponse`](responses.md). |
-| `smart-checkin-declined` | `{ wallet, result }` | The patient closed the app or said no. |
-| `smart-checkin-error` | `{ wallet?, code?, message, result? }` | Anything else went wrong, including a registry that wouldn't load. [Codes](testing.md#reading-a-failed-result). |
-| `smart-checkin-choose` | `{ wallet, session? }` | The patient picked a wallet. In pick mode, `session` is the opened wallet. |
+| [`smart-checkin-response`](api/ui.md#smart-checkin-response) | `{ wallet, response, result }` | The check-in finished. `response` is a [`CheckinResponse`](responses.md). |
+| [`smart-checkin-declined`](api/ui.md#smart-checkin-declined) | `{ wallet, result }` | The patient closed the app or said no. |
+| [`smart-checkin-error`](api/ui.md#smart-checkin-error) | `{ wallet?, code?, message, result? }` | Anything else went wrong, including a registry that wouldn't load. [Codes](testing.md#reading-a-failed-result). |
+| [`smart-checkin-choose`](api/ui.md#smart-checkin-choose) | `{ wallet, session? }` | The patient picked a wallet. In pick mode, `session` is the opened wallet. |
 
 ### Styling
 
@@ -187,22 +187,24 @@ smart-checkin-picker[theme="dark"] {
 
 | Property | Default |
 | --- | --- |
-| `--smart-checkin-font` | Inter, then the system font |
-| `--smart-checkin-accent`, `--smart-checkin-accent-hover`, `--smart-checkin-on-accent` | `#0E6FB8`, `#094D80`, white |
-| `--smart-checkin-text`, `--smart-checkin-text-muted`, `--smart-checkin-text-faint` | `#1F2933`, `#4B5563`, `#7B8794` |
-| `--smart-checkin-surface`, `--smart-checkin-row`, `--smart-checkin-border` | white, white, `#E4E7EB` |
-| `--smart-checkin-radius`, `--smart-checkin-radius-large`, `--smart-checkin-icon-radius` | `10px`, `14px`, `9px` |
-| `--smart-checkin-success` | `#1A8C76`, the check when shared |
-| `--smart-checkin-mark-purple` | `#722772` (dark `#A04CA0`), the starburst's purple petal, lifted in dark themes as in the site's logo |
-| `--smart-checkin-mark-muted` | `#B9C2CC` (dark `#4A5866`), the mark's petals when declined or failed |
-| `--smart-checkin-motion-speed` | `1`; multiplies every duration. See [Motion](#motion). |
-| `--smart-checkin-card-border`, `--smart-checkin-card-padding` | `1px solid` the border color, `16px` |
+| [`--smart-checkin-font`](api/ui.md#css-custom-properties) | Inter, then the system font |
+| [`--smart-checkin-accent`](api/ui.md#css-custom-properties), [`--smart-checkin-accent-hover`](api/ui.md#css-custom-properties), [`--smart-checkin-on-accent`](api/ui.md#css-custom-properties) | `#0E6FB8`, `#094D80`, white |
+| [`--smart-checkin-text`](api/ui.md#css-custom-properties), [`--smart-checkin-text-muted`](api/ui.md#css-custom-properties), [`--smart-checkin-text-faint`](api/ui.md#css-custom-properties) | `#1F2933`, `#4B5563`, `#7B8794` |
+| [`--smart-checkin-surface`](api/ui.md#css-custom-properties), [`--smart-checkin-row`](api/ui.md#css-custom-properties), [`--smart-checkin-border`](api/ui.md#css-custom-properties) | white, white, `#E4E7EB` |
+| [`--smart-checkin-icon-background`](api/ui.md#css-custom-properties) | white, behind wallet icons |
+| [`--smart-checkin-focus`](api/ui.md#css-custom-properties) | the accent color, for focus rings |
+| [`--smart-checkin-radius`](api/ui.md#css-custom-properties), [`--smart-checkin-radius-large`](api/ui.md#css-custom-properties), [`--smart-checkin-icon-radius`](api/ui.md#css-custom-properties) | `10px`, `14px`, `9px` |
+| [`--smart-checkin-success`](api/ui.md#css-custom-properties) | `#1A8C76`, the check when shared |
+| [`--smart-checkin-mark-purple`](api/ui.md#css-custom-properties) | `#722772` (dark `#A04CA0`), the starburst's purple petal, lifted in dark themes as in the site's logo |
+| [`--smart-checkin-mark-muted`](api/ui.md#css-custom-properties) | `#B9C2CC` (dark `#4A5866`), the mark's petals when declined or failed |
+| [`--smart-checkin-motion-speed`](api/ui.md#css-custom-properties) | `1`; multiplies every duration. See [Motion](#motion). |
+| [`--smart-checkin-card-border`](api/ui.md#css-custom-properties), [`--smart-checkin-card-padding`](api/ui.md#css-custom-properties) | `1px solid` the border color, `16px` |
 
-For anything else, style these parts with `::part()`: `card`, `title`, `description`, `primary`, `list`, `row`, `more`, `icon`, `status`, `mark` (the starburst beside a status), `check` (on the mark when shared), `footer`, `dialog`.
+For anything else, style these parts with `::part()`: [`container`](api/ui.md#parts), [`card`](api/ui.md#parts), [`title`](api/ui.md#parts), [`description`](api/ui.md#parts), [`primary`](api/ui.md#parts), [`list`](api/ui.md#parts), [`row`](api/ui.md#parts), [`more`](api/ui.md#parts), [`icon`](api/ui.md#parts), [`status`](api/ui.md#parts), [`mark`](api/ui.md#parts) (the starburst beside a status), [`check`](api/ui.md#parts) (on the mark when shared), [`footer`](api/ui.md#parts), [`dialog`](api/ui.md#parts).
 
 ### Motion
 
-With `motion="subtle"`, the default, the picker moves a little:
+With [`motion="subtle"`](api/ui.md#attributes), the default, the picker moves a little:
 
 | State | What moves |
 | --- | --- |
@@ -213,9 +215,9 @@ With `motion="subtle"`, the default, the picker moves a little:
 
 - `motion="none"` stops all of it: the mark is still, and state changes happen at once.
 - A device set to reduce motion (`prefers-reduced-motion: reduce`) always gets `none`, whatever the attribute says.
-- `--smart-checkin-motion-speed` scales every duration: `2` is half as fast, `0.5` twice as fast.
+- [`--smart-checkin-motion-speed`](api/ui.md#css-custom-properties) scales every duration: `2` is half as fast, `0.5` twice as fast.
 
-The wedge is drawn in `--smart-checkin-surface`, so it matches the card in light and dark themes. Set that property if your card has another background.
+The wedge is drawn in [`--smart-checkin-surface`](api/ui.md#css-custom-properties), so it matches the card in light and dark themes. Set that property if your card has another background.
 
 ```css
 smart-checkin-picker { --smart-checkin-motion-speed: 1.5; }
@@ -224,35 +226,119 @@ smart-checkin-picker::part(mark) { width: 36px; height: 30px; }
 
 ### Pick only
 
-Use `mode="pick"` when your page runs the check-in itself, for example to inspect the raw response.
+Use [`mode="pick"`](api/ui.md#attributes) when your page runs the check-in itself, for example to inspect the raw response.
 
-- Listen for `smart-checkin-choose`. Its `session` is the chosen wallet, already opened inside the click.
-- Run the check-in with it: `runCheckin(myRequest, { wallet, session })`.
-- Tell the picker how it ended: `picker.setOutcome({ status: "completed" })`, `{ status: "declined" }`, or `{ status: "failed", message, code }`.
+- Listen for [`smart-checkin-choose`](api/ui.md#smart-checkin-choose). Its `session` is the chosen wallet, already opened inside the click.
+- Run the check-in with it: [`runCheckin`](api/checkin.md#runcheckin)`(myRequest, { wallet, session })`.
+- Tell the picker how it ended with [`setOutcome`](api/ui.md#setoutcome): `picker.setOutcome({ status: "completed" })`, `{ status: "declined" }`, or `{ status: "failed", message, code }`.
 
-### Build your own picker
+## Without the picker
 
-`@smart-health-checkin/client/picker` has the logic without the UI.
+You can leave the picker out and start a check-in from buttons you draw yourself. You might do that when your site has its own design system and the picker doesn't fit it even after [styling](#styling). It also makes sense when you offer only one wallet, because a list with a single choice only adds a step, and when the check-in should feel like part of your own page, such as one "Fill in from my health app" button beside the form it fills.
+
+The library does the same work either way: it opens the wallet, decrypts and checks the answer, and gives you a [`CheckinResult`](api/checkin.md#checkinresult). What the picker did around that becomes your code:
+
+- **Availability.** Offer only the wallets this browser can use. [`wallets()`](api/checkin.md#wallets) leaves out the rest, and a single wallet's [`available`](api/checkin.md#available) says whether it can run here. The phone's own wallet needs the Digital Credentials API, which not every browser has.
+- **Starting inside the click.** Call [`wallet.start()`](api/checkin.md#start) as the first thing in your click handler, before any `await`, so a web wallet's tab can open. [Starting inside the click](#starting-inside-the-click) explains why, and how to stop waiting.
+- **Waiting.** While the wallet is open, say so, and don't let a second click start another check-in.
+- **Every ending.** `start()` doesn't throw when a check-in doesn't complete. It resolves with a [`status`](api/checkin.md#checkinresult) of `"completed"`, `"declined"` when the patient said no or closed the wallet, or `"failed"` with an [`error.code`](testing.md#reading-a-failed-result). Declined and failed check-ins go back to your own form ([Fallback](production.md#fallback)).
+
+### One button for the phone's wallet
+
+This button starts the patient's own wallet through [`platformWallet()`](api/checkin.md#platformwallet). It stays hidden in a browser without the Digital Credentials API, so those patients see only your form. On a desktop, the browser shows a QR code and the patient answers on their phone.
+
+```ts
+import { platformWallet, type CheckinResult } from "@smart-health-checkin/client";
+
+const button = document.querySelector<HTMLButtonElement>("#fill-from-app")!;
+const note = document.querySelector<HTMLElement>("#checkin-note")!;
+const phone = platformWallet();
+button.hidden = !phone.available;
+
+button.onclick = async () => {
+  const running = phone.start(myRequest); // first, inside the click
+  button.disabled = true;
+  note.textContent = "Waiting for your health app…";
+  showOutcome(await running);
+  button.disabled = false;
+};
+
+function showOutcome(result: CheckinResult) {
+  if (result.status === "completed") {
+    prefillMyForm(result.response);
+    note.textContent = "Filled in from your health app. Please check it.";
+  } else if (result.status === "declined") {
+    note.textContent = "Nothing was shared. Please fill in the form.";
+  } else if (result.status === "failed") {
+    note.textContent = "That didn't work. Please fill in the form.";
+    console.warn("check-in failed:", result.error.code, result.error.message);
+  }
+}
+```
+
+<!-- example: one-button -->
+<!-- /example -->
+
+### A button for each wallet
+
+To offer web wallets as well, list them with [`wallets()`](api/checkin.md#wallets) and draw a button for each. The list comes [in order](#kinds-of-wallet), with the phone's own wallet first when this browser can reach it. It's empty when nothing is available, and `wallets()` throws when the [registry](#registries-and-icons) can't be loaded, so both cases leave the patient with your form. `showOutcome` is the function from the first example.
+
+```ts
+import { wallets } from "@smart-health-checkin/client";
+
+const list = document.querySelector<HTMLElement>("#checkin-wallets")!;
+const offered = await wallets({ registry: "/wallets.json" }).catch(() => []);
+
+for (const wallet of offered) {
+  const button = document.createElement("button");
+  button.textContent = wallet.name;
+  button.onclick = async () => {
+    const running = wallet.start(myRequest); // a web wallet's tab opens here
+    for (const b of list.querySelectorAll("button")) b.disabled = true;
+    showOutcome(await running);
+    for (const b of list.querySelectorAll("button")) b.disabled = false;
+  };
+  list.append(button);
+}
+```
+
+Each wallet also has a [`description`](api/checkin.md#description) and an [`iconUrl`](api/checkin.md#iconurl) if you want to show more than the name. [`@smart-health-checkin/client/picker`](api/picker.md) has the picker's own logic for a longer list:
 
 | Function | What it does |
 | --- | --- |
-| `arrangeWallets(list)` | Returns `{ primary, inline, more }`: what leads, what's listed, and what's behind "more". |
-| `rememberChoice(id)`, `recallChoice()` | Keep the last choice for this site, if you want that. |
-| `monogram(name)` | The letter and color for a wallet without an icon. |
+| [`arrangeWallets(list)`](api/picker.md#arrangewallets) | Returns `{ primary, inline, more }`: what leads, what's listed, and what's behind "more". |
+| [`rememberChoice(id)`](api/picker.md#rememberchoice), [`recallChoice()`](api/picker.md#recallchoice) | Keep the last choice for this site, if you want that. |
+| [`monogram(name)`](api/picker.md#monogram) | The letter and color for a wallet without an icon. |
 
-In React, `useCheckin(myRequest, { registry })` from `/react` gives you the wallets and `start(wallet)` for your own buttons.
+### In React
+
+The [`useCheckin`](api/react.md#usecheckin) hook lists the wallets and gives you [`start`](api/react.md#start) for your own buttons. Its [`status`](api/react.md#status) is `"waiting"` while a wallet is open.
+
+```tsx
+import { useCheckin } from "@smart-health-checkin/client/react";
+
+function CheckinButtons() {
+  const { wallets, start, status } = useCheckin(myRequest, { registry: "/wallets.json" });
+  return wallets.map((wallet) => (
+    <button key={wallet.id} disabled={status === "waiting"}
+      onClick={() => start(wallet).then((result) => result && showOutcome(result))}>
+      {wallet.name}
+    </button>
+  ));
+}
+```
 
 ## Kinds of wallet
 
 | Kind | What it is | How you get one |
 | --- | --- | --- |
-| `platform` | A wallet on the patient's device, reached through the browser's Digital Credentials API. On a desktop, the browser shows a QR code and the phone answers. | `platformWallet()`, or included by `wallets()` |
-| `web` | A wallet that's a website. It opens in a tab; the patient chooses there. | `webWallet(entry)`, or from a [registry](#registries-and-icons) |
-| `handoff` | A kiosk's "use your phone" option. | `handoffWallet(...)`; see [Kiosk hand-off](#kiosk-hand-off) |
-| `mock` | Answers at once with made-up data. Development only. | `mockWallet()` from `/testing` |
-| `custom` | Any transport you write. | `customWallet(...)`; see [Custom transports](#custom-transports) |
+| `platform` | A wallet on the patient's device, reached through the browser's Digital Credentials API. On a desktop, the browser shows a QR code and the phone answers. | [`platformWallet()`](api/checkin.md#platformwallet), or included by [`wallets()`](api/checkin.md#wallets) |
+| `web` | A wallet that's a website. It opens in a tab; the patient chooses there. | [`webWallet(entry)`](api/checkin.md#webwallet), or from a [registry](#registries-and-icons) |
+| `handoff` | A kiosk's "use your phone" option. | [`handoffWallet(...)`](api/handoff.md#handoffwallet); see [Kiosk hand-off](#kiosk-hand-off) |
+| `mock` | Answers at once with made-up data. Development only. | [`mockWallet()`](api/testing.md#mockwallet) from `/testing` |
+| `custom` | Any transport you write. | [`customWallet(...)`](api/checkin.md#customwallet); see [Custom transports](#custom-transports) |
 
-`wallets()` returns what to offer, in order: the phone's app, the registry's web wallets, then `extra`.
+[`wallets()`](api/checkin.md#wallets) returns what to offer, in order: the phone's app, the registry's web wallets, then [`extra`](api/checkin.md#extra).
 
 ```ts
 import { wallets } from "@smart-health-checkin/client";
@@ -262,12 +348,12 @@ const options = await wallets({ registry: "/wallets.json" });
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| `platform` | `true` | Offer the phone's own app. It's left out when the browser can't reach one. |
-| `registry` | none | A `wallets.json` URL, a registry object, or a list of entries. With none, no web wallets. |
-| `extra` | none | More wallets after the registry's, such as a hand-off or `mockWallet()`. |
-| `includeUnavailable` | `false` | Keep wallets this browser can't use, marked `available: false` with `unavailableReason`. For developer tools. |
+| [`platform`](api/checkin.md#platform) | `true` | Offer the phone's own app. It's left out when the browser can't reach one. |
+| [`registry`](api/checkin.md#registry) | none | A `wallets.json` URL, a registry object, or a list of entries. With none, no web wallets. |
+| [`extra`](api/checkin.md#extra) | none | More wallets after the registry's, such as a hand-off or [`mockWallet()`](api/testing.md#mockwallet). |
+| [`includeUnavailable`](api/checkin.md#includeunavailable) | `false` | Keep wallets this browser can't use, marked `available: false` with [`unavailableReason`](api/checkin.md#unavailablereason). For developer tools. |
 
-Each wallet has `id`, `kind`, `name`, `description`, `iconUrl`, `available`, and the two methods below.
+Each [`Wallet`](api/checkin.md#wallet) has [`id`](api/checkin.md#id-3), [`kind`](api/checkin.md#kind-3), [`name`](api/checkin.md#name), [`description`](api/checkin.md#description), [`iconUrl`](api/checkin.md#iconurl), [`available`](api/checkin.md#available), and the two methods below, [`start`](api/checkin.md#start) and [`open`](api/checkin.md#open).
 
 ## Registries and icons
 
@@ -300,27 +386,27 @@ Browsers only let a page open a new tab during a click. A web wallet's tab has t
 button.onclick = () => wallet.start(myRequest).then(handleResult);
 ```
 
-- Call `wallet.start(request)` directly in the click handler, before any `await`. `runCheckin(request, { wallet })` works the same way.
+- Call [`wallet.start(request)`](api/checkin.md#start) directly in the click handler, before any `await`. [`runCheckin`](api/checkin.md#runcheckin)`(request, { wallet })` works the same way.
 - `start` opens the tab first, then builds the request. The hand-off copes with the wallet being ready before the request is.
-- To stop waiting, pass an `AbortSignal`: `wallet.start(request, { signal })`. The tab closes and the check-in ends as `declined`.
+- To stop waiting, pass an `AbortSignal` as [`signal`](api/checkin.md#signal): `wallet.start(request, { signal })`. The tab closes and the check-in ends as `declined`.
 - If the tab is blocked anyway, the result is `failed` with code `blocked`.
 
-`wallet.open()` connects without running a check-in, for pick-mode UIs. It has the same rule: call it inside the click.
+[`wallet.open()`](api/checkin.md#open) connects without running a check-in, for pick-mode UIs. It has the same rule: call it inside the click.
 
 ## Kiosk hand-off
 
 A kiosk or front-desk screen has no wallet. The patient's phone does. The screen shows a QR code; the phone opens a small page, asks its wallet, and sends the sealed answer back. Only the screen can read it.
 
-```
-  kiosk (this page)          mailbox           phone (hand-off page)        wallet
-  1 request, key, QR code ─► envelope ───────► 2 fetchHandoff: show items
-                                               3 answerHandoff ───────────► patient chooses;
-  5 open, verify, check   ◄─ answer ◄───────── 4 sealed answer              sealed to the kiosk
-```
+<!-- example: kiosk-handoff -->
+1. **Start**, on the kiosk: `phone.start(request)` makes the request and a key pair, keeps the private key, and posts the request with the public key to your mailbox under a random session id.
+2. **Scan:** `onWaiting` gives the kiosk a URL carrying the session id, to show as a QR code. The patient scans it, and on the phone `fetchHandoff` picks up the request and shows what the kiosk asks for.
+3. **Share**, on the phone: the patient picks a wallet in the picker, and `answerHandoff` asks it. The wallet seals its answer to the kiosk's public key.
+4. **Return:** the sealed answer goes back through the mailbox, which can't read it. The kiosk opens it with its key and checks it, and `start()` resolves with a `CheckinResult`.
+<!-- /example -->
 
 ### The kiosk
 
-The phone is just another wallet:
+The phone is just another wallet. [`handoffWallet`](api/handoff.md#handoffwallet) takes the [`HandoffOptions`](api/handoff.md#handoffoptions):
 
 ```ts
 import { handoffWallet } from "@smart-health-checkin/client/handoff";
@@ -336,9 +422,11 @@ const result = await phone.start(myRequest);
 
 - The key stays on the kiosk, bound to the hand-off page's origin: the wallet answers the page that asked, and that page is on the phone.
 - The result is the usual one, after the same checks as any check-in.
-- Offer it next to other wallets with `wallets({ extra: [phone] })`, or the picker's `wallets` property.
+- Offer it next to other wallets with [`wallets`](api/checkin.md#wallets)`({ extra: [phone] })`, or the picker's [`wallets`](api/ui.md#wallets) property.
 
 ### The phone page
+
+The page reads the session id with [`sessionIdFromHash`](api/handoff.md#sessionidfromhash), and [`fetchHandoff`](api/handoff.md#fetchhandoff) picks up the request so you can show what the kiosk asks for.
 
 ```ts
 import { answerHandoff, fetchHandoff, sessionIdFromHash } from "@smart-health-checkin/client/handoff";
@@ -350,7 +438,7 @@ showMyConsentScreen(request);
 myShareButton.onclick = () => answerHandoff(myMailbox, sessionId, envelope);
 ```
 
-`answerHandoff` asks the phone's own wallet unless you pass another wallet. Call it inside the click.
+[`answerHandoff`](api/handoff.md#answerhandoff) asks the phone's own wallet unless you pass another wallet. Call it inside the click.
 
 With the picker in [pick mode](#pick-only), let the patient choose the wallet, then pass the session the picker opened:
 
@@ -363,7 +451,7 @@ The [kiosk's phone page](../demo/handoff.html) works this way.
 
 ### The mailbox
 
-You provide the mailbox, somewhere both devices can reach: a realtime database, a WebSocket relay, or two endpoints on your API.
+You provide the mailbox, a [`HandoffMailbox`](api/handoff.md#handoffmailbox) somewhere both devices can reach: a realtime database, a WebSocket relay, or two endpoints on your API.
 
 ```ts
 type HandoffMailbox = {
@@ -376,14 +464,14 @@ type HandoffMailbox = {
 
 - **Session ids are secrets.** Whoever has one can read the request and post an answer. The library makes 192 random bits; don't shorten them.
 - **An answer is written once.** The first one wins.
-- **Sessions expire.** `fetchHandoff` refuses stale ones; the mailbox should delete them too. Ten minutes is plenty.
+- **Sessions expire.** `fetchHandoff` refuses a session older than the kiosk's [`ttlMs`](api/handoff.md#ttlms), ten minutes unless you change it. The mailbox should delete sessions after the same time.
 - **Nothing in it is secret**, so it needs no keys. Serve the hand-off page from an origin you control.
 
 The demo's mailbox uses InstantDB: [`mailbox-instant.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/mailbox-instant.ts). Try it: [the kiosk demo](../demo/kiosk.html).
 
 ## Custom transports
 
-`customWallet` wraps anything that can turn the Digital Credentials API argument into a wallet's answer.
+[`customWallet`](api/checkin.md#customwallet) wraps anything that can turn the Digital Credentials API argument into a wallet's answer.
 
 ```ts
 import { customWallet } from "@smart-health-checkin/client";
@@ -398,8 +486,8 @@ const myWallet = customWallet({
 });
 ```
 
-- `open` runs inside the click; do anything that needs the click there.
-- Throw `WalletDeclinedError` when the patient says no, and `CheckinError` with a code for failures.
+- `open` runs inside the click and returns a [`WalletSession`](api/checkin.md#walletsession); do anything that needs the click there.
+- Throw [`WalletDeclinedError`](api/checkin.md#walletdeclinederror) when the patient says no, and [`CheckinError`](api/checkin.md#checkinerror) with a [`code`](api/checkin.md#checkinerrorcode) for failures.
 - Web wallets use a documented hand-off between two pages. [Web wallets](web-wallets.md) describes it.
 
 Next: [Responses](responses.md)

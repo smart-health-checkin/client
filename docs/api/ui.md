@@ -59,7 +59,7 @@ Set them on the element or any ancestor. Dark values apply with `theme="dark"`.
 | `--smart-checkin-icon-background` | white, behind wallet icons |
 | `--smart-checkin-focus` | the accent, for focus rings |
 | `--smart-checkin-radius`, `--smart-checkin-radius-large`, `--smart-checkin-icon-radius` | `10px`, `14px`, `9px` |
-| `--smart-checkin-success`, `--smart-checkin-warning` | `#1A8C76`, `#B85C17` |
+| `--smart-checkin-success` | `#1A8C76`, the check when shared |
 | `--smart-checkin-mark-purple`, `--smart-checkin-mark-muted` | `#722772`, `#B9C2CC`: the starburst's purple petal, and its petals when declined or failed |
 | `--smart-checkin-motion-speed` | `1`; multiplies every duration |
 | `--smart-checkin-card-border`, `--smart-checkin-card-padding` | `1px solid` the border color, `16px` |
