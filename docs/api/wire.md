@@ -2358,7 +2358,7 @@ warning ([WRQ-2], [VRS-2]). Throws on anything else.
 function extractDcapiResponse(credential): string | DcapiMdocResponse;
 ```
 
-Defined in: [src/browser/index.ts:216](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L216)
+Defined in: [src/browser/index.ts:218](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L218)
 
 Pull the org-iso-mdoc response payload out of whatever the browser's
 credential object looks like: a DigitalCredential with `.data` (object or

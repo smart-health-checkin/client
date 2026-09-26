@@ -34,6 +34,7 @@ export type CheckinOptions = {
   wallet?: Wallet;
   /** A session already opened with `wallet.open()`, for example by the picker in pick mode. */
   session?: WalletSession;
+  /** Where the key that opens the response lives: "browser" (default, a fresh key in the page), `{ server }` for server-held keys, or your own `KeyCustody`. */
   keys?: "browser" | { server: string } | KeyCustody;
   /** Trust for SMART Health Cards in the response; defaults to `configureHealthCardTrust`. */
   healthCards?: HealthCardTrust;

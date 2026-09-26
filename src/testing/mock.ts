@@ -39,7 +39,9 @@ export type MockItemSpec =
 /** One item can be answered by several artifacts: give it a list. */
 export type MockItemSpecs = MockItemSpec | readonly MockItemSpec[];
 
+/** What the mock wallet answers. `mockWallet` takes these, with `origin` optional. */
 export type MockWalletOptions = {
+  /** The EHR origin the response is bound to; `mockWallet` defaults it to `location.origin`. */
   origin: string;
   /**
    * Exactly what to return, per request item id. Anything not named here
@@ -191,6 +193,7 @@ export function createMockWalletCredentialGetter(options: MockWalletOptions) {
 export const DEMO_HEALTH_CARD_JWS =
   "eyJ6aXAiOiJERUYiLCJhbGciOiJFUzI1NiIsImtpZCI6Im1vY2sta2V5In0.fZHNjtQwEIRfZVVcnZkkGmbAR1gkQFqB-Lus5tBxOhsjx4nszrBR5HdHDquBw4pj293V9VWvsDFCoxeZot7vf5FzLDt-pGFyvG95GKHgmw66Oh1Pdf3yWJYKFwO9QpaJoe-vw3GgID2Tk35nKLTxxZ-iyAXOCiZwy14sua9z85ONZJWut-EHh2hHD43DrtxVUNvrm9m3jnNP4DjOwfC3bSOePtSTA5jROTaSFRTYS1ig71d0s3Pfg4O-zusS6lo8I_yZxLKXjExDZlvR0WDdAo0vvHCEwoO9sM_YH8fQksc5nRUaG6S_Jcki1etXh6I8FmWNlNSzNjLhf2y8HS8c6CETRiGZ84XIiL38ZV4h_CjQuOVhvHm_5XwzOfJICnFuogm24fChzS3v7j4Vh0N1gkLDnjtrLOWM8uKOA_vs4t-QksJEyxi2BFobJ0c5gm3X3SwzOWTqiYMd26wThUJ2U5f1sSiroqyQUjqnlNJv.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
+/** Made-up data for every item of any request (or only the items `include` accepts), as a plain SMART response. */
 export function fabricateResponse(
   request: SmartCheckinRequest,
   include?: (itemId: string) => boolean,

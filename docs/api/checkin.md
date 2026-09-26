@@ -71,7 +71,10 @@ Defined in: [src/core/errors.ts:24](https://github.com/smart-health-checkin/clie
 
 ### CheckinResponse
 
-Defined in: [src/core/response.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L40)
+Defined in: [src/core/response.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L48)
+
+A validated response, with lookups by the item ids in your request. A
+completed `runCheckin` result carries one as `response`.
 
 #### Constructors
 
@@ -84,7 +87,7 @@ new CheckinResponse(
    cards?): CheckinResponse;
 ```
 
-Defined in: [src/core/response.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L52)
+Defined in: [src/core/response.ts:60](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L60)
 
 From a successful `validateResponseAgainstRequest`; `runCheckin` builds it for you.
 
@@ -113,7 +116,7 @@ From a successful `validateResponseAgainstRequest`; `runCheckin` builds it for y
 readonly json: SmartCheckinResponse;
 ```
 
-Defined in: [src/core/response.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L42)
+Defined in: [src/core/response.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L50)
 
 The response as received.
 
@@ -123,7 +126,7 @@ The response as received.
 readonly request: SmartCheckinRequest;
 ```
 
-Defined in: [src/core/response.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L44)
+Defined in: [src/core/response.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L52)
 
 The request it answers.
 
@@ -135,7 +138,7 @@ The request it answers.
 artifacts(itemId): SmartArtifact[];
 ```
 
-Defined in: [src/core/response.ts:86](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L86)
+Defined in: [src/core/response.ts:94](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L94)
 
 The usable artifacts that fulfill the item. An artifact fulfilling several items is returned for each.
 
@@ -160,7 +163,7 @@ disregarded(): {
 }[];
 ```
 
-Defined in: [src/core/response.ts:91](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L91)
+Defined in: [src/core/response.ts:99](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L99)
 
 Artifacts set aside because they failed a check ([XV-4]), with the reasons.
 
@@ -179,7 +182,7 @@ Artifacts set aside because they failed a check ([XV-4]), with the reasons.
 entries(itemId): ResourceEntry[];
 ```
 
-Defined in: [src/core/response.ts:103](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L103)
+Defined in: [src/core/response.ts:111](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L111)
 
 The item's resources with where each came from. Lists every health card's resources, accepted or not.
 
@@ -199,7 +202,7 @@ The item's resources with where each came from. Lists every health card's resour
 form(itemId): FhirResource | undefined;
 ```
 
-Defined in: [src/core/response.ts:141](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L141)
+Defined in: [src/core/response.ts:149](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L149)
 
 The QuestionnaireResponse for a form item.
 
@@ -219,7 +222,7 @@ The QuestionnaireResponse for a form item.
 healthCards(itemId): HealthCard[];
 ```
 
-Defined in: [src/core/response.ts:98](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L98)
+Defined in: [src/core/response.ts:106](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L106)
 
 Every SMART Health Card for the item, with its trust result, accepted or not.
 
@@ -251,7 +254,7 @@ items(): {
 }[];
 ```
 
-Defined in: [src/core/response.ts:71](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L71)
+Defined in: [src/core/response.ts:79](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L79)
 
 Every requested item with its status, usable artifacts, and any problems, in request order.
 
@@ -277,7 +280,7 @@ Every requested item with its status, usable artifacts, and any problems, in req
 resolve(entry, reference): FhirResource | undefined;
 ```
 
-Defined in: [src/core/response.ts:149](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L149)
+Defined in: [src/core/response.ts:157](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L157)
 
 Follow a reference from an entry within its own Bundle or card:
 `urn:uuid:…` and other fullUrls, `resource:N` in a card, or `Type/id`.
@@ -299,7 +302,7 @@ Follow a reference from an entry within its own Bundle or card:
 resources(itemId, options?): FhirResource[];
 ```
 
-Defined in: [src/core/response.ts:133](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L133)
+Defined in: [src/core/response.ts:141](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L141)
 
 FHIR resources for the item, from Bundles and from health cards the
 trust configuration accepts, optionally only one resource type.
@@ -329,7 +332,7 @@ status(itemId):
   | undefined;
 ```
 
-Defined in: [src/core/response.ts:66](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L66)
+Defined in: [src/core/response.ts:74](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L74)
 
 The item's status: "fulfilled", "partial", "declined", "unavailable",
 "unsupported", or "error"; undefined when the response has no valid
@@ -357,7 +360,7 @@ status for it ([XV-3]).
 toJSON(): SmartCheckinResponse;
 ```
 
-Defined in: [src/core/response.ts:158](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L158)
+Defined in: [src/core/response.ts:166](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L166)
 
 The same plain JSON as `json`, so `JSON.stringify(response)` gives the response as received.
 
@@ -464,7 +467,7 @@ Other entry points: `/ui` (the picker element), `/react`, `/picker`,
 optional fetch?: typeof fetch;
 ```
 
-Defined in: [src/core/run.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L43)
+Defined in: [src/core/run.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L44)
 
 Used to fetch health-card issuer keys and directories.
 
@@ -474,7 +477,7 @@ Used to fetch health-card issuer keys and directories.
 optional healthCards?: HealthCardTrust;
 ```
 
-Defined in: [src/core/run.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L39)
+Defined in: [src/core/run.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L40)
 
 Trust for SMART Health Cards in the response; defaults to `configureHealthCardTrust`.
 
@@ -489,7 +492,9 @@ optional keys?:
   | KeyCustody;
 ```
 
-Defined in: [src/core/run.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L37)
+Defined in: [src/core/run.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L38)
+
+Where the key that opens the response lives: "browser" (default, a fresh key in the page), `{ server }` for server-held keys, or your own `KeyCustody`.
 
 ##### session?
 
@@ -507,7 +512,7 @@ A session already opened with `wallet.open()`, for example by the picker in pick
 optional signal?: AbortSignal;
 ```
 
-Defined in: [src/core/run.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L41)
+Defined in: [src/core/run.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L42)
 
 Abort to stop waiting (closes a web wallet's tab); the check-in ends as declined.
 
@@ -628,7 +633,7 @@ type CheckinResult =
 };
 ```
 
-Defined in: [src/core/run.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L46)
+Defined in: [src/core/run.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L47)
 
 `@smart-health-checkin/client`: add SMART Health Check-in to an EHR page.
 
@@ -781,7 +786,7 @@ type CredentialCompletion =
 };
 ```
 
-Defined in: [src/browser/index.ts:70](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L70)
+Defined in: [src/browser/index.ts:72](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L72)
 
 The result of opening a wallet response. Two shapes, because there are two
 reasons to hold keys on a server:
@@ -881,7 +886,9 @@ type DcApiSupport =
 };
 ```
 
-Defined in: [src/browser/index.ts:21](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L21)
+Defined in: [src/browser/index.ts:22](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L22)
+
+Whether this browser has the Digital Credentials API; when not, `reason` says why.
 
 ***
 
@@ -935,7 +942,9 @@ type HealthCard = {
 };
 ```
 
-Defined in: [src/core/health-cards.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L34)
+Defined in: [src/core/health-cards.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L36)
+
+A SMART Health Card from a response, with the result of checking it.
 
 #### Properties
 
@@ -945,7 +954,7 @@ Defined in: [src/core/health-cards.ts:34](https://github.com/smart-health-checki
 accepted: boolean;
 ```
 
-Defined in: [src/core/health-cards.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L48)
+Defined in: [src/core/health-cards.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L50)
 
 Included by `resources()` under the configured `accept`.
 
@@ -961,7 +970,7 @@ optional bundle?: {
 };
 ```
 
-Defined in: [src/core/health-cards.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L42)
+Defined in: [src/core/health-cards.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L44)
 
 The card's FHIR Bundle (`vc.credentialSubject.fhirBundle`), when it could be decoded.
 
@@ -986,7 +995,7 @@ resourceType: "Bundle";
 fulfills: ReadonlyArray<string>;
 ```
 
-Defined in: [src/core/health-cards.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L36)
+Defined in: [src/core/health-cards.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L38)
 
 The item ids the card's artifact fulfills.
 
@@ -996,7 +1005,7 @@ The item ids the card's artifact fulfills.
 optional issuer?: string;
 ```
 
-Defined in: [src/core/health-cards.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L40)
+Defined in: [src/core/health-cards.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L42)
 
 The issuer URL from the payload, when it could be decoded.
 
@@ -1006,7 +1015,7 @@ The issuer URL from the payload, when it could be decoded.
 jws: string;
 ```
 
-Defined in: [src/core/health-cards.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L38)
+Defined in: [src/core/health-cards.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L40)
 
 The compact JWS as received.
 
@@ -1016,7 +1025,7 @@ The compact JWS as received.
 optional reason?: string;
 ```
 
-Defined in: [src/core/health-cards.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L50)
+Defined in: [src/core/health-cards.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L52)
 
 Why it isn't valid or trusted, when it isn't.
 
@@ -1026,7 +1035,7 @@ Why it isn't valid or trusted, when it isn't.
 trusted: boolean;
 ```
 
-Defined in: [src/core/health-cards.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L46)
+Defined in: [src/core/health-cards.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L48)
 
 The issuer is trusted by the configuration.
 
@@ -1036,7 +1045,7 @@ The issuer is trusted by the configuration.
 valid: boolean;
 ```
 
-Defined in: [src/core/health-cards.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L44)
+Defined in: [src/core/health-cards.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L46)
 
 The signature verified against the issuer's key.
 
@@ -1057,7 +1066,9 @@ type HealthCardTrust = {
 };
 ```
 
-Defined in: [src/core/health-cards.ts:18](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L18)
+Defined in: [src/core/health-cards.ts:19](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L19)
+
+Which SMART Health Card issuers to trust, and which cards `resources()` includes.
 
 #### Properties
 
@@ -1067,7 +1078,7 @@ Defined in: [src/core/health-cards.ts:18](https://github.com/smart-health-checki
 optional accept?: "trusted" | "any-valid" | "everything";
 ```
 
-Defined in: [src/core/health-cards.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L31)
+Defined in: [src/core/health-cards.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L32)
 
 Which cards `resources()` includes: "trusted" (default) only cards from a
 trusted issuer with a valid signature; "any-valid" any card whose
@@ -1080,7 +1091,7 @@ invalid cards too. Every card is always listed by `healthCards()`.
 optional directory?: "vci" | string;
 ```
 
-Defined in: [src/core/health-cards.ts:20](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L20)
+Defined in: [src/core/health-cards.ts:21](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L21)
 
 An issuer directory: "vci", or the URL of a file shaped like the VCI directory.
 
@@ -1090,7 +1101,7 @@ An issuer directory: "vci", or the URL of a file shaped like the VCI directory.
 optional issuers?: ReadonlyArray<string>;
 ```
 
-Defined in: [src/core/health-cards.ts:22](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L22)
+Defined in: [src/core/health-cards.ts:23](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L23)
 
 Issuer URLs to trust, in addition to any directory.
 
@@ -1104,7 +1115,7 @@ optional keys?: Readonly<Record<string, {
 }>>;
 ```
 
-Defined in: [src/core/health-cards.ts:24](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L24)
+Defined in: [src/core/health-cards.ts:25](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L25)
 
 Keys to trust without fetching, by issuer URL.
 
@@ -1116,7 +1127,9 @@ Keys to trust without fetching, by issuer URL.
 type ItemStatus = SmartCheckinItemStatus["status"];
 ```
 
-Defined in: [src/core/response.ts:27](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L27)
+Defined in: [src/core/response.ts:28](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L28)
+
+An item's status in a response: fulfilled, partial, unavailable, declined, unsupported, or error.
 
 ***
 
@@ -1130,7 +1143,7 @@ type KeyCustody = {
 };
 ```
 
-Defined in: [src/browser/index.ts:97](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L97)
+Defined in: [src/browser/index.ts:99](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L99)
 
 The key-custody seam.
 
@@ -1150,7 +1163,7 @@ deployments that specifically don't want the page to hold the response.
 kind: string;
 ```
 
-Defined in: [src/browser/index.ts:98](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L98)
+Defined in: [src/browser/index.ts:100](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L100)
 
 #### Methods
 
@@ -1160,7 +1173,7 @@ Defined in: [src/browser/index.ts:98](https://github.com/smart-health-checkin/cl
 completeCredentialRequest(input): Promise<CredentialCompletion>;
 ```
 
-Defined in: [src/browser/index.ts:100](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L100)
+Defined in: [src/browser/index.ts:102](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L102)
 
 ###### Parameters
 
@@ -1180,7 +1193,7 @@ Defined in: [src/browser/index.ts:100](https://github.com/smart-health-checkin/c
 prepareCredentialRequest(input): Promise<PreparedCredentialRequest>;
 ```
 
-Defined in: [src/browser/index.ts:99](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L99)
+Defined in: [src/browser/index.ts:101](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L101)
 
 ###### Parameters
 
@@ -1204,7 +1217,7 @@ type PreparedCredentialRequest = {
 };
 ```
 
-Defined in: [src/browser/index.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L46)
+Defined in: [src/browser/index.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L48)
 
 #### Properties
 
@@ -1214,7 +1227,7 @@ Defined in: [src/browser/index.ts:46](https://github.com/smart-health-checkin/cl
 handle: string;
 ```
 
-Defined in: [src/browser/index.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L48)
+Defined in: [src/browser/index.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L50)
 
 Opaque handle for completing the request with the same key custody.
 
@@ -1224,7 +1237,7 @@ Opaque handle for completing the request with the same key custody.
 navigatorArgument: OrgIsoMdocNavigatorArgument;
 ```
 
-Defined in: [src/browser/index.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L50)
+Defined in: [src/browser/index.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L52)
 
 Pass to navigator.credentials.get(...).
 
@@ -1239,7 +1252,7 @@ type PresentationContext = {
 };
 ```
 
-Defined in: [src/browser/index.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L53)
+Defined in: [src/browser/index.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L55)
 
 #### Properties
 
@@ -1249,7 +1262,7 @@ Defined in: [src/browser/index.ts:53](https://github.com/smart-health-checkin/cl
 optional deviceResponseHex?: string;
 ```
 
-Defined in: [src/browser/index.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L56)
+Defined in: [src/browser/index.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L58)
 
 DeviceResponse bytes, for audit or debugging.
 
@@ -1259,7 +1272,7 @@ DeviceResponse bytes, for audit or debugging.
 origin: string;
 ```
 
-Defined in: [src/browser/index.ts:54](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L54)
+Defined in: [src/browser/index.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L56)
 
 ***
 
@@ -1275,7 +1288,9 @@ type ResourceEntry = {
 };
 ```
 
-Defined in: [src/core/response.ts:29](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L29)
+Defined in: [src/core/response.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L31)
+
+A resource from a response, with where it came from.
 
 #### Properties
 
@@ -1285,7 +1300,7 @@ Defined in: [src/core/response.ts:29](https://github.com/smart-health-checkin/cl
 artifactId: string;
 ```
 
-Defined in: [src/core/response.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L33)
+Defined in: [src/core/response.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L37)
 
 The artifact this came from.
 
@@ -1295,7 +1310,7 @@ The artifact this came from.
 optional card?: HealthCard;
 ```
 
-Defined in: [src/core/response.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L35)
+Defined in: [src/core/response.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L39)
 
 For resources from a health card: the card, with its trust result.
 
@@ -1305,7 +1320,7 @@ For resources from a health card: the card, with its trust result.
 optional fullUrl?: string;
 ```
 
-Defined in: [src/core/response.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L37)
+Defined in: [src/core/response.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L41)
 
 The resource's fullUrl in its Bundle, for resolving references.
 
@@ -1315,7 +1330,9 @@ The resource's fullUrl in its Bundle, for resolving references.
 resource: FhirResource;
 ```
 
-Defined in: [src/core/response.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L30)
+Defined in: [src/core/response.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L33)
+
+The FHIR resource.
 
 ##### source
 
@@ -1323,7 +1340,9 @@ Defined in: [src/core/response.ts:30](https://github.com/smart-health-checkin/cl
 source: "bundle" | "health-card";
 ```
 
-Defined in: [src/core/response.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L31)
+Defined in: [src/core/response.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/core/response.ts#L35)
+
+Whether it came from a FHIR Bundle or resource, or from a SMART Health Card.
 
 ***
 
@@ -1344,7 +1363,7 @@ type SmartArtifact =
 };
 ```
 
-Defined in: [src/model/types.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L58)
+Defined in: [src/model/types.ts:83](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L83)
 
 ***
 
@@ -1365,7 +1384,87 @@ type SmartCheckinContentSelector =
 };
 ```
 
-Defined in: [src/model/types.ts:15](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L15)
+Defined in: [src/model/types.ts:19](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L19)
+
+What data an item means: existing records (`selection.fhir`, spec §5.4.1)
+or a form for the patient to fill in (`form.fhir`, spec §5.4.2).
+
+#### Union Members
+
+##### Type Literal
+
+```ts
+{
+  kind: "selection.fhir";
+  profiles?: ReadonlyArray<FhirCanonical>;
+  profilesFrom?: ReadonlyArray<FhirProfileCollectionRef>;
+  resourceTypes?: ReadonlyArray<FhirResourceType>;
+}
+```
+
+###### kind
+
+```ts
+kind: "selection.fhir";
+```
+
+###### profiles?
+
+```ts
+optional profiles?: ReadonlyArray<FhirCanonical>;
+```
+
+Records with these exact profiles; `url|version` asks for that version only.
+
+###### profilesFrom?
+
+```ts
+optional profilesFrom?: ReadonlyArray<FhirProfileCollectionRef>;
+```
+
+Records with any profile from these implementation guides.
+
+###### resourceTypes?
+
+```ts
+optional resourceTypes?: ReadonlyArray<FhirResourceType>;
+```
+
+Records of these resource types; also narrows `profiles` and `profilesFrom`.
+
+***
+
+##### Type Literal
+
+```ts
+{
+  kind: "form.fhir";
+  questionnaire?: unknown;
+  questionnaireCanonical?: FhirCanonical;
+}
+```
+
+###### kind
+
+```ts
+kind: "form.fhir";
+```
+
+###### questionnaire?
+
+```ts
+optional questionnaire?: unknown;
+```
+
+The Questionnaire itself, inline, so the wallet needn't fetch it.
+
+###### questionnaireCanonical?
+
+```ts
+optional questionnaireCanonical?: FhirCanonical;
+```
+
+The Questionnaire's canonical URL, `|version` included; the QuestionnaireResponse echoes it exactly.
 
 ***
 
@@ -1384,7 +1483,9 @@ type SmartCheckinItemStatus = {
 };
 ```
 
-Defined in: [src/model/types.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L46)
+Defined in: [src/model/types.ts:68](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L68)
+
+What the wallet says happened to one item.
 
 #### Properties
 
@@ -1394,7 +1495,9 @@ Defined in: [src/model/types.ts:46](https://github.com/smart-health-checkin/clie
 item: string;
 ```
 
-Defined in: [src/model/types.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L47)
+Defined in: [src/model/types.ts:70](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L70)
+
+The item's `id`.
 
 ##### message?
 
@@ -1402,7 +1505,9 @@ Defined in: [src/model/types.ts:47](https://github.com/smart-health-checkin/clie
 optional message?: string;
 ```
 
-Defined in: [src/model/types.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L49)
+Defined in: [src/model/types.ts:74](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L74)
+
+The wallet's explanation, if it gave one.
 
 ##### status
 
@@ -1416,7 +1521,9 @@ status:
   | "error";
 ```
 
-Defined in: [src/model/types.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L48)
+Defined in: [src/model/types.ts:72](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L72)
+
+What happened to the item.
 
 ***
 
@@ -1433,7 +1540,9 @@ type SmartCheckinRequest = {
 };
 ```
 
-Defined in: [src/model/types.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L37)
+Defined in: [src/model/types.ts:54](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L54)
+
+A complete check-in request (spec §5). `checkinRequest` builds one from `{ purpose, items }`.
 
 #### Properties
 
@@ -1443,7 +1552,9 @@ Defined in: [src/model/types.ts:37](https://github.com/smart-health-checkin/clie
 optional fhirVersions?: ReadonlyArray<FhirVersion>;
 ```
 
-Defined in: [src/model/types.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L42)
+Defined in: [src/model/types.ts:62](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L62)
+
+The FHIR versions you can read.
 
 ##### id
 
@@ -1451,7 +1562,9 @@ Defined in: [src/model/types.ts:42](https://github.com/smart-health-checkin/clie
 id: string;
 ```
 
-Defined in: [src/model/types.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L40)
+Defined in: [src/model/types.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L58)
+
+A unique id for this request; the response's `requestId` repeats it.
 
 ##### items
 
@@ -1459,7 +1572,9 @@ Defined in: [src/model/types.ts:40](https://github.com/smart-health-checkin/clie
 items: ReadonlyArray<SmartCheckinRequestItem>;
 ```
 
-Defined in: [src/model/types.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L43)
+Defined in: [src/model/types.ts:64](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L64)
+
+What you're asking for.
 
 ##### purpose?
 
@@ -1467,7 +1582,9 @@ Defined in: [src/model/types.ts:43](https://github.com/smart-health-checkin/clie
 optional purpose?: string;
 ```
 
-Defined in: [src/model/types.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L41)
+Defined in: [src/model/types.ts:60](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L60)
+
+One line the patient sees at the top.
 
 ##### type
 
@@ -1475,7 +1592,7 @@ Defined in: [src/model/types.ts:41](https://github.com/smart-health-checkin/clie
 type: "smart-health-checkin-request";
 ```
 
-Defined in: [src/model/types.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L38)
+Defined in: [src/model/types.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L55)
 
 ##### version
 
@@ -1483,7 +1600,7 @@ Defined in: [src/model/types.ts:38](https://github.com/smart-health-checkin/clie
 version: "1";
 ```
 
-Defined in: [src/model/types.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L39)
+Defined in: [src/model/types.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L56)
 
 ***
 
@@ -1500,7 +1617,9 @@ type SmartCheckinRequestItem = {
 };
 ```
 
-Defined in: [src/model/types.ts:28](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L28)
+Defined in: [src/model/types.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L38)
+
+One thing the request asks for.
 
 #### Properties
 
@@ -1510,7 +1629,9 @@ Defined in: [src/model/types.ts:28](https://github.com/smart-health-checkin/clie
 accept: ReadonlyArray<SmartHealthCheckinAcceptedMediaType>;
 ```
 
-Defined in: [src/model/types.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L34)
+Defined in: [src/model/types.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L50)
+
+The formats you can process, most preferred first.
 
 ##### content
 
@@ -1518,7 +1639,9 @@ Defined in: [src/model/types.ts:34](https://github.com/smart-health-checkin/clie
 content: SmartCheckinContentSelector;
 ```
 
-Defined in: [src/model/types.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L33)
+Defined in: [src/model/types.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L48)
+
+What data you mean: records or a form.
 
 ##### id
 
@@ -1526,7 +1649,9 @@ Defined in: [src/model/types.ts:33](https://github.com/smart-health-checkin/clie
 id: string;
 ```
 
-Defined in: [src/model/types.ts:29](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L29)
+Defined in: [src/model/types.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L40)
+
+Your name for the item; look the answer up by it, as in `response.resources(id)`.
 
 ##### required?
 
@@ -1534,7 +1659,9 @@ Defined in: [src/model/types.ts:29](https://github.com/smart-health-checkin/clie
 optional required?: boolean;
 ```
 
-Defined in: [src/model/types.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L32)
+Defined in: [src/model/types.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L46)
+
+How much the item matters to you. Advice only: the patient can always decline.
 
 ##### summary?
 
@@ -1542,7 +1669,9 @@ Defined in: [src/model/types.ts:32](https://github.com/smart-health-checkin/clie
 optional summary?: string;
 ```
 
-Defined in: [src/model/types.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L31)
+Defined in: [src/model/types.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L44)
+
+One line on why you need it.
 
 ##### title
 
@@ -1550,7 +1679,9 @@ Defined in: [src/model/types.ts:31](https://github.com/smart-health-checkin/clie
 title: string;
 ```
 
-Defined in: [src/model/types.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L30)
+Defined in: [src/model/types.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L42)
+
+What the patient sees, such as "Insurance card".
 
 ***
 
@@ -1566,7 +1697,9 @@ type SmartCheckinResponse = {
 };
 ```
 
-Defined in: [src/model/types.ts:69](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L69)
+Defined in: [src/model/types.ts:95](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L95)
+
+A wallet's answer, as it arrives after decryption (spec §6). `CheckinResponse` wraps it with lookups.
 
 #### Properties
 
@@ -1576,7 +1709,9 @@ Defined in: [src/model/types.ts:69](https://github.com/smart-health-checkin/clie
 artifacts: ReadonlyArray<SmartArtifact>;
 ```
 
-Defined in: [src/model/types.ts:73](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L73)
+Defined in: [src/model/types.ts:101](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L101)
+
+The data: FHIR resources and SMART Health Cards, each naming the items it fulfills.
 
 ##### requestId
 
@@ -1584,7 +1719,9 @@ Defined in: [src/model/types.ts:73](https://github.com/smart-health-checkin/clie
 requestId: string;
 ```
 
-Defined in: [src/model/types.ts:72](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L72)
+Defined in: [src/model/types.ts:99](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L99)
+
+The `id` of the request this answers.
 
 ##### requestStatus
 
@@ -1592,7 +1729,9 @@ Defined in: [src/model/types.ts:72](https://github.com/smart-health-checkin/clie
 requestStatus: ReadonlyArray<SmartCheckinItemStatus>;
 ```
 
-Defined in: [src/model/types.ts:74](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L74)
+Defined in: [src/model/types.ts:103](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L103)
+
+One status per item.
 
 ##### type
 
@@ -1600,7 +1739,7 @@ Defined in: [src/model/types.ts:74](https://github.com/smart-health-checkin/clie
 type: "smart-health-checkin-response";
 ```
 
-Defined in: [src/model/types.ts:70](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L70)
+Defined in: [src/model/types.ts:96](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L96)
 
 ##### version
 
@@ -1608,7 +1747,7 @@ Defined in: [src/model/types.ts:70](https://github.com/smart-health-checkin/clie
 version: "1";
 ```
 
-Defined in: [src/model/types.ts:71](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L71)
+Defined in: [src/model/types.ts:97](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L97)
 
 ***
 
@@ -2048,7 +2187,7 @@ Build and validate a request. `type` and `version` are fixed by the spec,
 function configureHealthCardTrust(trust): void;
 ```
 
-Defined in: [src/core/health-cards.ts:70](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L70)
+Defined in: [src/core/health-cards.ts:72](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L72)
 
 Set the trust used for every check-in that doesn't pass its own.
 
@@ -2101,7 +2240,9 @@ Wrap any transport as a wallet: for experiments, tests, and new kinds of wallet.
 function detectDcApiSupport(): DcApiSupport;
 ```
 
-Defined in: [src/browser/index.ts:25](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L25)
+Defined in: [src/browser/index.ts:27](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L27)
+
+Whether this browser can reach the phone's own wallet through the Digital Credentials API. `platformWallet()` uses it for `available`.
 
 #### Returns
 
@@ -2115,7 +2256,7 @@ Defined in: [src/browser/index.ts:25](https://github.com/smart-health-checkin/cl
 function healthCardTrust(): HealthCardTrust;
 ```
 
-Defined in: [src/core/health-cards.ts:75](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L75)
+Defined in: [src/core/health-cards.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L77)
 
 The trust currently configured.
 
@@ -2147,7 +2288,7 @@ The phone's own wallet, through the browser's Digital Credentials API.
 function runCheckin(input, options?): Promise<CheckinResult>;
 ```
 
-Defined in: [src/core/run.ts:80](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L80)
+Defined in: [src/core/run.ts:81](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L81)
 
 Run a check-in and report what happened. Never throws for an ordinary
 outcome (declined, failed); throws only for a malformed request.

@@ -6,7 +6,7 @@
 
 ### WalletRequestError
 
-Defined in: [src/wallet/seal.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L51)
+Defined in: [src/wallet/seal.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L55)
 
 Thrown by `parseWalletRequest` where spec §8.4 says to fail: the Wallet doesn't respond.
 
@@ -22,7 +22,7 @@ Thrown by `parseWalletRequest` where spec §8.4 says to fail: the Wallet doesn't
 new WalletRequestError(message, rule): WalletRequestError;
 ```
 
-Defined in: [src/wallet/seal.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L52)
+Defined in: [src/wallet/seal.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L56)
 
 ###### Parameters
 
@@ -49,7 +49,7 @@ Error.constructor
 readonly rule: string;
 ```
 
-Defined in: [src/wallet/seal.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L55)
+Defined in: [src/wallet/seal.ts:59](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L59)
 
 The spec requirement, such as "WRQ-4".
 
@@ -160,7 +160,9 @@ type ParsedWalletRequest = {
 };
 ```
 
-Defined in: [src/wallet/seal.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L38)
+Defined in: [src/wallet/seal.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L39)
+
+What `parseWalletRequest` finds in a Digital Credentials API argument.
 
 #### Properties
 
@@ -170,7 +172,9 @@ Defined in: [src/wallet/seal.ts:38](https://github.com/smart-health-checkin/clie
 deviceRequestBytes: Uint8Array;
 ```
 
-Defined in: [src/wallet/seal.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L46)
+Defined in: [src/wallet/seal.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L49)
+
+The mdoc DeviceRequest, as sent.
 
 ##### encryptionInfoBytes
 
@@ -178,7 +182,9 @@ Defined in: [src/wallet/seal.ts:46](https://github.com/smart-health-checkin/clie
 encryptionInfoBytes: Uint8Array;
 ```
 
-Defined in: [src/wallet/seal.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L47)
+Defined in: [src/wallet/seal.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L51)
+
+The EncryptionInfo, as sent: the Verifier's public key. Pass it to `sealWalletResponse`.
 
 ##### readerAuth?
 
@@ -186,7 +192,7 @@ Defined in: [src/wallet/seal.ts:47](https://github.com/smart-health-checkin/clie
 optional readerAuth?: unknown;
 ```
 
-Defined in: [src/wallet/seal.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L45)
+Defined in: [src/wallet/seal.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L47)
 
 The DocRequest's `readerAuth`, if present, for Wallets that verify it ([WRQ-9]).
 
@@ -196,7 +202,9 @@ The DocRequest's `readerAuth`, if present, for Wallets that verify it ([WRQ-9]).
 smartRequest: SmartCheckinRequest;
 ```
 
-Defined in: [src/wallet/seal.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L39)
+Defined in: [src/wallet/seal.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L41)
+
+The SMART request to show the patient and answer.
 
 ##### unsupportedItems
 
@@ -204,7 +212,7 @@ Defined in: [src/wallet/seal.ts:39](https://github.com/smart-health-checkin/clie
 unsupportedItems: UnsupportedItem[];
 ```
 
-Defined in: [src/wallet/seal.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L41)
+Defined in: [src/wallet/seal.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L43)
 
 Request items this library can't process; answer each `unsupported` ([SEL-9], [SEL-10], [FORM-1]).
 
@@ -214,7 +222,7 @@ Request items this library can't process; answer each `unsupported` ([SEL-9], [S
 warnings: CheckinWarning[];
 ```
 
-Defined in: [src/wallet/seal.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L43)
+Defined in: [src/wallet/seal.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L45)
 
 Problems a Wallet continues past and reports (spec §8.4, [RCV-1]).
 
@@ -589,7 +597,7 @@ Defined in: [src/kit/web-wallet.ts:19](https://github.com/smart-health-checkin/c
 function buildSignedDeviceResponse(input): Promise<Uint8Array<ArrayBufferLike>>;
 ```
 
-Defined in: [src/wallet/seal.ts:247](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L247)
+Defined in: [src/wallet/seal.ts:252](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L252)
 
 A structurally real SMART Health Card: a JWS whose payload is the raw-DEFLATEd
 `{ iss, nbf, vc.credentialSubject.fhirBundle }` (one Patient, one Coverage),
@@ -617,7 +625,7 @@ zeros — nothing verifies it, and nothing should.
 function checkWalletResponse(request, response): ValidationIssue[];
 ```
 
-Defined in: [src/wallet/seal.ts:192](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L192)
+Defined in: [src/wallet/seal.ts:196](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L196)
 
 What a Verifier would object to in this response (spec §6.4), as a Wallet
 checks before sending: an empty list means it's clean. A Wallet produces
@@ -642,7 +650,7 @@ exactly one status per item, only accepted media types, and so on.
 function declineAll(request, message?): SmartCheckinResponse;
 ```
 
-Defined in: [src/wallet/seal.ts:212](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L212)
+Defined in: [src/wallet/seal.ts:216](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L216)
 
 The response for a Holder who reviewed the request and declined every
 item ([HOLD-4]): every item `declined`, no Artifacts. (If the Holder
@@ -667,7 +675,7 @@ dismisses the Wallet without reviewing, the Wallet returns nothing.)
 function parseWalletRequest(navigatorArgument): ParsedWalletRequest;
 ```
 
-Defined in: [src/wallet/seal.ts:69](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L69)
+Defined in: [src/wallet/seal.ts:73](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L73)
 
 Wallet side: read a request from a navigator.credentials.get argument,
 following spec §8.4 steps [WRQ-2]..[WRQ-7]. Throws `WalletRequestError`
@@ -693,7 +701,9 @@ usable recipient key); everything else is returned in `warnings`.
 function recipientJwkFromEncryptionInfo(encryptionInfoBytes): JsonWebKey;
 ```
 
-Defined in: [src/wallet/seal.ts:222](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L222)
+Defined in: [src/wallet/seal.ts:227](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L227)
+
+The Verifier's public key, as a JWK, from a request's EncryptionInfo.
 
 #### Parameters
 
@@ -718,7 +728,7 @@ function sealWalletResponse(input): Promise<{
 }>;
 ```
 
-Defined in: [src/wallet/seal.ts:155](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L155)
+Defined in: [src/wallet/seal.ts:159](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L159)
 
 Wallet side: sign and HPKE-seal a SMART response for the verifier.
 `verifierOrigin` is the requesting page's origin — the SessionTranscript
@@ -820,24 +830,21 @@ an EHR (no `window.opener`), so the wallet can show its own landing page.
 
 #### Returns
 
-```ts
-{
-  opened: boolean;
-  stop: void;
-}
-```
-
 ##### opened
 
 ```ts
 opened: boolean;
 ```
 
+Whether an EHR opened this page.
+
 ##### stop()
 
 ```ts
 stop(): void;
 ```
+
+Stop listening for requests.
 
 ###### Returns
 

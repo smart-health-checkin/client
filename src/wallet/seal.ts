@@ -35,7 +35,9 @@ import {
   type CheckinWarning,
 } from "../wire/index.js";
 
+/** What `parseWalletRequest` finds in a Digital Credentials API argument. */
 export type ParsedWalletRequest = {
+  /** The SMART request to show the patient and answer. */
   smartRequest: SmartCheckinRequest;
   /** Request items this library can't process; answer each `unsupported` ([SEL-9], [SEL-10], [FORM-1]). */
   unsupportedItems: UnsupportedItem[];
@@ -43,7 +45,9 @@ export type ParsedWalletRequest = {
   warnings: CheckinWarning[];
   /** The DocRequest's `readerAuth`, if present, for Wallets that verify it ([WRQ-9]). */
   readerAuth?: unknown;
+  /** The mdoc DeviceRequest, as sent. */
   deviceRequestBytes: Uint8Array;
+  /** The EncryptionInfo, as sent: the Verifier's public key. Pass it to `sealWalletResponse`. */
   encryptionInfoBytes: Uint8Array;
 };
 
@@ -219,6 +223,7 @@ export function declineAll(request: SmartCheckinRequest, message?: string): Smar
   };
 }
 
+/** The Verifier's public key, as a JWK, from a request's EncryptionInfo. */
 export function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array): JsonWebKey {
   const decoded = cborDecode(encryptionInfoBytes);
   const key = mapGet(Array.isArray(decoded) ? decoded[1] : undefined, "recipientPublicKey");

@@ -23,24 +23,33 @@
 import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
 import { base64UrlEncodeUtf8 } from "../wire/bytes.js";
 
+/** "transaction": one transaction Bundle. "individual": one POST per resource, then the Provenance, for servers that handle transactions poorly. */
 export type PostMode = "transaction" | "individual";
 
 export type { FetchLike } from "../fetch-like.js";
 import type { FetchLike } from "../fetch-like.js";
 
+/** The chart context to record on the Provenance. Nothing is matched: what you pass is what's written. */
 export type CheckinBundleContext = {
+  /** A Patient reference, such as "Patient/123". */
   patient?: string;
+  /** An Appointment reference, such as "Appointment/456". */
   appointment?: string;
 };
 
+/** One resource to write. */
 export type CheckinBundleEntry = {
+  /** The entry's `urn:uuid:` fullUrl. */
   fullUrl: string;
+  /** The resource to create. */
   resource: Record<string, unknown>;
   /** Artifact id this entry came from; the Provenance entry has none. */
   artifactId?: string;
 };
 
+/** What `buildCheckinBundle` returns: the resources to write, and the same as a transaction Bundle. */
 export type CheckinBundle = {
+  /** Each resource to write, with the artifact it came from. */
   entries: CheckinBundleEntry[];
   /** The transaction Bundle equivalent of the plan. */
   bundle: Record<string, unknown>;
@@ -201,9 +210,13 @@ function toTransactionBundle(entries: CheckinBundleEntry[]): Record<string, unkn
   };
 }
 
+/** What `postCheckinBundle` sent and what the server said. */
 export type PostResult = {
+  /** How it was sent. */
   mode: PostMode;
+  /** The plan's transaction Bundle. */
   bundle: unknown;
+  /** What the server returned: the transaction response, or in "individual" mode one response body per POST. */
   result: unknown;
 };
 
@@ -215,8 +228,11 @@ export type PostResult = {
 export async function postCheckinBundle(
   plan: CheckinBundle,
   options: {
+    /** The FHIR server's base URL. */
     fhirBase: string;
+    /** "transaction" (default) or "individual". */
     mode?: PostMode;
+    /** Your own `fetch`, with your credentials, retries, and tracing. */
     fetchImpl?: FetchLike;
   },
 ): Promise<PostResult> {

@@ -2,7 +2,7 @@
 
 Run check-ins without a real wallet, test against known-good and deliberately broken counterparts, and read what went wrong when a check-in fails.
 
-- **In code:** `mockWallet()` from `@smart-health-checkin/client/testing`.
+- **In code:** [`mockWallet()`](api/testing.md#mockwallet) from `@smart-health-checkin/client/testing`.
 - **In a browser:** the connectathon's [Testing EHR](#testing-ehr) and [SMART Testing Wallet](#smart-testing-wallet).
 - **When it fails:** every failed result carries a code. See [Reading a failed result](#reading-a-failed-result).
 
@@ -10,7 +10,7 @@ Never offer the mock wallet or the testing tools to patients.
 
 ## The mock wallet
 
-`mockWallet()` is a `Wallet` that answers at once, with no consent screen. It runs the real wire layer: it signs and encrypts a response, and `runCheckin` opens and validates it like any other.
+[`mockWallet()`](api/testing.md#mockwallet) is a [`Wallet`](api/checkin.md#wallet) that answers at once, with no consent screen. It runs the real wire layer: it signs and encrypts a response, and [`runCheckin`](api/checkin.md#runcheckin) opens and validates it like any other.
 
 ```ts
 import { runCheckin } from "@smart-health-checkin/client";
@@ -19,7 +19,7 @@ import { mockWallet } from "@smart-health-checkin/client/testing";
 const result = await runCheckin(request, { wallet: mockWallet() });
 ```
 
-With no options it makes up plausible data for every item. Pin exact answers per item with `items`:
+With no options it makes up plausible data for every item. Pin exact answers per item with [`items`](api/testing.md#items):
 
 ```ts
 const wallet = mockWallet({
@@ -35,22 +35,22 @@ const wallet = mockWallet({
 
 | Spec | What the item gets |
 | --- | --- |
-| `{ fhir: resourceOrBundle }` | One `application/fhir+json` artifact with that value. |
+| [`{ fhir: resourceOrBundle }`](api/testing.md#mockitemspec) | One `application/fhir+json` artifact with that value. |
 | `{ fhir, fhirVersion }` | The same, with a FHIR version other than 4.0.1. |
 | `{ healthCard: [jws, …] }` | One `application/smart-health-card` artifact carrying those cards. |
 | `{ status: "declined" }` | A status and no artifact. Also `unavailable`, `unsupported`, `error`, `partial`. |
 | `{ status, message }` | The same, with a message. |
 | `[spec, spec]` | Several artifacts for one item. |
 
-Add `alsoFulfills: ["otherItem"]` to a `fhir` or `healthCard` spec when one artifact answers several items. Those items are then reported fulfilled without an artifact of their own.
+Add [`alsoFulfills: ["otherItem"]`](api/testing.md#mockitemspec) to a `fhir` or `healthCard` spec when one artifact answers several items. Those items are then reported fulfilled without an artifact of their own.
 
 ### Other options
 
 | Option | What it does |
 | --- | --- |
-| `fallback` | What items not named in `items` get: `"fabricate"` (the default) or a spec applied to all of them. |
-| `respond` | `(request) => response`: build the whole response yourself. |
-| `origin` | The EHR origin the response is bound to. Defaults to `location.origin`. |
+| [`fallback`](api/testing.md#fallback) | What items not named in `items` get: `"fabricate"` (the default) or a spec applied to all of them. |
+| [`respond`](api/testing.md#respond) | `(request) => response`: build the whole response yourself. |
+| [`origin`](api/testing.md#origin) | The EHR origin the response is bound to. Defaults to `location.origin`. |
 
 ### Without the wire layer
 
@@ -58,12 +58,12 @@ To test your own code on a response, skip sealing and opening entirely:
 
 | Function | Returns |
 | --- | --- |
-| `buildMockResponse(request, { items, fallback })` | The response the mock wallet would send, as plain JSON. |
-| `fabricateResponse(request)` | Made-up data for every item of any request. |
+| [`buildMockResponse(request, { items, fallback })`](api/testing.md#buildmockresponse) | The response the mock wallet would send, as plain JSON. |
+| [`fabricateResponse(request)`](api/testing.md#fabricateresponse) | Made-up data for every item of any request. |
 
 ## In unit tests
 
-`runCheckin` binds the response to the page's origin, so it needs `location`. Browsers have it. In Bun or Node, set a stand-in before the first check-in:
+[`runCheckin`](api/checkin.md#runcheckin) binds the response to the page's origin, so it needs `location`. Browsers have it. In Bun or Node, set a stand-in before the first check-in:
 
 ```ts
 (globalThis as { location?: unknown }).location ??= {
@@ -89,7 +89,7 @@ test("a declined item is reported, the rest still arrives", async () => {
 });
 ```
 
-To test failures, wrap a transport that throws with `customWallet`:
+To test failures, wrap a transport that throws with [`customWallet`](api/checkin.md#customwallet):
 
 ```ts
 import { CheckinError, customWallet } from "@smart-health-checkin/client";
@@ -108,7 +108,7 @@ const blocked = customWallet({
 
 ## The mock in a page
 
-Add the `mock` attribute to the picker. It offers a "Simulated response" option after the real ones.
+Add the [`mock`](api/ui.md#attributes) attribute to the picker. It offers a "Simulated response" option after the real ones.
 
 ```html
 <smart-checkin-picker registry="/wallets.json" mock></smart-checkin-picker>
@@ -116,7 +116,7 @@ Add the `mock` attribute to the picker. It offers a "Simulated response" option 
 
 ## Health cards when testing
 
-By default only cards from trusted issuers reach `resources()`. Test issuers usually aren't trusted, so loosen it for testing:
+By default only cards from trusted issuers reach [`resources()`](api/checkin.md#resources). Test issuers usually aren't trusted, so loosen it for testing:
 
 ```ts
 import { configureHealthCardTrust } from "@smart-health-checkin/client";
@@ -125,13 +125,13 @@ configureHealthCardTrust({ accept: "any-valid" });  // any issuer, valid signatu
 configureHealthCardTrust({ accept: "everything" }); // invalid cards too, marked
 ```
 
-| `accept` | Cards in `resources()` |
+| [`accept`](api/checkin.md#accept) | Cards in `resources()` |
 | --- | --- |
 | `"trusted"` (default) | Valid cards from trusted issuers |
 | `"any-valid"` | Valid cards from any issuer |
 | `"everything"` | Every card, including ones whose signature fails |
 
-Whatever `accept` says, `healthCards(item)` lists every card with `valid`, `trusted`, `accepted`, and `reason`. To trust a test issuer without fetching its keys, pass them: `configureHealthCardTrust({ keys: { [issuer]: jwks } })`.
+Whatever `accept` says, [`healthCards(item)`](api/checkin.md#healthcards) lists every card with [`valid`](api/checkin.md#valid), [`trusted`](api/checkin.md#trusted), [`accepted`](api/checkin.md#accepted), and [`reason`](api/checkin.md#reason). To trust a test issuer without fetching its keys, pass them: [`configureHealthCardTrust({ keys: { [issuer]: jwks } })`](api/checkin.md#keys-1).
 
 ## The connectathon tools
 
@@ -170,14 +170,14 @@ What this library does with each, and what your EHR should do (spec [§6.4](http
 
 - **`oversized` and `combine-allergies-meds`:** accept the response intact.
 - **`bad-shc-signature`:** accept the response. The card arrives with `valid: false` and is left out of `resources()`.
-- **`bad-signature`:** complete the check-in with a `device-signature` or `issuer-signature` warning in `result.warnings`.
-- **`wrong-canonical` and `unaccepted-media-type`:** complete it with that record set aside; `response.disregarded()` says why.
-- **`missing-status` and `duplicate-status`:** complete it; that item has no status (`response.status(id)` is `undefined`).
+- **`bad-signature`:** complete the check-in with a `device-signature` or `issuer-signature` warning in [`result.warnings`](api/checkin.md#checkinresult).
+- **`wrong-canonical` and `unaccepted-media-type`:** complete it with that record set aside; [`response.disregarded()`](api/checkin.md#disregarded) says why.
+- **`missing-status` and `duplicate-status`:** complete it; that item has no status ([`response.status(id)`](api/checkin.md#status) is `undefined`).
 - **`wrong-request-id`, `bad-encryption`, and `wrong-origin`:** fail with `invalid-response`.
 
 ## Reading a failed result
 
-A failed result has `error.code`, `error.message`, and sometimes `error.check`.
+A failed result has [`error.code`](api/checkin.md#checkinerrorcode), `error.message`, and sometimes [`error.check`](api/checkin.md#checkinresult).
 
 ```ts
 if (result.status === "failed") console.log(result.error.code, result.error.check, result.error.message);
@@ -185,8 +185,8 @@ if (result.status === "failed") console.log(result.error.code, result.error.chec
 
 | Code | What happened | What to check |
 | --- | --- | --- |
-| `unsupported` | This browser can't reach that wallet. The wallet was never opened. | `wallet.available` and `wallet.unavailableReason`. For the platform wallet, `detectDcApiSupport()`. |
-| `blocked` | The browser blocked the wallet's tab. | That `start()` or `runCheckin()` runs inside the click, before any `await`. |
+| `unsupported` | This browser can't reach that wallet. The wallet was never opened. | [`wallet.available`](api/checkin.md#available) and [`wallet.unavailableReason`](api/checkin.md#unavailablereason). For the platform wallet, [`detectDcApiSupport()`](api/checkin.md#detectdcapisupport). |
+| `blocked` | The browser blocked the wallet's tab. | That [`start()`](api/checkin.md#start) or [`runCheckin()`](api/checkin.md#runcheckin) runs inside the click, before any `await`. |
 | `timeout` | The web wallet didn't answer in 5 minutes. | That the wallet posts `ready` to its opener and replies with the same `requestId`. |
 | `wallet-error` | The wallet reported an error, or its transport threw. | The message: it's the wallet's own words. |
 | `invalid-response` | The response couldn't be decoded or decrypted, had no SMART response in it, or answers a different request. | `error.check`, the spec requirement that failed: `VRS-3` didn't decrypt (usually the wrong origin), `VRS-2`/`VRS-4`/`VRS-8` couldn't find the parts, `XV-1`/`XV-2` a response that isn't a reply to this request. |
@@ -200,12 +200,12 @@ Each demo page runs the real flow and shows one way to use the library. Source i
 
 | Page | What it shows |
 | --- | --- |
-| [Clinic check-in](../demo/) | The reference EHR: `wallets()` for a menu, `wallet.start` in the click, the raw response, the optional FHIR helper |
+| [Clinic check-in](../demo/) | The reference EHR: [`wallets()`](api/checkin.md#wallets) for a menu, [`wallet.start`](api/checkin.md#start) in the click, the raw response, the optional FHIR helper |
 | [Tutorial's finished page](../demo/tutorial.html) | The finished page from [the tutorial](tutorial.md): the picker, a request, and a form filled from the answer |
-| [React](../demo/react.html) | `<CheckinPicker>` and `response.resources("meds", { type: "MedicationRequest" })` |
+| [React](../demo/react.html) | [`<CheckinPicker>`](api/react.md#checkinpicker) and [`response.resources("meds", { type: "MedicationRequest" })`](api/checkin.md#resources) |
 | [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |
 | [Form autofill](../demo/autofill.html) | Prefill from `response.resources`, then ask only for what's missing |
-| [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | `handoffWallet()` and `answerHandoff` |
-| [Demo wallet](../demo/wallet.html) | A web wallet built on `serveWebWallet` |
+| [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | [`handoffWallet()`](api/handoff.md#handoffwallet) and [`answerHandoff`](api/handoff.md#answerhandoff) |
+| [Demo wallet](../demo/wallet.html) | A web wallet built on [`serveWebWallet`](api/wallet.md#servewebwallet) |
 
 The clinic demo takes options in the URL fragment, such as `#wallet=mock` or `#wallet=platform`. [Clinic demo options](../demo/README.md) lists them.

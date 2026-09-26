@@ -1,6 +1,6 @@
 # Wallet guide
 
-A wallet answers a clinic's check-in request with records and form answers the patient chose to share. `@smart-health-checkin/client/wallet` has the protocol and the matching rules; the consent screen is yours.
+A wallet answers a clinic's check-in request with records and form answers the patient chose to share. [`@smart-health-checkin/client/wallet`](api/wallet.md) has the protocol and the matching rules; the consent screen is yours.
 
 ## What a wallet does
 
@@ -30,7 +30,7 @@ The rest of this page applies to both kinds: the matching rules, forms, statuses
 
 ## Web wallets
 
-A web wallet is a page the EHR opens in a tab. `serveWebWallet` handles the hand-off:
+A web wallet is a page the EHR opens in a tab. [`serveWebWallet`](api/wallet.md#servewebwallet) handles the hand-off:
 
 - posts `ready` to the page that opened it;
 - accepts one request, from that page only;
@@ -65,7 +65,7 @@ What happens under it ([Web wallets](web-wallets.md) has the details):
 | The EHR sends the request | `request`, with the Digital Credentials API argument |
 | You answer | `response`: approved with a credential, declined, or an error |
 
-`onRequest` returns one of four answers:
+[`onRequest`](api/wallet.md#onrequest) returns one of [four answers](api/wallet.md#webwalletanswer):
 
 | Answer | What the EHR gets |
 | --- | --- |
@@ -78,13 +78,13 @@ Options:
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| `onRequest` | required | Show consent and return an answer |
-| `onInvalidRequest` | none | Called when a request can't be read. The EHR also gets an error reply. |
-| `closeAfterReply` | `true` | Close the tab after replying |
+| [`onRequest`](api/wallet.md#onrequest) | required | Show consent and return an answer |
+| [`onInvalidRequest`](api/wallet.md#oninvalidrequest) | none | Called when a request can't be read. The EHR also gets an error reply. |
+| [`closeAfterReply`](api/wallet.md#closeafterreply) | `true` | Close the tab after replying |
 
 ## Matching records to items
 
-A `selection.fhir` item names records by profile or resource type ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)). `selects` tests one resource; `selectEntries` picks from a Bundle's entries.
+A `selection.fhir` item names records by profile or resource type ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)). [`selects`](api/wallet.md#selects) tests one resource; [`selectEntries`](api/wallet.md#selectentries) picks from a Bundle's entries.
 
 ```ts
 import { selectEntries } from "@smart-health-checkin/client/wallet";
@@ -112,7 +112,7 @@ Version handling is in [§5.5](https://smart-health-checkin.org/spec/#5-5-canoni
 
 A `form.fhir` item asks for a QuestionnaireResponse ([§5.4.2](https://smart-health-checkin.org/spec/#5-4-2-form-fhir)).
 
-- **Echo the canonical.** `QuestionnaireResponse.questionnaire` must equal the request's `questionnaireCanonical` exactly, `|version` included.
+- **Echo the canonical.** `QuestionnaireResponse.questionnaire` must equal the request's [`questionnaireCanonical`](api/checkin.md#smartcheckincontentselector) exactly, `|version` included.
 - **Inline form:** use `content.questionnaire`.
 - **Form by reference, unversioned:** fetch the canonical URL.
 - **Form by reference, versioned:** fetch the base URL, and use it only if its `version` matches.
@@ -147,16 +147,16 @@ For wallets that seal their own responses, or run somewhere `serveWebWallet` doe
 
 | Function | What it does |
 | --- | --- |
-| `parseWalletRequest(navigatorArgument)` | The SMART request, the items to answer `unsupported`, `warnings` about the request's wire format, and the pieces needed to answer. Throws `WalletRequestError` only where spec [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) says not to respond. |
-| `checkWalletResponse(request, response)` | What a Verifier would object to in your response; empty when it's clean |
-| `declineAll(request)` | The response for a patient who reviewed and declined everything |
-| `sealWalletResponse({ smartResponse, encryptionInfoBytes, verifierOrigin, request? })` | Sign and encrypt a response; returns the credential to send. With `request`, checks the response first. |
-| `buildSignedDeviceResponse({ smartResponseJson, sessionTranscript })` | The signed mdoc DeviceResponse, before encryption |
-| `recipientJwkFromEncryptionInfo(encryptionInfoBytes)` | The EHR's public key |
+| [`parseWalletRequest(navigatorArgument)`](api/wallet.md#parsewalletrequest) | The SMART request, the items to answer `unsupported`, `warnings` about the request's wire format, and the pieces needed to answer. Throws [`WalletRequestError`](api/wallet.md#walletrequesterror) only where spec [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) says not to respond. |
+| [`checkWalletResponse(request, response)`](api/wallet.md#checkwalletresponse) | What a Verifier would object to in your response; empty when it's clean |
+| [`declineAll(request)`](api/wallet.md#declineall) | The response for a patient who reviewed and declined everything |
+| [`sealWalletResponse({ smartResponse, encryptionInfoBytes, verifierOrigin, request? })`](api/wallet.md#sealwalletresponse) | Sign and encrypt a response; returns the credential to send. With `request`, checks the response first. |
+| [`buildSignedDeviceResponse({ smartResponseJson, sessionTranscript })`](api/wallet.md#buildsigneddeviceresponse) | The signed mdoc DeviceResponse, before encryption |
+| [`recipientJwkFromEncryptionInfo(encryptionInfoBytes)`](api/wallet.md#recipientjwkfromencryptioninfo) | The EHR's public key |
 
 ## A reference to compare against
 
-The [SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing-wallet/) implements all of this with `serveWebWallet` and `selectEntries`, plus switches for sending deliberately broken responses. Its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) lists exactly what it does.
+The [SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing-wallet/) implements all of this with [`serveWebWallet`](api/wallet.md#servewebwallet) and [`selectEntries`](api/wallet.md#selectentries), plus switches for sending deliberately broken responses. Its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) lists exactly what it does.
 
 Test your wallet against the [Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/): it sends every connectathon scenario and checks your answer against the spec. See [Testing](testing.md).
 

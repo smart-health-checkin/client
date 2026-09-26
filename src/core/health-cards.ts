@@ -15,6 +15,7 @@
 export const VCI_DIRECTORY_URL =
   "https://raw.githubusercontent.com/the-commons-project/vci-directory/main/vci-issuers.json";
 
+/** Which SMART Health Card issuers to trust, and which cards `resources()` includes. */
 export type HealthCardTrust = {
   /** An issuer directory: "vci", or the URL of a file shaped like the VCI directory. */
   directory?: "vci" | string;
@@ -31,6 +32,7 @@ export type HealthCardTrust = {
   accept?: "trusted" | "any-valid" | "everything";
 };
 
+/** A SMART Health Card from a response, with the result of checking it. */
 export type HealthCard = {
   /** The item ids the card's artifact fulfills. */
   fulfills: ReadonlyArray<string>;

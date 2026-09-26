@@ -24,10 +24,14 @@ import type { HealthCard } from "./health-cards.js";
 
 export type FhirResource = { resourceType: string; [key: string]: unknown };
 
+/** An item's status in a response: fulfilled, partial, unavailable, declined, unsupported, or error. */
 export type ItemStatus = SmartCheckinItemStatus["status"];
 
+/** A resource from a response, with where it came from. */
 export type ResourceEntry = {
+  /** The FHIR resource. */
   resource: FhirResource;
+  /** Whether it came from a FHIR Bundle or resource, or from a SMART Health Card. */
   source: "bundle" | "health-card";
   /** The artifact this came from. */
   artifactId: string;
@@ -37,6 +41,10 @@ export type ResourceEntry = {
   fullUrl?: string;
 };
 
+/**
+ * A validated response, with lookups by the item ids in your request. A
+ * completed `runCheckin` result carries one as `response`.
+ */
 export class CheckinResponse {
   /** The response as received. */
   readonly json: SmartCheckinResponse;

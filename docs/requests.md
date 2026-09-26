@@ -17,24 +17,24 @@ const request = {
 };
 ```
 
-Pass it to the picker (`picker.request = request`), to `wallet.start(request)`, or to `runCheckin(request)`.
+Pass it to the picker ([`picker.request = request`](api/ui.md#request)), to [`wallet.start(request)`](api/checkin.md#start), or to [`runCheckin(request)`](api/checkin.md#runcheckin).
 
 ## Items and titles
 
 | Field | What it's for |
 | --- | --- |
-| `id` | Your name for the item. You look the answer up by it: `response.resources("coverage")`. |
-| `title` | What the patient sees. Write it the way you'd say it: "Insurance card", not "Coverage resource". |
-| `summary` | One line on why you need it. Optional. |
-| `required` | How much the item matters to you. Advice only: the patient can always decline. |
-| `content` | What data you mean: records (`selection.fhir`) or a form (`form.fhir`). |
-| `accept` | The formats you can process, most preferred first. |
+| [`id`](api/checkin.md#id-2) | Your name for the item. You look the answer up by it: [`response.resources("coverage")`](api/checkin.md#resources). |
+| [`title`](api/checkin.md#title) | What the patient sees. Write it the way you'd say it: "Insurance card", not "Coverage resource". |
+| [`summary`](api/checkin.md#summary) | One line on why you need it. Optional. |
+| [`required`](api/checkin.md#required) | How much the item matters to you. Advice only: the patient can always decline. |
+| [`content`](api/checkin.md#content) | What data you mean: records (`selection.fhir`) or a form (`form.fhir`). |
+| [`accept`](api/checkin.md#accept-1) | The formats you can process, most preferred first. |
 
-The request's `purpose` is one line the patient sees at the top. The library fills in the protocol fields (`type`, `version`, a unique `id`, `fhirVersions`).
+The request's [`purpose`](api/checkin.md#purpose-1) is one line the patient sees at the top. The library fills in the protocol fields ([`type`](api/checkin.md#type), [`version`](api/checkin.md#version), a unique [`id`](api/checkin.md#id-1), [`fhirVersions`](api/checkin.md#fhirversions-1)).
 
 ## Records: by profile, family, or type
 
-Use `selection.fhir` for data that already exists in the patient's app: allergies, medications, an insurance card.
+Use [`selection.fhir`](api/checkin.md#smartcheckincontentselector) for data that already exists in the patient's app: allergies, medications, an insurance card.
 
 | Selector | Asks for | Example |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Selectors describe what you want; they don't limit what the app sends. It may se
 
 ## Forms: inline or by URL
 
-Use `form.fhir` when the answer doesn't exist yet: a PHQ-2, a symptom check, a consent question. You send a FHIR Questionnaire; the patient fills it in; you get a QuestionnaireResponse.
+Use [`form.fhir`](api/checkin.md#smartcheckincontentselector) when the answer doesn't exist yet: a PHQ-2, a symptom check, a consent question. You send a FHIR Questionnaire; the patient fills it in; you get a QuestionnaireResponse.
 
 | Way | `content` | When |
 | --- | --- | --- |
@@ -75,7 +75,7 @@ The [tutorial](tutorial.md#step-3-ask-for-what-the-visit-needs) has a complete i
 
 ## Formats: FHIR and SMART Health Cards
 
-`accept` lists the formats you can process, most preferred first.
+[`accept`](api/checkin.md#accept-1) lists the formats you can process, most preferred first.
 
 | Format | What arrives |
 | --- | --- |
@@ -91,7 +91,7 @@ accept: ["application/smart-health-card", "application/fhir+json"] // a signed c
 
 ## Building a request
 
-You can pass `{ purpose, items }` anywhere a request is accepted. To get the complete, validated request object, for example to store it or send it to your server:
+You can pass `{ purpose, items }` anywhere a request is accepted. To get the complete, validated request object from [`checkinRequest`](api/checkin.md#checkinrequest), for example to store it or send it to your server:
 
 ```ts
 import { checkinRequest } from "@smart-health-checkin/client";

@@ -1,6 +1,6 @@
 # Responses
 
-A completed check-in gives you a `CheckinResponse`: the full response as received, plus lookups by the item ids in your request.
+A completed check-in gives you a [`CheckinResponse`](api/checkin.md#checkinresponse): the full response as received, plus lookups by the item ids in your request.
 
 ```ts
 const result = await wallet.start(myRequest);
@@ -12,12 +12,12 @@ if (result.status === "completed") {
 }
 ```
 
-From the picker, it's `event.detail.response`.
+From the picker, it's [`event.detail.response`](api/ui.md#smart-checkin-response).
 
 Before you get it, the library has:
 
 - **decrypted it** with a key your page made for this one request, bound to your page's origin;
-- **checked the signatures and digests** on the response. A problem here doesn't stop the check-in; it's reported in `result.warnings` (see [Warnings](#warnings));
+- **checked the signatures and digests** on the response. A problem here doesn't stop the check-in; it's reported in [`result.warnings`](api/checkin.md#checkinresult) (see [Warnings](#warnings));
 - **matched it to your request:** the same request id, then each record and each status on its own. A record that fails a check is set aside, and the rest is used;
 - **checked every SMART Health Card** against the trust you configured.
 
@@ -36,7 +36,7 @@ Every item in your request comes back with exactly one status.
 | `unsupported` | The wallet can't handle this kind of item |
 | `error` | Something went wrong in the wallet |
 
-Declined and partial items are normal. Show what came through, and ask for the rest. `status()` is `undefined` when the response had no valid status row for the item (none, two, or an unknown code); treat it like a missing answer.
+Declined and partial items are normal. Show what came through, and ask for the rest. [`status()`](api/checkin.md#status) is `undefined` when the response had no valid status row for the item (none, two, or an unknown code); treat it like a missing answer.
 
 ```ts
 for (const item of response.items()) {
@@ -48,16 +48,16 @@ for (const item of response.items()) {
 
 | Method | Returns |
 | --- | --- |
-| `status(itemId)` | That item's status |
-| `resources(itemId, { type? })` | The item's FHIR resources, from Bundles and accepted health cards, optionally one type |
-| `form(itemId)` | A form item's QuestionnaireResponse |
-| `items()` | Every item in your request, with its status, artifacts, and any `problems` |
-| `entries(itemId)` | The item's resources with where each came from: a Bundle or a card, and the card's trust result |
-| `healthCards(itemId)` | Every health card for the item, accepted or not |
-| `artifacts(itemId)` | The raw artifacts that fulfill the item |
-| `disregarded()` | Artifacts set aside because they failed a check, each with its `problems` |
-| `resolve(entry, reference)` | Follow a reference within the entry's own Bundle or card |
-| `json` | The full response as received. Plain JSON, safe to store or send. |
+| [`status(itemId)`](api/checkin.md#status) | That item's status |
+| [`resources(itemId, { type? })`](api/checkin.md#resources) | The item's FHIR resources, from Bundles and accepted health cards, optionally one type |
+| [`form(itemId)`](api/checkin.md#form) | A form item's QuestionnaireResponse |
+| [`items()`](api/checkin.md#items) | Every item in your request, with its status, artifacts, and any `problems` |
+| [`entries(itemId)`](api/checkin.md#entries) | The item's resources with where each came from: a Bundle or a card, and the card's trust result |
+| [`healthCards(itemId)`](api/checkin.md#healthcards) | Every health card for the item, accepted or not |
+| [`artifacts(itemId)`](api/checkin.md#artifacts) | The raw artifacts that fulfill the item |
+| [`disregarded()`](api/checkin.md#disregarded) | Artifacts set aside because they failed a check, each with its `problems` |
+| [`resolve(entry, reference)`](api/checkin.md#resolve) | Follow a reference within the entry's own Bundle or card |
+| [`json`](api/checkin.md#json) | The full response as received. Plain JSON, safe to store or send. |
 
 How they handle the awkward cases:
 
@@ -71,7 +71,7 @@ Every lookup uses only the records that passed the checks. `json` is the respons
 
 ## Warnings
 
-Problems with the transport or the signatures don't stop a check-in: the response still decrypted for your page, so the data is usable. They come back in `result.warnings`, each `{ code, message, rule }`, where `rule` is the spec requirement:
+Problems with the transport or the signatures don't stop a check-in: the response still decrypted for your page, so the data is usable. They come back in [`result.warnings`](api/checkin.md#checkinresult), each [`{ code, message, rule }`](api/wire.md#checkinwarning), where `rule` is the spec requirement:
 
 ```ts
 if (result.status === "completed" && result.warnings.length) console.warn(result.warnings);
@@ -91,7 +91,7 @@ configureHealthCardTrust({ issuers: ["https://issuer.example"] });      // named
 configureHealthCardTrust({ keys: { "https://issuer.example": jwks } }); // keys you ship, no fetch
 ```
 
-`accept` decides which cards `resources()` includes:
+[`accept`](api/checkin.md#accept) decides which cards [`resources()`](api/checkin.md#resources) includes:
 
 | `accept` | Trusted issuer, valid signature | Other issuer, valid signature | Invalid signature |
 | --- | --- | --- | --- |
@@ -99,10 +99,10 @@ configureHealthCardTrust({ keys: { "https://issuer.example": jwks } }); // keys 
 | `"any-valid"` (testing, connectathon) | Included | Included | Left out |
 | `"everything"` (debugging) | Included | Included | Included |
 
-- Every card appears in `healthCards()` and `entries()`, whatever `accept` says, with `valid`, `trusted`, `accepted`, and a `reason` when it isn't.
-- Set trust for one check-in with `runCheckin(request, { healthCards: { accept: "any-valid" } })`, or the picker's `checkinOptions`.
-- `configureHealthCardTrust` applies to every copy of the library on the page. Trust set through the hosted `checkin.js` also reaches the picker in `ui.js`.
-- If you store a card, store the JWS as received (`card.jws`). The signature is in the token; unpacked FHIR loses it.
+- Every card appears in [`healthCards()`](api/checkin.md#healthcards) and [`entries()`](api/checkin.md#entries), whatever `accept` says, with [`valid`](api/checkin.md#valid), [`trusted`](api/checkin.md#trusted), [`accepted`](api/checkin.md#accepted), and a [`reason`](api/checkin.md#reason) when it isn't.
+- Set trust for one check-in with [`runCheckin(request, { healthCards: { accept: "any-valid" } })`](api/checkin.md#healthcards-1), or the picker's [`checkinOptions`](api/ui.md#checkinoptions).
+- [`configureHealthCardTrust`](api/checkin.md#configurehealthcardtrust) applies to every copy of the library on the page. Trust set through the hosted `checkin.js` also reaches the picker in `ui.js`.
+- If you store a card, store the JWS as received ([`card.jws`](api/checkin.md#jws)). The signature is in the token; unpacked FHIR loses it.
 
 ## Prefill, then ask only for what's missing
 
@@ -127,11 +127,11 @@ The [form autofill demo](../demo/autofill.html) does this end to end.
 
 ## Storing it
 
-The library doesn't store anything. Send `response.json` to your server, map it into your own data model, or write FHIR with the optional module below. Wherever it lands, mark it as supplied by the patient, and make sure someone reviews it before it reaches a chart.
+The library doesn't store anything. Send [`response.json`](api/checkin.md#json) to your server, map it into your own data model, or write FHIR with the optional module below. Wherever it lands, mark it as supplied by the patient, and make sure someone reviews it before it reaches a chart.
 
 ## Writing FHIR
 
-`@smart-health-checkin/client/fhir` builds a FHIR transaction from a response. It's a separate import, so nothing in the check-in depends on it.
+[`@smart-health-checkin/client/fhir`](api/fhir.md) builds a FHIR transaction from a response. It's a separate import, so nothing in the check-in depends on it.
 
 ```ts
 import { buildCheckinBundle, postCheckinBundle } from "@smart-health-checkin/client/fhir";
@@ -155,18 +155,18 @@ What the mapping does:
 | Each FHIR artifact | One `POST` per resource, in one transaction |
 | Each SMART Health Card | A `DocumentReference` holding the signed token, whole |
 | The check-in itself | A `Provenance`: supplied by the patient, when, through which request, pointing at every created resource |
-| `context` | Patient and appointment, recorded as identifiers on the Provenance |
+| [`context`](api/fhir.md#checkinbundlecontext) | Patient and appointment, recorded as identifiers on the Provenance |
 
-- `buildCheckinBundle` makes no network calls. Test it, show it to a reviewer, or send it with your own client.
+- [`buildCheckinBundle`](api/fhir.md#buildcheckinbundle) makes no network calls. Test it, show it to a reviewer, or send it with your own client.
 - It never matches the patient. What you pass as `context` is what it writes.
 
-`postCheckinBundle` options:
+[`postCheckinBundle`](api/fhir.md#postcheckinbundle) options:
 
 | Option | What it does |
 | --- | --- |
-| `mode: "transaction"` (default) | One transaction Bundle |
+| [`mode: "transaction"`](api/fhir.md#postmode) (default) | One transaction Bundle |
 | `mode: "individual"` | One `POST` per resource, then the Provenance with the server's locations, for servers that handle transactions poorly |
-| `fetchImpl` | Your own `fetch`, with your credentials, retries, and tracing |
+| [`fetchImpl`](api/fhir.md#postcheckinbundle) | Your own `fetch`, with your credentials, retries, and tracing |
 
 Writing into your own data model is often the better choice. The [form autofill demo](../demo/autofill.html) shows the same data both ways.
 

@@ -18,10 +18,12 @@ import {
   type OrgIsoMdocRequestBundle,
 } from "../wire/index.js";
 
+/** Whether this browser has the Digital Credentials API; when not, `reason` says why. */
 export type DcApiSupport =
   | { state: "supported" }
   | { state: "unsupported"; reason: string };
 
+/** Whether this browser can reach the phone's own wallet through the Digital Credentials API. `platformWallet()` uses it for `available`. */
 export function detectDcApiSupport(): DcApiSupport {
   if (typeof navigator === "undefined") {
     return { state: "unsupported", reason: "no navigator (server-side environment)" };

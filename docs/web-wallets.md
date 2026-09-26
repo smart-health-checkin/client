@@ -10,9 +10,9 @@ You only need the rest of this page to implement the hand-off yourself, or to de
 
 | Side | Use |
 | --- | --- |
-| EHR page | `wallets({ registry: "/wallets.json" })`, or `webWallet(entry)` for one wallet, then `wallet.start(request)` inside the click |
-| EHR page, no code | `<smart-checkin-picker registry="/wallets.json">` from `/ui` |
-| Web wallet | `serveWebWallet({ onRequest })` from `/wallet`; see the [Wallet guide](build-a-wallet.md) |
+| EHR page | [`wallets({ registry: "/wallets.json" })`](api/checkin.md#wallets), or [`webWallet(entry)`](api/checkin.md#webwallet) for one wallet, then [`wallet.start(request)`](api/checkin.md#start) inside the click |
+| EHR page, no code | [`<smart-checkin-picker registry="/wallets.json">`](api/ui.md#smartcheckinpicker) from `/ui` |
+| Web wallet | [`serveWebWallet({ onRequest })`](api/wallet.md#servewebwallet) from `/wallet`; see the [Wallet guide](build-a-wallet.md) |
 
 Web wallets are listed for EHRs in a [wallet registry](registry.md).
 
@@ -29,7 +29,7 @@ Web wallets are listed for EHRs in a [wallet registry](registry.md).
 
 - Call `window.open(walletUrl)` inside the patient's click handler. Browsers block it otherwise.
 - `walletUrl` comes from the wallet's [registry entry](registry.md).
-- The default is a new tab. A registry entry with `"target": "popup"` asks for a popup window.
+- The default is a new tab. A registry entry with [`"target": "popup"`](api/checkin.md#target) asks for a popup window.
 - Keep the returned window reference. It is how the EHR recognizes the wallet's messages.
 - Open the tab first and build the request after. The wallet may post `ready` before the request exists; send the request once both have happened.
 

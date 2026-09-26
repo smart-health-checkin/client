@@ -18,11 +18,11 @@ The demos accept any wallet, match no patients, and keep nothing. This page list
 
 Each check-in encrypts the response to a key your page makes for that one request and then throws away.
 
-| `keys` | Where the key lives | Use it when |
+| [`keys`](api/checkin.md#keys) | Where the key lives | Use it when |
 | --- | --- | --- |
 | `"browser"` (default) | The page's memory, for the few seconds of the exchange | Almost always. The page is going to read the response anyway, to prefill a form. |
 | `{ server: "/checkin-api" }` | Your server, behind two HTTP calls | Policy says health data may only be decrypted on a server, or you need an audit point outside the browser |
-| Your own `KeyCustody` | Wherever you implement it | Your server needs a header instead of a cookie, or a different API |
+| Your own [`KeyCustody`](api/checkin.md#keycustody) | Wherever you implement it | Your server needs a header instead of a cookie, or a different API |
 
 Keeping the key in the page is the design, not a shortcut:
 
@@ -46,17 +46,17 @@ else if (result.status === "kept-on-server") showMyReceipt(result.serverReferenc
 **Call 1, prepare:** `POST /credential-requests` with `{ request }`. The server:
 
 - decides what to ask for (it may ignore the page's request and build its own, which a compromised page can't widen);
-- builds the wire request with a fresh key (`buildOrgIsoMdocRequest(request, { origin })` from `/wire` in this language);
+- builds the wire request with a fresh key ([`buildOrgIsoMdocRequest(request, { origin })`](api/wire.md#buildorgisomdocrequest) from `/wire` in this language);
 - stores the key, the request, the origin, the session, and an expiry under an unguessable handle;
 - returns `{ handle, navigatorArgument }`.
 
 **Call 2, complete:** `POST /credential-requests/{handle}/complete` with `{ credential }`. The server:
 
 - rejects an unknown, expired, reused, or other-session handle;
-- decrypts and checks it (`openWalletCredential`, then `checkDeviceResponse`, both from `/wire`), keeping their `warnings`;
-- checks the data against the stored request (`validateResponseAgainstRequest` from `/model`), never against anything the page sent;
+- decrypts and checks it ([`openWalletCredential`](api/wire.md#openwalletcredential), then [`checkDeviceResponse`](api/wire.md#checkdeviceresponse), both from `/wire`), keeping their `warnings`;
+- checks the data against the stored request ([`validateResponseAgainstRequest`](api/model.md#validateresponseagainstrequest) from `/model`), never against anything the page sent;
 - deletes the key;
-- returns `{ smartResponse, presentation, warnings }`, or `{ handledByServer: true, reference }` to keep the data from the page.
+- returns [`{ smartResponse, presentation, warnings }`](api/checkin.md#credentialcompletion), or `{ handledByServer: true, reference }` to keep the data from the page.
 
 Rules for the server:
 
@@ -65,13 +65,13 @@ Rules for the server:
 - **Rate-limit prepare.** Each call makes a key and a record.
 - **Log that a check-in happened** and each item's status. Logging the data itself is rarely needed.
 
-The built-in client sends your session cookie (`credentials: "include"`). For a bearer token or CSRF header, pass your own `KeyCustody` object as `keys`. For a server in another language, build against the [conformance fixtures](https://github.com/smart-health-checkin/spec/tree/main/fixtures): they include a real capture with a published test key.
+The built-in client sends your session cookie (`credentials: "include"`). For a bearer token or CSRF header, pass your own [`KeyCustody`](api/checkin.md#keycustody) object as `keys`. For a server in another language, build against the [conformance fixtures](https://github.com/smart-health-checkin/spec/tree/main/fixtures): they include a real capture with a published test key.
 
 ## Trust settings
 
 The library checks that a response is internally sound. Which wallets and issuers you believe is policy. Write it down.
 
-- **Health cards:** trust a directory or named issuers, and leave `accept` at `"trusted"`. See [SMART Health Cards](responses.md#smart-health-cards).
+- **Health cards:** trust a directory or named issuers, and leave [`accept`](api/checkin.md#accept) at `"trusted"`. See [SMART Health Cards](responses.md#smart-health-cards).
 - **Web wallets:** offer only wallets you recognize, in your own `wallets.json`. See [Registries](wallets.md#registries-and-icons).
 - **Self-vouching apps:** decide whether to reject them, or accept and flag for review.
 
@@ -105,16 +105,16 @@ The Digital Credentials API isn't in every browser. The patient may decline. The
 
 ## Monitoring
 
-Log each failed result's `error.code`, and watch the counts.
+Log each failed result's [`error.code`](api/checkin.md#checkinerrorcode), and watch the counts.
 
 | Code | A rise usually means |
 | --- | --- |
-| `blocked` | A code change put an `await` before `wallet.start` |
+| `blocked` | A code change put an `await` before [`wallet.start`](api/checkin.md#start) |
 | `timeout` | A web wallet is down or not replying |
 | `wallet-error` | A wallet is failing; its message says why |
-| `invalid-response` | A wallet or network problem worth investigating; `error.check` is the spec requirement that failed |
+| `invalid-response` | A wallet or network problem worth investigating; [`error.check`](api/checkin.md#checkinresult) is the spec requirement that failed |
 | `server` | Your key server |
 
-Log `result.warnings` from completed check-ins too: a steady stream from one wallet usually means a bug there. `unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
+Log [`result.warnings`](api/checkin.md#checkinresult) from completed check-ins too: a steady stream from one wallet usually means a bug there. `unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
 
 Next: [Wallet guide](build-a-wallet.md)

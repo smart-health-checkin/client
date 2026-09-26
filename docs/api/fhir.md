@@ -13,7 +13,9 @@ type CheckinBundle = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L43)
+Defined in: [src/fhir/index.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L51)
+
+What `buildCheckinBundle` returns: the resources to write, and the same as a transaction Bundle.
 
 #### Properties
 
@@ -23,7 +25,7 @@ Defined in: [src/fhir/index.ts:43](https://github.com/smart-health-checkin/clien
 bundle: Record<string, unknown>;
 ```
 
-Defined in: [src/fhir/index.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L46)
+Defined in: [src/fhir/index.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L55)
 
 The transaction Bundle equivalent of the plan.
 
@@ -33,7 +35,9 @@ The transaction Bundle equivalent of the plan.
 entries: CheckinBundleEntry[];
 ```
 
-Defined in: [src/fhir/index.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L44)
+Defined in: [src/fhir/index.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L53)
+
+Each resource to write, with the artifact it came from.
 
 ***
 
@@ -46,7 +50,9 @@ type CheckinBundleContext = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L31)
+Defined in: [src/fhir/index.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L33)
+
+The chart context to record on the Provenance. Nothing is matched: what you pass is what's written.
 
 #### Properties
 
@@ -56,7 +62,9 @@ Defined in: [src/fhir/index.ts:31](https://github.com/smart-health-checkin/clien
 optional appointment?: string;
 ```
 
-Defined in: [src/fhir/index.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L33)
+Defined in: [src/fhir/index.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L37)
+
+An Appointment reference, such as "Appointment/456".
 
 ##### patient?
 
@@ -64,7 +72,9 @@ Defined in: [src/fhir/index.ts:33](https://github.com/smart-health-checkin/clien
 optional patient?: string;
 ```
 
-Defined in: [src/fhir/index.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L32)
+Defined in: [src/fhir/index.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L35)
+
+A Patient reference, such as "Patient/123".
 
 ***
 
@@ -78,7 +88,9 @@ type CheckinBundleEntry = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L36)
+Defined in: [src/fhir/index.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L41)
+
+One resource to write.
 
 #### Properties
 
@@ -88,7 +100,7 @@ Defined in: [src/fhir/index.ts:36](https://github.com/smart-health-checkin/clien
 optional artifactId?: string;
 ```
 
-Defined in: [src/fhir/index.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L40)
+Defined in: [src/fhir/index.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L47)
 
 Artifact id this entry came from; the Provenance entry has none.
 
@@ -98,7 +110,9 @@ Artifact id this entry came from; the Provenance entry has none.
 fullUrl: string;
 ```
 
-Defined in: [src/fhir/index.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L37)
+Defined in: [src/fhir/index.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L43)
+
+The entry's `urn:uuid:` fullUrl.
 
 ##### resource
 
@@ -106,7 +120,9 @@ Defined in: [src/fhir/index.ts:37](https://github.com/smart-health-checkin/clien
 resource: Record<string, unknown>;
 ```
 
-Defined in: [src/fhir/index.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L38)
+Defined in: [src/fhir/index.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L45)
+
+The resource to create.
 
 ***
 
@@ -144,7 +160,9 @@ helper need it, and the check-in path must never import the FHIR module.
 type PostMode = "transaction" | "individual";
 ```
 
-Defined in: [src/fhir/index.ts:26](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L26)
+Defined in: [src/fhir/index.ts:27](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L27)
+
+"transaction": one transaction Bundle. "individual": one POST per resource, then the Provenance, for servers that handle transactions poorly.
 
 ***
 
@@ -158,7 +176,9 @@ type PostResult = {
 };
 ```
 
-Defined in: [src/fhir/index.ts:204](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L204)
+Defined in: [src/fhir/index.ts:214](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L214)
+
+What `postCheckinBundle` sent and what the server said.
 
 #### Properties
 
@@ -168,7 +188,9 @@ Defined in: [src/fhir/index.ts:204](https://github.com/smart-health-checkin/clie
 bundle: unknown;
 ```
 
-Defined in: [src/fhir/index.ts:206](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L206)
+Defined in: [src/fhir/index.ts:218](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L218)
+
+The plan's transaction Bundle.
 
 ##### mode
 
@@ -176,7 +198,9 @@ Defined in: [src/fhir/index.ts:206](https://github.com/smart-health-checkin/clie
 mode: PostMode;
 ```
 
-Defined in: [src/fhir/index.ts:205](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L205)
+Defined in: [src/fhir/index.ts:216](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L216)
+
+How it was sent.
 
 ##### result
 
@@ -184,7 +208,9 @@ Defined in: [src/fhir/index.ts:205](https://github.com/smart-health-checkin/clie
 result: unknown;
 ```
 
-Defined in: [src/fhir/index.ts:207](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L207)
+Defined in: [src/fhir/index.ts:220](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L220)
+
+What the server returned: the transaction response, or in "individual" mode one response body per POST.
 
 ## Variables
 
@@ -194,7 +220,7 @@ Defined in: [src/fhir/index.ts:207](https://github.com/smart-health-checkin/clie
 const CHECKIN_APPOINTMENT_SYSTEM: "https://smart-health-checkin.github.io/appointment-context" = "https://smart-health-checkin.github.io/appointment-context";
 ```
 
-Defined in: [src/fhir/index.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L51)
+Defined in: [src/fhir/index.ts:60](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L60)
 
 ***
 
@@ -204,7 +230,7 @@ Defined in: [src/fhir/index.ts:51](https://github.com/smart-health-checkin/clien
 const CHECKIN_REQUEST_ID_SYSTEM: "https://smart-health-checkin.github.io/checkin-request-id" = "https://smart-health-checkin.github.io/checkin-request-id";
 ```
 
-Defined in: [src/fhir/index.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L49)
+Defined in: [src/fhir/index.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L58)
 
 ## Functions
 
@@ -214,7 +240,7 @@ Defined in: [src/fhir/index.ts:49](https://github.com/smart-health-checkin/clien
 function buildCheckinBundle(input): CheckinBundle;
 ```
 
-Defined in: [src/fhir/index.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L58)
+Defined in: [src/fhir/index.ts:67](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L67)
 
 Map a check-in response to a FHIR transaction Bundle. Pure — no network.
 Inspect or edit the result before sending it anywhere.
@@ -242,7 +268,7 @@ Inspect or edit the result before sending it anywhere.
 function postCheckinBundle(plan, options): Promise<PostResult>;
 ```
 
-Defined in: [src/fhir/index.ts:215](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L215)
+Defined in: [src/fhir/index.ts:228](https://github.com/smart-health-checkin/client/blob/main/src/fhir/index.ts#L228)
 
 Post a bundle to a FHIR server. A convenience for demos and simple apps —
 production deployments usually have their own client and auth, in which
@@ -250,13 +276,13 @@ case use `buildCheckinBundle` alone and send it yourself.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `plan` | [`CheckinBundle`](#checkinbundle) |
-| `options` | \{ `fetchImpl?`: [`FetchLike`](#fetchlike); `fhirBase`: `string`; `mode?`: [`PostMode`](#postmode); \} |
-| `options.fetchImpl?` | [`FetchLike`](#fetchlike) |
-| `options.fhirBase` | `string` |
-| `options.mode?` | [`PostMode`](#postmode) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `plan` | [`CheckinBundle`](#checkinbundle) | - |
+| `options` | \{ `fetchImpl?`: [`FetchLike`](#fetchlike); `fhirBase`: `string`; `mode?`: [`PostMode`](#postmode); \} | - |
+| `options.fetchImpl?` | [`FetchLike`](#fetchlike) | Your own `fetch`, with your credentials, retries, and tracing. |
+| `options.fhirBase` | `string` | The FHIR server's base URL. |
+| `options.mode?` | [`PostMode`](#postmode) | "transaction" (default) or "individual". |
 
 #### Returns
 

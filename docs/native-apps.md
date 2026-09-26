@@ -30,7 +30,7 @@ and signed with the key this site's `assetlinks.json` lists, so both buttons wor
 2. The app asks Chrome for a message channel to the page. Chrome grants it only if the page's site lists
    the app in `/.well-known/assetlinks.json`, so the page knows its messages come from that app.
 3. The app sends the SMART request. The page answers `started`, shows the picker, runs the check-in, and
-   decrypts and validates the response with `runCheckin`.
+   decrypts and validates the response with [`runCheckin`](api/checkin.md#runcheckin).
 4. The page sends the response back in parts, because each message crosses Android's inter-process
    channel, which caps one message at about 1 MB. The app reassembles the parts and checks a SHA-256 hash.
    There's no limit on the total size.

@@ -59,7 +59,12 @@ export type ServeWebWalletOptions = {
  * Start answering. Returns `{ opened }`: false when the page wasn't opened by
  * an EHR (no `window.opener`), so the wallet can show its own landing page.
  */
-export function serveWebWallet(options: ServeWebWalletOptions): { opened: boolean; stop(): void } {
+export function serveWebWallet(options: ServeWebWalletOptions): {
+  /** Whether an EHR opened this page. */
+  opened: boolean;
+  /** Stop listening for requests. */
+  stop(): void;
+} {
   let handled = false;
   const onMessage = async (event: MessageEvent) => {
     const data = event.data as { type?: string; requestId?: string; credentialRequestOptions?: unknown } | null;

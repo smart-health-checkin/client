@@ -286,7 +286,7 @@ type SmartArtifactBase = {
 };
 ```
 
-Defined in: [src/model/types.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L52)
+Defined in: [src/model/types.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L77)
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (spec §§5–6), checked against the spec's conformance cases.
@@ -299,7 +299,7 @@ validators (spec §§5–6), checked against the spec's conformance cases.
 fulfills: ReadonlyArray<string>;
 ```
 
-Defined in: [src/model/types.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L55)
+Defined in: [src/model/types.ts:80](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L80)
 
 ##### id
 
@@ -307,7 +307,7 @@ Defined in: [src/model/types.ts:55](https://github.com/smart-health-checkin/clie
 id: string;
 ```
 
-Defined in: [src/model/types.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L53)
+Defined in: [src/model/types.ts:78](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L78)
 
 ##### mediaType
 
@@ -315,7 +315,7 @@ Defined in: [src/model/types.ts:53](https://github.com/smart-health-checkin/clie
 mediaType: string;
 ```
 
-Defined in: [src/model/types.ts:54](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L54)
+Defined in: [src/model/types.ts:79](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L79)
 
 ***
 
@@ -405,7 +405,7 @@ type ValidationResult<T> =
 };
 ```
 
-Defined in: [src/model/types.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L77)
+Defined in: [src/model/types.ts:106](https://github.com/smart-health-checkin/client/blob/main/src/model/types.ts#L106)
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (spec §§5–6), checked against the spec's conformance cases.
