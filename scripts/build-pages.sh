@@ -23,7 +23,6 @@ cp demo/react.html $OUT/demo/react.html
 cp demo/angular.html $OUT/demo/angular.html
 cp demo/kiosk.html $OUT/demo/kiosk.html
 cp demo/handoff.html $OUT/demo/handoff.html
-cp demo/picker.html $OUT/demo/picker.html
 # Layout the demo pages share (the left edge, the demo strip's title).
 cp demo/demo.css $OUT/demo/demo.css
 # The bridge page native apps open in a Custom Tab (docs/native-apps.md).
@@ -32,7 +31,7 @@ cp demo/native-bridge.html $OUT/demo/native-bridge.html
 cp demo/nav.json $OUT/demo/nav.json
 # The tutorial's finished page, cut from docs/tutorial.md.
 bun scripts/tutorial-page.ts $OUT/demo/tutorial.html
-bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts demo/src/picker.ts demo/src/native-bridge.ts --outdir $OUT/demo --format esm --minify
+bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts demo/src/native-bridge.ts --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/react.tsx --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/angular.ts --outdir $OUT/demo --format esm --minify
 # hosted builds under /lib/ so the URL space stays organized
@@ -40,6 +39,9 @@ scripts/build-lib.sh "$OUT/lib"
 # docs: narrative guides + generated API reference, all from repo markdown
 bun run docs >/dev/null
 bun scripts/render-docs.ts
+# The guides' live examples (docs/examples/, placed by render-docs.ts).
+bun build docs/examples/picker.ts --outdir $OUT/docs/examples --format esm --minify
+cp docs/examples/picker.css $OUT/docs/examples/picker.css
 bun scripts/apply-chrome.ts
 
 # Pinned copies: /lib/<version>/ serves each GitHub release's bundles, byte

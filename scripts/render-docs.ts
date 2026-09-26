@@ -175,7 +175,7 @@ function keepHyphenated(html: string): string {
       gt + text.replace(/\b((?:[Cc]heck|[Hh]and)-(?:in|off))\b/g, '<span class="nowrap">$1</span>')) + close);
 }
 
-const shell = (title: string, slug: string, body: string, opts: { markdown?: string; current?: string; parent?: { href: string; label: string } } = {}): string => `<!doctype html>
+const shell = (title: string, slug: string, body: string, opts: { markdown?: string; current?: string; parent?: { href: string; label: string }; head?: string[]; scripts?: string[] } = {}): string => `<!doctype html>
 <html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
@@ -186,6 +186,7 @@ ${opts.markdown ? `<link rel="alternate" type="text/markdown" href="${opts.markd
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${CHROME_ASSETS}
 <style>${DOCS_STYLE}</style>
+${(opts.head ?? []).join("\n")}
 </head>
 <body>
 ${header()}
@@ -195,6 +196,7 @@ ${header()}
   <main id="main" class="smart-prose">${keepHyphenated(withPhoneRail(slug, body))}</main>
 </div>
 ${footer()}
+${(opts.scripts ?? []).join("\n")}
 </body>
 </html>
 `;
@@ -297,17 +299,37 @@ function linkSymbols(module: string, html: string): string {
 mkdirSync(OUT, { recursive: true });
 mkdirSync(join(OUT, "api"), { recursive: true });
 
+/**
+ * Live examples. A guide marks one with `<!-- example: NAME -->` and closes it
+ * with `<!-- /example -->`; both are comments, so GitHub shows only what lies
+ * between them. Here the pair becomes docs/examples/NAME.html, with that
+ * content in the snippet's `<!-- content -->`. Paths starting with "/" in a
+ * snippet are within this section. A snippet's stylesheets move to the head
+ * and its scripts to the end of the page, each once.
+ */
+function withExamples(html: string): { html: string; head: string[]; scripts: string[] } {
+  const head = new Set<string>();
+  const scripts = new Set<string>();
+  const out = html.replace(/<!-- example: ([a-z0-9-]+) -->\n?([\s\S]*?)<!-- \/example -->\n?/g, (_m, name: string, content: string) =>
+    readFileSync(`docs/examples/${name}.html`, "utf8")
+      .replace(/\s(src|href)="\//g, ` $1="${BASE}/`)
+      .replace(/<link\b[^>]*>\n?/g, (tag) => (head.add(tag.trim()), ""))
+      .replace(/<script\b[^>]*><\/script>\n?/g, (tag) => (scripts.add(tag.trim()), ""))
+      .replace("<!-- content -->", () => content.trim()));
+  return { html: out, head: [...head], scripts: [...scripts] };
+}
+
 // --- narrative guides -------------------------------------------------
 // Every page is also published as the markdown it came from, at the same
 // path with .md — the primitive the site's llms.txt files are built on.
 for (const guide of GUIDES) {
   if (!existsSync(guide.file)) continue;
   const md = readFileSync(guide.file, "utf8");
-  const html = render(md) + pager(guide.slug);
+  const { html, head, scripts } = withExamples(render(md));
   writeFileSync(outFor(guide.slug, "md"), md);
   writeFileSync(
     outFor(guide.slug, "html"),
-    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html, { markdown: `${BASE}${mdPathFor(guide.slug)}` }),
+    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html + pager(guide.slug), { markdown: `${BASE}${mdPathFor(guide.slug)}`, head, scripts }),
   );
 }
 

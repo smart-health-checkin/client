@@ -202,7 +202,6 @@ Each demo page runs the real flow and shows one way to use the library. Source i
 | --- | --- |
 | [Clinic check-in](../demo/) | The reference EHR: `wallets()` for a menu, `wallet.start` in the click, the raw response, the optional FHIR helper |
 | [Tutorial's finished page](../demo/tutorial.html) | The finished page from [the tutorial](tutorial.md): the picker, a request, and a form filled from the answer |
-| [Wallet picker](../demo/picker.html) | The picker in canned situations and styles, pick mode, and reskinning |
 | [React](../demo/react.html) | `<CheckinPicker>` and `response.resources("meds", { type: "MedicationRequest" })` |
 | [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |
 | [Form autofill](../demo/autofill.html) | Prefill from `response.resources`, then ask only for what's missing |

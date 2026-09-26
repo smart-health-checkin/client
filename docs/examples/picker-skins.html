@@ -1,0 +1,37 @@
+<div class="pg-example" data-picker-example="skins">
+  <p>The wallets are simulated, as in the <a href="#the-picker">example above</a>: choosing one opens nothing and ends as shared.</p>
+  <div class="pg-controls">
+    <label class="smart-field"><span class="lbl">Skin</span>
+      <select class="smart-select" data-pg="skin">
+        <option value="smart" selected>SMART (the defaults)</option>
+      </select>
+    </label>
+    <label class="smart-field"><span class="lbl">Theme</span>
+      <select class="smart-select" data-pg="theme">
+        <option value="page" selected>Same as this page</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+    <label class="smart-field"><span class="lbl">Appearance</span>
+      <select class="smart-select" data-pg="appearance">
+        <option value="card" selected>Card</option>
+        <option value="flat">Flat</option>
+      </select>
+    </label>
+  </div>
+  <div class="pg-split">
+    <div class="pg-clinic" data-pg-skin="smart">
+      <div class="pg-clinic-head">Riverbend Family Medicine</div>
+      <div class="pg-clinic-body"><strong>Before your visit</strong><smart-checkin-picker theme="light"></smart-checkin-picker></div>
+    </div>
+    <div class="pg-css">
+      <p data-pg="defaults">The defaults: nothing to set.</p>
+      <!-- content -->
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<link rel="stylesheet" href="/docs/examples/picker.css">
+<script type="module" src="/lib/ui.js"></script>
+<script type="module" src="/docs/examples/picker.js"></script>

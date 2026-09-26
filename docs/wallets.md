@@ -21,13 +21,16 @@ A wallet is anything that can answer a check-in request: the phone's own wallet,
 </script>
 ```
 
+In a bundled app, `import "@smart-health-checkin/client/ui"` registers the element instead of the script tag.
+
 What it does:
 
 - The phone's own wallet leads when the browser can reach it. When it can't, that option is hidden.
 - Web wallets from your registry follow, in registry order. With more than five, the first four show and the rest open in a searchable list.
 - It opens a web wallet's tab inside the patient's click, so browsers don't block it.
 
-[Try it](../demo/picker.html) in different situations and styles. In a bundled app, `import "@smart-health-checkin/client/ui"` registers it.
+<!-- example: picker-states -->
+<!-- /example -->
 
 ### In React
 
@@ -133,15 +136,54 @@ All events bubble and cross shadow roots.
 
 ### Styling
 
-Set custom properties on the element or any ancestor.
+Set custom properties on the element or any ancestor. They are enough to match a clinic's own site: each set below restyles the whole picker. Its `[theme="dark"]` rule gives the colors for when your page sets `theme="dark"`; with `theme="auto"`, put them in a `prefers-color-scheme: dark` media query instead.
+
+<!-- example: picker-skins -->
 
 ```css
+/* Portal blue */
 smart-checkin-picker {
-  --smart-checkin-accent: #205E9B;
-  --smart-checkin-radius: 24px;
   --smart-checkin-font: "Source Sans 3", sans-serif;
+  --smart-checkin-accent: #205E9B;
+  --smart-checkin-accent-hover: #184A7B;
+  --smart-checkin-border: #E3DDD7;
+  --smart-checkin-radius: 24px;
+  --smart-checkin-radius-large: 8px;
+  --smart-checkin-icon-radius: 50%;
+}
+smart-checkin-picker[theme="dark"] {
+  --smart-checkin-accent: #6FA8DC;
+  --smart-checkin-accent-hover: #8FBDE6;
+  --smart-checkin-border: #3A4150;
 }
 ```
+
+```css
+/* Clinic teal */
+smart-checkin-picker {
+  --smart-checkin-font: "Nunito Sans", sans-serif;
+  --smart-checkin-accent: #00735F;
+  --smart-checkin-accent-hover: #005A4A;
+  --smart-checkin-surface: #F2F7F6;
+  --smart-checkin-border: #C9D6D4;
+  --smart-checkin-text: #0F2A2A;
+  --smart-checkin-text-muted: #4A6363;
+  --smart-checkin-radius: 3px;
+  --smart-checkin-radius-large: 4px;
+  --smart-checkin-icon-radius: 3px;
+}
+smart-checkin-picker[theme="dark"] {
+  --smart-checkin-accent: #3DD2B4;
+  --smart-checkin-accent-hover: #6ADFC6;
+  --smart-checkin-surface: #0F2322;
+  --smart-checkin-row: #16302E;
+  --smart-checkin-border: #2A4543;
+  --smart-checkin-text: #E1F0ED;
+  --smart-checkin-text-muted: #A5C2BE;
+}
+```
+
+<!-- /example -->
 
 | Property | Default |
 | --- | --- |

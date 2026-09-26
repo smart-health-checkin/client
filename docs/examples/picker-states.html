@@ -1,0 +1,36 @@
+<div class="pg-example" data-picker-example="states">
+  <p>This is the real picker, but the wallets are simulated and none opens. Choose one, and after a moment it ends with the outcome set here. <b>Shared</b> answers with made-up data. For a real check-in, use the <a href="/demo/">clinic demo</a>.</p>
+  <div class="pg-controls">
+    <label class="smart-field"><span class="lbl">Situation</span>
+      <select class="smart-select" data-pg="situation">
+        <option value="both" selected>Phone wallet and two web wallets</option>
+        <option value="no-api">No Digital Credentials API, two web wallets</option>
+        <option value="phone-only">Phone wallet only</option>
+        <option value="one">One web wallet</option>
+        <option value="five">Phone wallet and five web wallets</option>
+        <option value="nine">Phone wallet and nine web wallets</option>
+        <option value="none">Nothing available</option>
+      </select>
+    </label>
+    <label class="smart-field"><span class="lbl">Outcome</span>
+      <select class="smart-select" data-pg="outcome">
+        <option value="shared" selected>Shared</option>
+        <option value="declined">Declined</option>
+        <option value="cancelled">Cancelled: the patient closed the wallet</option>
+        <option value="error">Error</option>
+        <option value="never">Never answers: the page keeps waiting</option>
+      </select>
+    </label>
+    <label class="smart-field"><span class="lbl">Remember last app</span>
+      <select class="smart-select" data-pg="remember">
+        <option value="off" selected>Off</option>
+        <option value="on">On</option>
+      </select>
+    </label>
+  </div>
+  <div class="pg-stage"><smart-checkin-picker theme="light"></smart-checkin-picker></div>
+  <p data-pg="event" aria-live="polite">Choose a wallet to see what your page gets.</p>
+</div>
+<link rel="stylesheet" href="/docs/examples/picker.css">
+<script type="module" src="/lib/ui.js"></script>
+<script type="module" src="/docs/examples/picker.js"></script>

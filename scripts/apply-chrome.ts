@@ -41,7 +41,7 @@ if (existsSync(tutorial)) {
 
 // Every demo page carries the chrome and one <h1>.
 const problems: string[] = [];
-for (const file of ["index.html", "autofill.html", "react.html", "angular.html", "kiosk.html", "handoff.html", "picker.html", "wallet.html", "tutorial.html"]) {
+for (const file of ["index.html", "autofill.html", "react.html", "angular.html", "kiosk.html", "handoff.html", "wallet.html", "tutorial.html"]) {
   const path = `${OUT_ROOT}/demo/${file}`;
   if (!existsSync(path)) continue;
   const html = readFileSync(path, "utf8");

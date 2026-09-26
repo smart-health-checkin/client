@@ -50,7 +50,7 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
 | Drop a picker into a page you have | [The picker](wallets.md#the-picker), below |
 | Call it from your own code | [`wallet.start`](#call-it-yourself), below, or [`runCheckin`](wallets.md#starting-inside-the-click) |
 
-Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic demo](demo/), the [picker](demo/picker.html), the [form autofill demo](demo/autofill.html), the [kiosk](demo/kiosk.html).
+Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic demo](demo/), the [picker](wallets.md#the-picker), the [form autofill demo](demo/autofill.html), the [kiosk](demo/kiosk.html).
 
 ## Drop in the picker
 

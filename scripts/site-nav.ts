@@ -33,7 +33,7 @@ export const GUIDES: Guide[] = [
     menuNote: "What to ask for: records, forms, formats", menuGroup: "Build a check-in page" },
   { file: "docs/wallets.md", slug: "wallets", title: "Wallet picker",
     blurb: "The picker, kinds of wallet, registries and icons, starting inside the click, kiosk hand-off, custom transports.",
-    menuNote: "Offer wallets: the picker, registries, kiosks", menuGroup: "Build a check-in page" },
+    menuNote: "Add the picker; choose the wallets it lists", menuGroup: "Build a check-in page" },
   { file: "docs/responses.md", slug: "responses", title: "Responses",
     blurb: "Statuses, lookups, SMART Health Card trust, prefill, storing it, and writing FHIR.",
     menuNote: "Read results, health cards, prefill, FHIR", menuGroup: "Build a check-in page" },

@@ -1,0 +1,32 @@
+/* The live examples of <smart-checkin-picker> in the Wallet picker guide.
+   Colors come from the site's tokens, except the sample clinic page, which
+   stands for another site and keeps its own colors. */
+.pg-example {
+  margin: var(--space-5) 0; padding: var(--space-4);
+  display: grid; gap: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-alt);
+}
+.pg-example > p { margin: 0; max-width: 42rem; font-size: var(--fs-sm); }
+.pg-controls { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-4); }
+.pg-controls .smart-field { flex: 1 1 12rem; max-width: 20rem; }
+.pg-controls .smart-select { font-family: var(--font-sans); min-height: 40px; }
+.pg-stage { max-width: 26rem; }
+.pg-split { display: grid; grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+@media (max-width: 46rem) { .pg-split { grid-template-columns: minmax(0, 1fr); } }
+.pg-css pre { margin: 0; }
+.pg-css > p { margin: 0; font-size: var(--fs-sm); }
+
+.pg-clinic {
+  border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+  background: var(--pg-bg); color: var(--pg-ink); font-family: var(--pg-font);
+  --pg-bg: #F6F8FA; --pg-ink: #1F2933;
+}
+.pg-clinic.dark { --pg-bg: #11161D; --pg-ink: #E6EAEF; }
+.pg-clinic-head { padding: 10px 14px; font-weight: 700; background: var(--pg-head); color: var(--pg-head-ink); }
+.pg-clinic-body { padding: 14px; display: grid; gap: 10px; }
+.pg-clinic-body > strong { color: inherit; font-size: 1.05rem; }
+.pg-clinic[data-pg-skin="smart"] { --pg-head: #0E6FB8; --pg-head-ink: #fff; --pg-font: var(--font-sans); }
+.pg-clinic[data-pg-skin="portal-blue"] { --pg-head: #246FB5; --pg-head-ink: #fff; --pg-font: "Source Sans 3", sans-serif; }
+.pg-clinic[data-pg-skin="portal-blue"]:not(.dark) { --pg-bg: #F7F4F1; --pg-ink: #22262B; }
+.pg-clinic[data-pg-skin="clinic-teal"] { --pg-head: #0B3B3C; --pg-head-ink: #00E0B9; --pg-font: "Nunito Sans", sans-serif; }
+.pg-clinic[data-pg-skin="clinic-teal"]:not(.dark) { --pg-bg: #FFFFFF; --pg-ink: #0F2A2A; }
