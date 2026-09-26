@@ -204,7 +204,7 @@ function keepHyphenated(html: string): string {
       gt + text.replace(/\b((?:[Cc]heck|[Hh]and)-(?:in|off))\b/g, '<span class="nowrap">$1</span>')) + close);
 }
 
-const shell = (title: string, slug: string, body: string, opts: { markdown?: string; current?: string } = {}): string => `<!doctype html>
+const shell = (title: string, slug: string, body: string, opts: { markdown?: string; current?: string; parent?: { href: string; label: string } } = {}): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -218,7 +218,7 @@ ${CHROME_ASSETS}
 </head>
 <body>
 ${header()}
-<nav data-smart-breadcrumb${slug === ROOT_SLUG ? " hidden" : ""}${opts.current ? ` data-current="${opts.current}"` : ""}></nav>
+<nav data-smart-breadcrumb${slug === ROOT_SLUG ? " hidden" : ""}${opts.parent ? ` data-parent-href="${opts.parent.href}" data-parent-label="${opts.parent.label}"` : ""}${opts.current ? ` data-current="${opts.current}"` : ""}></nav>
 <div class="layout">
   ${rail(slug)}
   <main id="main">${keepHyphenated(withPhoneRail(slug, body))}</main>
@@ -369,7 +369,7 @@ for (const page of apiPages) {
   writeFileSync(join(OUT, "api", `${name}.md`), md);
   writeFileSync(
     join(OUT, "api", `${name}.html`),
-    shell(`${name} — API reference`, `api-${name}`, html, { markdown: `${BASE}/docs/api/${name}.md`, current: `API reference: ${name}` }),
+    shell(`${name} — API reference`, `api-${name}`, html, { markdown: `${BASE}/docs/api/${name}.md`, parent: { href: `${BASE}/docs/api/`, label: "API reference" }, current: name }),
   );
 }
 

@@ -33,6 +33,7 @@ export const PICKER_CSS = `
   --_ok: var(--smart-checkin-success, #1A8C76);
   --_warn: var(--smart-checkin-warning, #B85C17);
   --_mark-off: var(--smart-checkin-mark-muted, #B9C2CC);
+  --_mark-purple: var(--smart-checkin-mark-purple, #722772);
   --_m: var(--smart-checkin-motion-speed, 1);
   --_radius: var(--smart-checkin-radius, 10px);
   --_radius-lg: var(--smart-checkin-radius-large, 14px);
@@ -59,6 +60,7 @@ export const PICKER_CSS = `
   --_ok: var(--smart-checkin-success, #2BB896);
   --_warn: var(--smart-checkin-warning, #E08A3E);
   --_mark-off: var(--smart-checkin-mark-muted, #4A5866);
+  --_mark-purple: var(--smart-checkin-mark-purple, #A04CA0);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -76,6 +78,7 @@ export const PICKER_CSS = `
     --_ok: var(--smart-checkin-success, #2BB896);
     --_warn: var(--smart-checkin-warning, #E08A3E);
     --_mark-off: var(--smart-checkin-mark-muted, #4A5866);
+    --_mark-purple: var(--smart-checkin-mark-purple, #A04CA0);
     color-scheme: dark;
   }
 }
@@ -84,7 +87,12 @@ export const PICKER_CSS = `
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--_focus); outline-offset: 2px; }
 
-.card { background: var(--_surface); border: var(--_card-border); border-radius: var(--_radius-lg); padding: var(--_card-padding); display: grid; gap: 12px; }
+/* A page reserves the picker's space with min-height on the element (see the
+   docs, "Reserve its space"); the card fills it, with the footer at the bottom. */
+[part="container"] { min-height: inherit; }
+.card { background: var(--_surface); border: var(--_card-border); border-radius: var(--_radius-lg); padding: var(--_card-padding); display: flex; flex-direction: column; gap: 12px; }
+[part="container"] > .card { min-height: inherit; }
+.card > .footer { margin-top: auto; }
 :host([appearance="flat"]) .card { background: transparent; border: 0; padding: 0; }
 .title { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.25; text-wrap: balance; }
 .description { margin: -6px 0 0; font-size: 14px; line-height: 1.4; color: var(--_text-2); text-wrap: pretty; }
@@ -115,7 +123,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--_focus); ou
 .stack { display: flex; align-items: center; flex: none; min-width: 36px; height: 36px; padding-left: 9px; }
 .stack .icon { width: 22px; height: 22px; border-radius: 6px; font-size: 11px; margin-left: -9px; border: 0; box-shadow: 0 0 0 2px var(--_row); }
 
-.link { justify-self: start; background: none; border: 0; padding: 4px 0; color: var(--_accent); font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.link { align-self: flex-start; background: none; border: 0; padding: 4px 0; color: var(--_accent); font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 .status { display: flex; gap: 12px; align-items: flex-start; }
 .status .text { gap: 4px; }
@@ -154,6 +162,8 @@ dialog .card { width: min(420px, calc(100vw - 32px)); max-height: min(640px, cal
 /* The status mark: the starburst beside waiting, shared, declined, and failed. */
 .mark { position: relative; width: 44px; height: 36px; flex: none; }
 .mark > svg { display: block; width: 100%; height: 100%; }
+/* The logo's purple petal, lifted in dark themes where #722772 is too dark. */
+.petal-purple { fill: var(--_mark-purple); }
 .mark .check { position: absolute; right: -6px; bottom: -5px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--_ok); color: #fff; box-shadow: 0 0 0 2px var(--_surface); }
 .mark .check svg { width: 12px; height: 12px; }
 /* Waiting: the petals stay bright while a feathered veil in the surface color

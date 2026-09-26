@@ -1,5 +1,13 @@
 # Upgrading
 
+## 0.4 to 0.4.1
+
+No API changes.
+
+- **Dark themes lift the purple petal.** With `theme="dark"`, or `theme="auto"` on a dark device, the starburst's purple petal (in the status mark and the footer) is `#A04CA0` instead of `#722772`, as in the site's logo. New custom property `--smart-checkin-mark-purple` sets it; the other petals and the gray declined mark are unchanged.
+- **A `min-height` on the element now fills the card.** The card stretches to the element's height with the footer at the bottom. Use it to [reserve the picker's space](wallets.md#reserve-its-space) so the page doesn't jump when the picker loads.
+- **The card lays out as a flex column** instead of a grid. Styles that target the card's children through `::part()` with grid properties (`justify-self`, grid placement) need the flex equivalents.
+
 ## 0.3 to 0.4
 
 No breaking API changes. The picker's status looks and moves differently:

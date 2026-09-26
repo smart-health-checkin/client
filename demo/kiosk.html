@@ -37,13 +37,16 @@
   table.items th, table.items td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); }
   table.items th { font-weight: 600; }
   .small { font-size: var(--fs-sm); color: var(--fg-3); }
+  /* Until the first QR code is drawn, main stays invisible and keeps its
+     height, so nothing jumps as the scenario list and status fill in. */
+  main[data-pending] { visibility: hidden; }
   @media (max-width: 46rem) { .kiosk { grid-template-columns: minmax(0, 1fr); } }
 </style>
 </head>
 <body>
 <div data-smart-topbar></div>
 <nav data-smart-breadcrumb></nav>
-<main id="main">
+<main id="main" data-pending>
 
 <div class="demo-strip smart-banner">
   <div class="wrap smart-banner-inner">

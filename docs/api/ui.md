@@ -8074,7 +8074,7 @@ Defined in: [src/ui/styles.ts:20](https://github.com/smart-health-checkin/client
 const STARBURST_ICON_URL: string;
 ```
 
-Defined in: [src/ui/icons.ts:23](https://github.com/smart-health-checkin/client/blob/main/src/ui/icons.ts#L23)
+Defined in: [src/ui/icons.ts:25](https://github.com/smart-health-checkin/client/blob/main/src/ui/icons.ts#L25)
 
 The starburst on white, as a data: URL suitable for a wallet registry's iconUrl.
 
@@ -8083,10 +8083,10 @@ The starburst on white, as a data: URL suitable for a wallet registry's iconUrl.
 ### STARBURST\_SVG
 
 ```ts
-const STARBURST_SVG: "<svg viewBox=\"57.0752 -11.1948 95.1696 95.1696\" aria-hidden=\"true\" focusable=\"false\"><polygon fill=\"#722772\" points=\"83.91 0 93.42 0 104.56 18.47 116.03 0 125.28 0 104.58 33.96\"/><polygon fill=\"#e24a31\" points=\"60.61 35.72 65.37 28.16 87.76 28.16 76.67 9.49 81.3 1.87 101.89 35.72\"/><polygon fill=\"#e77d26\" points=\"128 1.73 132.76 9.55 121.5 28.16 144.06 28.16 148.69 35.72 107.4 35.72\"/><polygon fill=\"#89bf44\" points=\"148.72 38.78 143.97 46.33 121.57 46.33 132.66 65.16 128.03 72.78 107.44 38.78\"/><polygon fill=\"#f1b42a\" points=\"81.28 72.77 76.53 64.94 87.78 46.33 65.23 46.33 60.6 38.78 101.89 38.78\"/><polygon fill=\"#64aed0\" points=\"125.46 73.22 115.89 73.22 104.68 54.63 93.14 73.22 83.82 73.22 104.66 39.04\"/></svg>";
+const STARBURST_SVG: "<svg viewBox=\"57.0752 -11.1948 95.1696 95.1696\" aria-hidden=\"true\" focusable=\"false\"><polygon class=\"petal-purple\" fill=\"#722772\" points=\"83.91 0 93.42 0 104.56 18.47 116.03 0 125.28 0 104.58 33.96\"/><polygon fill=\"#e24a31\" points=\"60.61 35.72 65.37 28.16 87.76 28.16 76.67 9.49 81.3 1.87 101.89 35.72\"/><polygon fill=\"#e77d26\" points=\"128 1.73 132.76 9.55 121.5 28.16 144.06 28.16 148.69 35.72 107.4 35.72\"/><polygon fill=\"#89bf44\" points=\"148.72 38.78 143.97 46.33 121.57 46.33 132.66 65.16 128.03 72.78 107.44 38.78\"/><polygon fill=\"#f1b42a\" points=\"81.28 72.77 76.53 64.94 87.78 46.33 65.23 46.33 60.6 38.78 101.89 38.78\"/><polygon fill=\"#64aed0\" points=\"125.46 73.22 115.89 73.22 104.68 54.63 93.14 73.22 83.82 73.22 104.66 39.04\"/></svg>";
 ```
 
-Defined in: [src/ui/icons.ts:12](https://github.com/smart-health-checkin/client/blob/main/src/ui/icons.ts#L12)
+Defined in: [src/ui/icons.ts:14](https://github.com/smart-health-checkin/client/blob/main/src/ui/icons.ts#L14)
 
 The SMART starburst, square viewBox, for inline use.
 

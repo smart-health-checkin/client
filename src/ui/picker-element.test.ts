@@ -134,3 +134,51 @@ test("the sweep is a rotating veil in the surface color, scaled by the speed pro
   expect(PICKER_CSS).toContain("animation: smart-checkin-sweep calc(2.6s * var(--_m)) linear infinite");
   expect(PICKER_CSS).toMatch(/@keyframes smart-checkin-sweep \{ to \{ transform: rotate\(360deg\); \} \}/);
 });
+
+// ---- the mark's purple petal, per theme
+
+const { STARBURST_SVG, STARBURST_MARK_SVG, STARBURST_ICON_URL } = await import("./icons.js");
+
+// The declarations inside the first rule block that starts with `selector`.
+function block(css: string, selector: string): string {
+  const start = css.indexOf(selector);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const open = css.indexOf("{", start);
+  return css.slice(open + 1, css.indexOf("}", open));
+}
+
+test("the purple petal is themed by --smart-checkin-mark-purple: #722772 light, #A04CA0 dark", () => {
+  expect(block(PICKER_CSS, ":host {")).toContain("--_mark-purple: var(--smart-checkin-mark-purple, #722772);");
+  expect(block(PICKER_CSS, ':host([theme="dark"])')).toContain("--_mark-purple: var(--smart-checkin-mark-purple, #A04CA0);");
+  const auto = PICKER_CSS.slice(PICKER_CSS.indexOf("@media (prefers-color-scheme: dark)"));
+  expect(block(auto, ':host([theme="auto"])')).toContain("--_mark-purple: var(--smart-checkin-mark-purple, #A04CA0);");
+  expect(PICKER_CSS).toContain(".petal-purple { fill: var(--_mark-purple); }");
+});
+
+test("only the purple petal carries the class; the other petals and the standalone icon keep their colors", () => {
+  for (const svg of [STARBURST_SVG, STARBURST_MARK_SVG]) {
+    expect(svg.match(/class="petal-purple"/g)?.length).toBe(1);
+    expect(svg).toContain('<polygon class="petal-purple" fill="#722772"');
+    for (const c of ["#e24a31", "#e77d26", "#89bf44", "#f1b42a", "#64aed0"]) expect(svg).toContain(`<polygon fill="${c}"`);
+  }
+  // The registry icon is drawn on white outside the picker: it stays #722772.
+  expect(decodeURIComponent(STARBURST_ICON_URL)).toContain('fill="#722772"');
+});
+
+test("declined and failed turn every petal gray, the purple one included", () => {
+  // These rules outrank .petal-purple (more specific), and the animation outranks both.
+  expect(PICKER_CSS).toContain('.card[data-state="declined"] .mark polygon');
+  expect(PICKER_CSS).toContain('@keyframes smart-checkin-mark-off { to { fill: var(--_mark-off); } }');
+  expect(PICKER_CSS).toContain(':host([motion="none"]) .card[data-state="declined"] .mark polygon');
+});
+
+test("the status mark and the footer mark both draw the themed petal", () => {
+  const done = renderView({ kind: "done", wallet });
+  expect(done.match(/class="petal-purple"/g)?.length).toBe(2);
+});
+
+test("a min-height on the element carries through to the card", () => {
+  expect(PICKER_CSS).toContain('[part="container"] { min-height: inherit; }');
+  expect(PICKER_CSS).toContain('[part="container"] > .card { min-height: inherit; }');
+  expect(PICKER_CSS).toContain(".card > .footer { margin-top: auto; }");
+});
