@@ -18,7 +18,7 @@ import { createBrowserKeyCustody } from "../browser/index.js";
 import type { SmartCheckinRequest } from "../model/index.js";
 import { parseWalletRequest } from "../wallet/seal.js";
 import { isDecline, WalletDeclinedError } from "../core/errors.js";
-import { customWallet, platformWallet, type Wallet } from "../core/wallets.js";
+import { customWallet, platformWallet, type Wallet, type WalletSession } from "../core/wallets.js";
 
 /** What the kiosk posts for the phone to pick up. */
 export type HandoffEnvelope = {
@@ -116,18 +116,20 @@ export async function fetchHandoff(
 
 /**
  * Phone side, step two: ask the wallet and send back what it returned.
- * `getCredential` defaults to the browser's own navigator.credentials.get;
- * pass a web-wallet or mock getter to answer without a platform wallet. A
- * decline is reported to the kiosk as a decline, not as silence.
+ * `wallet` defaults to the phone's own (the browser's navigator.credentials.get);
+ * pass a web wallet or the mock to answer without one. `options.session` is a
+ * session already opened with `wallet.open()`, for example by the picker in
+ * pick mode. A decline is reported to the kiosk as a decline, not as silence.
  */
 export async function answerHandoff(
   mailbox: HandoffMailbox,
   sessionId: string,
   envelope: HandoffEnvelope,
   wallet: Wallet = platformWallet(),
+  options: { session?: WalletSession } = {},
 ): Promise<HandoffAnswer> {
   // Opened before the first await, so a web wallet's tab opens inside the click.
-  const session = wallet.open();
+  const session = options.session ?? wallet.open();
   let answer: HandoffAnswer;
   try {
     const credential = (await session.getCredential(envelope.navigatorArgument)) as

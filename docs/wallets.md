@@ -352,6 +352,15 @@ myShareButton.onclick = () => answerHandoff(myMailbox, sessionId, envelope);
 
 `answerHandoff` asks the phone's own wallet unless you pass another wallet. Call it inside the click.
 
+With the picker in [pick mode](#pick-only), let the patient choose the wallet, then pass the session the picker opened:
+
+```ts
+picker.addEventListener("smart-checkin-choose", ({ detail: { wallet, session } }) =>
+  answerHandoff(myMailbox, sessionId, envelope, wallet, { session }));
+```
+
+The [kiosk's phone page](../demo/handoff.html) works this way.
+
 ### The mailbox
 
 You provide the mailbox, somewhere both devices can reach: a realtime database, a WebSocket relay, or two endpoints on your API.

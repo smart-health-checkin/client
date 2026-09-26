@@ -299,15 +299,17 @@ function answerHandoff(
    mailbox, 
    sessionId, 
    envelope, 
-wallet?): Promise<HandoffAnswer>;
+   wallet?, 
+options?): Promise<HandoffAnswer>;
 ```
 
-Defined in: [src/kit/handoff.ts:123](https://github.com/smart-health-checkin/client/blob/main/src/kit/handoff.ts#L123)
+Defined in: [src/kit/handoff.ts:124](https://github.com/smart-health-checkin/client/blob/main/src/kit/handoff.ts#L124)
 
 Phone side, step two: ask the wallet and send back what it returned.
-`getCredential` defaults to the browser's own navigator.credentials.get;
-pass a web-wallet or mock getter to answer without a platform wallet. A
-decline is reported to the kiosk as a decline, not as silence.
+`wallet` defaults to the phone's own (the browser's navigator.credentials.get);
+pass a web wallet or the mock to answer without one. `options.session` is a
+session already opened with `wallet.open()`, for example by the picker in
+pick mode. A decline is reported to the kiosk as a decline, not as silence.
 
 #### Parameters
 
@@ -317,6 +319,8 @@ decline is reported to the kiosk as a decline, not as silence.
 | `sessionId` | `string` |
 | `envelope` | [`HandoffEnvelope`](#handoffenvelope) |
 | `wallet` | [`Wallet`](checkin.md#wallet-1) |
+| `options` | \{ `session?`: [`WalletSession`](checkin.md#walletsession); \} |
+| `options.session?` | [`WalletSession`](checkin.md#walletsession) |
 
 #### Returns
 
@@ -382,7 +386,7 @@ The URL the QR code carries.
 function handoffWallet(options): Wallet;
 ```
 
-Defined in: [src/kit/handoff.ts:158](https://github.com/smart-health-checkin/client/blob/main/src/kit/handoff.ts#L158)
+Defined in: [src/kit/handoff.ts:160](https://github.com/smart-health-checkin/client/blob/main/src/kit/handoff.ts#L160)
 
 A kiosk's "use your phone" option as a wallet: posts the request to the
 mailbox, calls `onWaiting` with the URL to show as a QR code, and waits for

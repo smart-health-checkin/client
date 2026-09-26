@@ -130,6 +130,8 @@ export class SmartCheckinPicker extends HTMLElementBase {
   private _strings: PickerStrings = DEFAULT_STRINGS;
   private _wallets?: Wallet[];
   private resolved: Wallet[] = [];
+  /** How the last load of the wallet list ended; undefined while one runs. */
+  private loaded?: "ok" | "failed";
   private view: View = { kind: "loading" };
   private ignoreRemembered = false;
   private session?: WalletSession;
@@ -243,13 +245,19 @@ export class SmartCheckinPicker extends HTMLElementBase {
     this.session = undefined;
     this.abort = undefined;
     this.runId++;
-    this.view = this.resolved.length || this._wallets ? { kind: "choose" } : { kind: "loading" };
+    // A list that failed to load is tried again; one still loading keeps its spinner.
+    if (this.loaded === "failed") {
+      void this.load();
+      return;
+    }
+    this.view = this.loaded === "ok" ? { kind: "choose" } : { kind: "loading" };
     this.render();
   }
 
   private async load(): Promise<void> {
     if (!this.root) return;
     const id = ++this.loadId;
+    this.loaded = undefined;
     this.view = { kind: "loading" };
     this.render();
     try {
@@ -263,10 +271,12 @@ export class SmartCheckinPicker extends HTMLElementBase {
         }));
       if (id !== this.loadId) return;
       this.resolved = list;
+      this.loaded = "ok";
       this.view = { kind: "choose" };
     } catch (e) {
       if (id !== this.loadId) return;
       this.resolved = [];
+      this.loaded = "failed";
       const message = e instanceof Error ? e.message : String(e);
       this.view = { kind: "error", message: `Couldn't load the list of health apps: ${message}` };
       this.emit("smart-checkin-error", { message });

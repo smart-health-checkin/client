@@ -176,3 +176,19 @@ test("the status mark and the footer mark both draw the themed petal", () => {
   const done = renderView({ kind: "done", wallet });
   expect(done.match(/class="petal-purple"/g)?.length).toBe(2);
 });
+
+// ---- reset
+
+test("reset after a load that found no wallets shows the list, not a spinner", async () => {
+  const el = new SmartCheckinPicker() as unknown as Record<string, unknown>;
+  const attrs = withAttributes(el);
+  attrs.set("platform", "off"); // no registry, no mock: an empty list
+  const main = { innerHTML: "", querySelectorAll: () => [] };
+  el.root = {};
+  el.main = main;
+  el.dialog = { open: false };
+  await (el.load as () => Promise<void>).call(el);
+  (el.reset as () => void).call(el);
+  expect((el.view as { kind: string }).kind).toBe("choose");
+  expect(main.innerHTML).toContain('data-state="choose"');
+});
