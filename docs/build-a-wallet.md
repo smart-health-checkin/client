@@ -16,8 +16,8 @@ The spec covers each step: [request handling](https://smart-health-checkin.org/s
 
 A native wallet registers with Android's Credential Manager and answers requests the browser passes through the Digital Credentials API.
 
-- **Reference wallet:** [`wallet-android`](https://github.com/smart-health-checkin/spec/tree/main/wallet-android) in the spec repository.
-- **Install it:** [smart-checkin-wallet-debug.apk](https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk).
+- **Reference wallet:** [`android-wallet`](https://github.com/smart-health-checkin/android-wallet) repository.
+- **Install it:** [smart-checkin-wallet-debug.apk](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-checkin-wallet-debug.apk).
 - **Registration:** the app registers a credential entry and a small matcher (WebAssembly) that decides whether a request is a SMART Health Check-in request.
 - **Parsing and sealing:** done in Kotlin in that app. This library is JavaScript, for web wallets and for tests.
 
