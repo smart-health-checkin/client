@@ -27,7 +27,7 @@ Defined in: [src/model/types.ts:14](https://github.com/smart-health-checkin/clie
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (draft spec §§5–6 as code). Ported from the spec prototype and
-verified against the vendored fixtures.
+verified against the spec's fixtures.
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [src/model/types.ts:8](https://github.com/smart-health-checkin/clien
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (draft spec §§5–6 as code). Ported from the spec prototype and
-verified against the vendored fixtures.
+verified against the spec's fixtures.
 
 ***
 
@@ -55,7 +55,7 @@ Defined in: [src/model/types.ts:7](https://github.com/smart-health-checkin/clien
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (draft spec §§5–6 as code). Ported from the spec prototype and
-verified against the vendored fixtures.
+verified against the spec's fixtures.
 
 ***
 
@@ -73,7 +73,7 @@ Defined in: [src/model/types.ts:53](https://github.com/smart-health-checkin/clie
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (draft spec §§5–6 as code). Ported from the spec prototype and
-verified against the vendored fixtures.
+verified against the spec's fixtures.
 
 #### Properties
 
@@ -117,7 +117,7 @@ Defined in: [src/model/types.ts:9](https://github.com/smart-health-checkin/clien
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (draft spec §§5–6 as code). Ported from the spec prototype and
-verified against the vendored fixtures.
+verified against the spec's fixtures.
 
 ***
 
@@ -139,7 +139,7 @@ Defined in: [src/model/types.ts:78](https://github.com/smart-health-checkin/clie
 
 model — transport-neutral SMART Health Check-in request/response types and
 validators (draft spec §§5–6 as code). Ported from the spec prototype and
-verified against the vendored fixtures.
+verified against the spec's fixtures.
 
 #### Type Parameters
 

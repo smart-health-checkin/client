@@ -39,7 +39,7 @@ The form stays the fallback. A patient without a health app, or one who says no,
 Load the picker and put it above the form.
 
 ```html
-<script type="module" src="https://smart-health-checkin.org/client/lib/0.2.0/ui.js"></script>
+<script type="module" src="https://smart-health-checkin.org/client/lib/0.2.1/ui.js"></script>
 
 <smart-checkin-picker
   heading="Fill this form from a health app"
@@ -48,7 +48,7 @@ Load the picker and put it above the form.
 <p id="note"></p>
 ```
 
-- `ui.js` is self-contained and pinned to version 0.2.0.
+- `ui.js` is self-contained and pinned to version 0.2.1.
 - With no other attributes, the picker offers the phone's own health app, when the browser can reach one.
 - `#note` is where the page will tell the patient what happened.
 
@@ -236,7 +236,7 @@ Save this as `checkin.html` and open it through your local web server. It is als
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Before your visit · Riverbend Family Medicine</title>
-  <script type="module" src="https://smart-health-checkin.org/client/lib/0.2.0/ui.js"></script>
+  <script type="module" src="https://smart-health-checkin.org/client/lib/0.2.1/ui.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
     label { display: block; margin-top: 1rem; font-weight: 600; }

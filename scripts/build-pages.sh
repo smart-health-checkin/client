@@ -38,20 +38,14 @@ bun run docs >/dev/null
 bun scripts/render-docs.ts
 bun scripts/apply-chrome.ts
 
-# Pinned copies: /lib/<version>/ must keep serving the same bytes forever, so
-# every released version's bundles are committed under releases/<version>/
-# (scripts/freeze-release.sh) and all of them are published on every build.
-# Rebuilding an old tag isn't an option: minifier output changes across Bun
-# versions, and old tags may not build at all.
+# Pinned copies: /lib/<version>/ serves each GitHub release's bundles, byte
+# for byte (scripts/fetch-releases.sh). Rebuilding old versions isn't an
+# option: minifier output changes across Bun versions.
 VERSION=$(bun -e 'console.log(require("./package.json").version)')
-for dir in releases/*/; do
-  v=$(basename "$dir")
-  mkdir -p "$OUT/lib/$v"
-  cp "$dir"*.js "$OUT/lib/$v/"
-done
-if [ ! -d "releases/$VERSION" ]; then
-  # An unreleased version: publish today's build under its number as a preview.
-  echo "warning: releases/$VERSION is not frozen; publishing /lib/$VERSION/ from source" >&2
+scripts/fetch-releases.sh "$OUT/lib"
+if [ ! -d "$OUT/lib/$VERSION" ]; then
+  # Not released yet: publish today's build under its number as a preview.
+  echo "warning: v$VERSION has no release yet; publishing /lib/$VERSION/ from source" >&2
   mkdir -p "$OUT/lib/$VERSION"
   for entry in checkin fhir ui wallet handoff testing; do cp "$OUT/lib/$entry.js" "$OUT/lib/$VERSION/$entry.js"; done
 fi
@@ -60,7 +54,7 @@ printf '{"version":"%s"}\n' "$VERSION" > $OUT/lib/version.json
 # Every pinned URL the docs and demos mention has to exist in this build.
 missing=0
 for v in $(grep -rhoE '/lib/[0-9]+\.[0-9]+\.[0-9]+/' docs demo README.md | sort -u | cut -d/ -f3); do
-  if [ ! -d "$OUT/lib/$v" ]; then echo "error: docs pin /lib/$v/ but no releases/$v/ is committed" >&2; missing=1; fi
+  if [ ! -d "$OUT/lib/$v" ]; then echo "error: docs pin /lib/$v/ but there is no v$v release" >&2; missing=1; fi
 done
 [ "$missing" = 0 ] || exit 1
 

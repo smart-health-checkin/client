@@ -1,0 +1,68 @@
+name: Release
+
+# Push a tag vX.Y.Z (matching package.json) to publish a release: an npm
+# tarball with the built package, and the hosted bundles that
+# smart-health-checkin.org/client/lib/X.Y.Z/ serves from then on.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - name: Tag matches package.json
+        run: |
+          want="v$(bun -e 'console.log(require("./package.json").version)')"
+          [ "$want" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME but package.json says $want"; exit 1; }
+      - run: bun run typecheck
+      - run: bun test
+      - name: Build the tarball and bundles
+        run: |
+          mkdir -p release
+          npm pack --pack-destination release
+          scripts/build-lib.sh release
+          ls -l release
+      - name: The tarball installs and imports
+        run: |
+          mkdir /tmp/consumer && cd /tmp/consumer
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE"/release/*.tgz
+          node --input-type=module -e '
+            const root = await import("@smart-health-checkin/client");
+            const model = await import("@smart-health-checkin/client/model");
+            const wire = await import("@smart-health-checkin/client/wire");
+            if (typeof root.runCheckin !== "function" || typeof model.validateSmartCheckinRequest !== "function" || typeof wire.cborDecode !== "function") process.exit(1);
+            console.log("imports ok");'
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/smart-health-checkin-client-${V}.tgz"
+          {
+            echo "## Install"
+            echo
+            echo '```'
+            echo "npm install ${URL}"
+            echo '```'
+            echo
+            echo "Or load the hosted bundles, which never change for this version:"
+            echo
+            echo '```html'
+            echo "<script type=\"module\" src=\"https://smart-health-checkin.org/client/lib/${V}/ui.js\"></script>"
+            echo '```'
+            echo
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" release/* --title "$GITHUB_REF_NAME" --notes-file notes.md --generate-notes --verify-tag
+      - name: Publish this release's bundles on the site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main

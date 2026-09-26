@@ -56,15 +56,17 @@ the same pages live in this repo, so they read here too.
 
 ## Install
 
-No npm registry — install from git, pinning a branch or a commit. A `prepare`
-step compiles the TypeScript on install, so you get JavaScript plus `.d.ts`
-types; Bun resolves the TypeScript sources directly.
+The library isn't on the npm registry. Each [GitHub release](https://github.com/smart-health-checkin/client/releases)
+has a built package; install it by URL (npm, pnpm, yarn, and Bun all accept this):
 
 ```sh
-npm install github:smart-health-checkin/client
-npm install github:smart-health-checkin/client#<commit-sha>
-bun add github:smart-health-checkin/client
+npm install https://github.com/smart-health-checkin/client/releases/download/v0.2.1/smart-health-checkin-client-0.2.1.tgz
 ```
+
+The release notes for each version start with its install line. Watch the
+repository's releases to hear about new ones. Installing straight from git
+(`npm install github:smart-health-checkin/client#v0.2.1`) also works, but
+builds the package on your machine.
 
 Or with no build step, from the hosted ES modules at `/client/lib/`, each self-contained, with pinned copies at `/client/lib/<version>/`:
 
@@ -129,3 +131,14 @@ there rebuilds when this repo changes.
 
 Apache-2.0. Related: [spec](https://github.com/smart-health-checkin/spec) ·
 [KTC materials](https://github.com/smart-health-checkin/ktc)
+
+## Releasing
+
+1. Set `version` in `package.json` and move any `/client/lib/<version>/` pins in the docs.
+2. Commit, then tag and push: `git tag vX.Y.Z && git push origin main vX.Y.Z`.
+
+The release workflow checks the tag against `package.json`, runs the tests,
+attaches the npm tarball and the hosted bundles to a GitHub release, and
+redeploys the site, which serves every release's bundles at
+`/client/lib/<version>/` (`scripts/fetch-releases.sh`). A release's files never
+change after that.

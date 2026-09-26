@@ -1,6 +1,6 @@
 {
   "name": "@smart-health-checkin/client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -72,8 +72,7 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "docs": "bun scripts/build-api-docs.ts",
-    "build:pages": "scripts/build-pages.sh",
-    "release:freeze": "scripts/freeze-release.sh"
+    "build:pages": "scripts/build-pages.sh"
   },
   "devDependencies": {
     "@angular/common": "^22.1.3",
