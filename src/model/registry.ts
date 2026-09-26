@@ -14,7 +14,7 @@ import type { FetchLike } from "../fetch-like.js";
 export type WebWalletEntry = {
   /** Stable identifier used in URLs, storage, and telemetry. */
   id: string;
-  /** What the person sees: "Demo Health Wallet". */
+  /** What the person sees: "Demo wallet". */
   name: string;
   /** The page that answers check-in requests. */
   walletUrl: string;

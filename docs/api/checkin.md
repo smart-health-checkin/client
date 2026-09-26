@@ -2463,7 +2463,7 @@ name: string;
 
 Defined in: [src/model/registry.ts:18](https://github.com/smart-health-checkin/client/blob/main/src/model/registry.ts#L18)
 
-What the person sees: "Demo Health Wallet".
+What the person sees: "Demo wallet".
 
 ##### target?
 

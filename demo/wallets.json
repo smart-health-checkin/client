@@ -3,7 +3,7 @@
   "wallets": [
     {
       "id": "demo",
-      "name": "Demo Health Wallet",
+      "name": "Demo wallet",
       "walletUrl": "./wallet.html",
       "description": "Reference wallet holding a fuller record: four allergies, two medications."
     },

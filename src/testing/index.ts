@@ -29,7 +29,7 @@ export const DEMO_WALLET_REGISTRY: WalletRegistry = {
   wallets: [
     {
       id: "demo",
-      name: "Demo Health Wallet",
+      name: "Demo wallet",
       walletUrl: "https://smart-health-checkin.org/client/demo/wallet.html",
       description: "This project's demo wallet, holding made-up records.",
       homepage: "https://smart-health-checkin.org/client/demo/",

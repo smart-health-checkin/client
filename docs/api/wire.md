@@ -51,7 +51,7 @@ Defined in: [src/wire/cbor.ts:11](https://github.com/smart-health-checkin/client
 
 ### JsonSyntaxError
 
-Defined in: src/wire/json.ts:7
+Defined in: [src/wire/json.ts:7](https://github.com/smart-health-checkin/client/blob/main/src/wire/json.ts#L7)
 
 A strict JSON parser for SMART requests and responses: RFC 8259, and a
 member name repeated in one object is an error (spec [JSON-1], [JSON-2]).
@@ -382,7 +382,7 @@ Error.prepareStackTrace
 
 ### WarningList
 
-Defined in: src/wire/warnings.ts:38
+Defined in: [src/wire/warnings.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L38)
 
 Collects warnings, keeping the first of each code and message.
 
@@ -406,7 +406,7 @@ new WarningList(): WarningList;
 readonly items: CheckinWarning[] = [];
 ```
 
-Defined in: src/wire/warnings.ts:39
+Defined in: [src/wire/warnings.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L39)
 
 #### Accessors
 
@@ -420,7 +420,7 @@ get duplicateKeys(): {
 };
 ```
 
-Defined in: src/wire/warnings.ts:44
+Defined in: [src/wire/warnings.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L44)
 
 A CBOR decode option that reports repeated map keys ([ENC-5]).
 
@@ -459,7 +459,7 @@ add(
    message): void;
 ```
 
-Defined in: src/wire/warnings.ts:40
+Defined in: [src/wire/warnings.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L40)
 
 ###### Parameters
 
@@ -521,7 +521,7 @@ type CheckinWarning = {
 };
 ```
 
-Defined in: src/wire/warnings.ts:30
+Defined in: [src/wire/warnings.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L30)
 
 #### Properties
 
@@ -531,7 +531,7 @@ Defined in: src/wire/warnings.ts:30
 code: CheckinWarningCode;
 ```
 
-Defined in: src/wire/warnings.ts:31
+Defined in: [src/wire/warnings.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L31)
 
 ##### message
 
@@ -539,7 +539,7 @@ Defined in: src/wire/warnings.ts:31
 message: string;
 ```
 
-Defined in: src/wire/warnings.ts:32
+Defined in: [src/wire/warnings.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L32)
 
 ##### rule
 
@@ -547,7 +547,7 @@ Defined in: src/wire/warnings.ts:32
 rule: string;
 ```
 
-Defined in: src/wire/warnings.ts:34
+Defined in: [src/wire/warnings.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L34)
 
 The spec requirement behind the check, such as "VRS-7".
 
@@ -581,7 +581,7 @@ type CheckinWarningCode =
   | "reader-auth";
 ```
 
-Defined in: src/wire/warnings.ts:6
+Defined in: [src/wire/warnings.ts:6](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L6)
 
 Receiver warnings (spec §2, [RCV-1]). A receiver continues past a warning
 and reports it; it fails only where spec §8 marks a step as a failure.
@@ -2649,7 +2649,7 @@ function decodeBase64UrlLenient(
    what): Uint8Array;
 ```
 
-Defined in: src/wire/warnings.ts:53
+Defined in: [src/wire/warnings.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/wire/warnings.ts#L53)
 
 Decode base64url, tolerating padding and the standard alphabet with a
 warning ([WRQ-2], [VRS-2]). Throws on anything else.
@@ -3124,7 +3124,7 @@ Defined in: [src/wire/response.ts:206](https://github.com/smart-health-checkin/c
 function parseJsonStrict(text): unknown;
 ```
 
-Defined in: src/wire/json.ts:9
+Defined in: [src/wire/json.ts:9](https://github.com/smart-health-checkin/client/blob/main/src/wire/json.ts#L9)
 
 #### Parameters
 

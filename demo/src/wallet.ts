@@ -1,5 +1,5 @@
 /**
- * Demo Health Wallet — a wallet **web app** that answers SMART Health
+ * Demo wallet — a wallet **web app** that answers SMART Health
  * Check-in requests over the web-wallet hand-off, using `serveWebWallet`.
  *
  * The library does the protocol: it accepts one request from the opener,
@@ -50,7 +50,7 @@ type Brand = {
 const BRANDS: Record<string, Brand> = {
   demo: {
     id: "demo",
-    name: "Demo Health Wallet",
+    name: "Demo wallet",
     tagline: "holds your records on this device",
     accent: "#6aa8ff",
     prescriber: "Demo Primary Care",

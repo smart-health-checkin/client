@@ -66,7 +66,7 @@ const wallet: "platform" | "app" | "auto" =
   walletParam === "platform" ? "platform" : walletParam === "auto" || walletParam === "mock" ? "auto" : "app";
 const chosenWallet: Wallet =
   wallet === "app"
-    ? webWallet({ id: "demo", name: "Demo Health Wallet", walletUrl: "./wallet.html" })
+    ? webWallet({ id: "demo", name: "Demo wallet", walletUrl: "./wallet.html" })
     : wallet === "auto"
       ? mockWallet()
       : platformWallet();
@@ -90,7 +90,7 @@ function init(): void {
   const note = el("status-note");
   const button = el("prefill") as HTMLButtonElement;
   if (wallet === "app") {
-    note.textContent = "Demo wallet app: opens in a new tab where you choose what to share.";
+    note.textContent = "Demo wallet: opens in a new tab where you choose what to share.";
   } else if (wallet === "auto") {
     note.textContent = "Automatic mock wallet — fabricated demo allergies, no consent screen.";
   } else if (support.state === "supported") {
