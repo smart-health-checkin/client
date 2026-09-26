@@ -87,12 +87,7 @@ export const PICKER_CSS = `
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--_focus); outline-offset: 2px; }
 
-/* A page reserves the picker's space with min-height on the element (see the
-   docs, "Reserve its space"); the card fills it, with the footer at the bottom. */
-[part="container"] { min-height: inherit; }
 .card { background: var(--_surface); border: var(--_card-border); border-radius: var(--_radius-lg); padding: var(--_card-padding); display: flex; flex-direction: column; gap: 12px; }
-[part="container"] > .card { min-height: inherit; }
-.card > .footer { margin-top: auto; }
 :host([appearance="flat"]) .card { background: transparent; border: 0; padding: 0; }
 .title { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.25; text-wrap: balance; }
 .description { margin: -6px 0 0; font-size: 14px; line-height: 1.4; color: var(--_text-2); text-wrap: pretty; }

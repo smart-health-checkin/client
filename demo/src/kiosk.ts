@@ -75,16 +75,10 @@ async function start(): Promise<void> {
       await QRCode.toCanvas(el("qr") as HTMLCanvasElement, url, { width: 260, margin: 1 });
       (el("open-here") as HTMLAnchorElement).href = url;
       setStatus("Scan with your phone's camera and follow the link. This screen updates when your phone has answered.");
-      reveal();
     },
   });
   renderOutcome(await phone.start(request, { signal: controller.signal }));
-  reveal();
 }
-
-// The page shows once the QR code is drawn (or after 2 s, whatever happens).
-const reveal = () => document.querySelector("main")?.removeAttribute("data-pending");
-setTimeout(reveal, 2000);
 
 // demo controls: scenario
 const select = el("scenario-select") as HTMLSelectElement;

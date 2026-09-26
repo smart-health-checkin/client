@@ -40,14 +40,6 @@
     font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
   }
   a { color: var(--accent); }
-  /* Reserve the app's space so the page below doesn't move when React
-     renders and the picker fills in (measured at 1280 and 390 wide). */
-  #root { min-height: 34.9rem; }
-  smart-checkin-picker { display: block; min-height: 26.1rem; }
-  @media (max-width: 46rem) {
-    #root { min-height: 44.9rem; }
-    smart-checkin-picker { min-height: 34.7rem; }
-  }
   .choices { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 </style>
 </head>

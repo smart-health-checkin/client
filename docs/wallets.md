@@ -158,19 +158,6 @@ smart-checkin-picker {
 
 For anything else, style these parts with `::part()`: `card`, `title`, `description`, `primary`, `list`, `row`, `more`, `icon`, `status`, `mark` (the starburst beside a status), `check` (on the mark when shared), `footer`, `dialog`.
 
-### Reserve its space
-
-The picker draws once its script has loaded, and fills in its list once the wallets are known (a `registry` is fetched). Anything below it on the page moves down each time, which reads as a jump (layout shift). Give the element a minimum height that fits your list:
-
-```css
-smart-checkin-picker { display: block; min-height: 26rem; }
-@media (max-width: 30rem) { smart-checkin-picker { min-height: 34rem; } }
-```
-
-- The rule applies before the element is defined too, so `display: block` is needed: an undefined element is inline and ignores `min-height`.
-- The card stretches to fill the height, with the SMART Health Check-in mark at the bottom, so shorter states (waiting, shared) keep the same size instead of shrinking.
-- Measure your page: load it, read the picker's height in the browser's developer tools, and use that. The height depends on the width and on the wallets' descriptions.
-
 ### Motion
 
 With `motion="subtle"`, the default, the picker moves a little:

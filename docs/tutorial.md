@@ -206,13 +206,6 @@ Now offer real web wallets. Point the picker at the connectathon's [wallet regis
 </smart-checkin-picker>
 ```
 
-The list arrives a moment after the page shows. So the form doesn't jump down when it does, reserve the picker's space (see [Reserve its space](wallets.md#reserve-its-space)); these heights fit this registry's list:
-
-```css
-smart-checkin-picker { display: block; min-height: 32.5rem; }
-@media (max-width: 30rem) { smart-checkin-picker { min-height: 46.5rem; } }
-```
-
 Pick **SMART Testing Wallet** ([what it is](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md)). It opens in a tab with a synthetic patient. Choose what to share and press Share; the tab closes and the form fills in.
 
 The Testing Wallet signs insurance cards with a test issuer that no one trusts in production. Accept any validly signed card while you test:
@@ -250,9 +243,6 @@ Save this as `checkin.html` and open it through your local web server. It is als
     input, textarea { box-sizing: border-box; width: 100%; font: inherit; padding: 0.4rem; }
     #note { color: #4b5563; }
     button { margin-top: 1rem; font: inherit; padding: 0.5rem 1rem; }
-    /* Room for the picker's list, so the form doesn't jump when it loads. */
-    smart-checkin-picker { display: block; min-height: 32.5rem; }
-    @media (max-width: 30rem) { smart-checkin-picker { min-height: 46.5rem; } }
   </style>
 </head>
 <body>

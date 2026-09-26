@@ -176,9 +176,3 @@ test("the status mark and the footer mark both draw the themed petal", () => {
   const done = renderView({ kind: "done", wallet });
   expect(done.match(/class="petal-purple"/g)?.length).toBe(2);
 });
-
-test("a min-height on the element carries through to the card", () => {
-  expect(PICKER_CSS).toContain('[part="container"] { min-height: inherit; }');
-  expect(PICKER_CSS).toContain('[part="container"] > .card { min-height: inherit; }');
-  expect(PICKER_CSS).toContain(".card > .footer { margin-top: auto; }");
-});
