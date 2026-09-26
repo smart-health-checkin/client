@@ -10,6 +10,7 @@
 import { detectDcApiSupport, platformWallet, webWallet, type Wallet } from "../../src/index.js";
 import { mockWallet } from "../../src/testing/index.js";
 import { showShareLink } from "./share-link.js";
+import "./site.js";
 
 const ALLERGY_REVIEW = {
   purpose: "Review your allergy list before your visit",
@@ -252,7 +253,7 @@ function render(): void {
 
     if (!row.removed && !needsDetail(row) && (row.symptoms.size || row.severity)) {
       const change = document.createElement("button");
-      change.className = "linkish";
+      change.className = "smart-btn link sm";
       change.type = "button";
       change.textContent = row.expanded ? "done" : "change";
       change.onclick = () => {
@@ -263,7 +264,7 @@ function render(): void {
     }
 
     const remove = document.createElement("button");
-    remove.className = "linkish";
+    remove.className = "smart-btn link sm";
     remove.type = "button";
     remove.textContent = row.removed ? "undo" : "remove";
     remove.onclick = () => {
@@ -307,7 +308,9 @@ function render(): void {
       sevLabel.className = "sev-label";
       sevLabel.textContent = "How bad?";
       const sev = document.createElement("span");
-      sev.className = "sev";
+      sev.className = "smart-tabs";
+      sev.setAttribute("role", "group");
+      sev.setAttribute("aria-label", "How bad");
       for (const level of SEVERITIES) {
         const button = document.createElement("button");
         button.type = "button";
@@ -418,11 +421,7 @@ function renderOutput(): void {
   for (const tab of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
     tab.setAttribute("aria-pressed", String(tab.dataset.tab === outputTab));
   }
-  el("sent-json").textContent = JSON.stringify(
-    outputTab === "fhir" ? asFhir() : asNative(),
-    null,
-    2,
-  );
+  SmartJson.renderJson(el("sent-json"), outputTab === "fhir" ? asFhir() : asNative());
   el("tab-note").textContent =
     outputTab === "fhir"
       ? "Standard FHIR: reaction manifestations and criticality populated from what the patient just told you, ready to POST."

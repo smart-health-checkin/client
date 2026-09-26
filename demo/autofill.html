@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,21 +11,10 @@
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* This demo simulates a clinic's own page, drawn on the site's design
-     system so the whole domain reads as one product family. Names below are
-     the demo's local vocabulary, mapped onto the shared tokens. */
-  :root {
-    --ink:      var(--fg-1);
-    --muted:    var(--fg-2);
-    --accent:   var(--brand);
-    --line:     var(--border);
-    --code-bg:  var(--gray-100);
-    --demo-bg:   var(--warning-wash);
-    --demo-line: #E7C88F;
-    --demo-ink:  #7A5A16;
-  }
+     system so the whole domain reads as one product family. */
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.5; }
+  body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.5; }
   .content > * { max-width: 44rem; }
   .content { padding-top: 1.75rem; padding-bottom: 4rem; display: flex; flex-direction: column; gap: 1rem; }
   h1 { font-size: var(--fs-xl); margin: 0; letter-spacing: var(--tracking-tight); }
@@ -35,8 +24,8 @@
   .add-row { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
   .add-row .smart-input { flex: 1; font-family: var(--font-sans); }
   .smart-note { margin-top: var(--space-3); }
-  a { color: var(--accent); }
-  .muted { color: var(--muted); }
+  a { color: var(--brand); }
+  .muted { color: var(--fg-2); }
 
   /* --- compact allergy rows --- */
   ul.allergies { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
@@ -48,46 +37,28 @@
   .said { color: var(--fg-3); font-size: var(--fs-sm); flex: 1; min-width: 6rem; }
   .row-actions { display: inline-flex; align-items: baseline; gap: var(--space-3); margin-left: auto; }
   .state { font-size: var(--fs-xs); color: var(--fg-3); white-space: nowrap; }
-  li.gap .state { color: var(--accent); font-weight: 500; }
-  .linkish {
-    font: inherit; font-size: 0.78rem; background: none; border: none; padding: 0 0.15rem;
-    color: var(--muted); text-decoration: underline; cursor: pointer;
-  }
-  .linkish:hover { color: var(--ink); }
+  li.gap .state { color: var(--brand); font-weight: 500; }
+  /* "change" and "remove" are .smart-btn.link.sm, kept to the line's height */
+  .row-actions .smart-btn { padding: 0 2px; }
   .ask { font-size: 0.84rem; margin-top: 0.45rem; }
-  li.gap .ask { color: var(--ink); font-weight: 500; }
+  li.gap .ask { color: var(--fg-1); font-weight: 500; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
   .sev-line { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
-  .sev-label { font-size: 0.8rem; color: var(--muted); }
+  .sev-label { font-size: 0.8rem; color: var(--fg-2); }
+  /* toggle pills; the severity row is a .smart-tabs */
   .chip {
-    font: inherit; font-size: 0.78rem; padding: 0.15rem 0.55rem; border-radius: 999px;
-    border: 1px solid var(--line); background: none; color: var(--ink); cursor: pointer;
+    font: inherit; font-size: 0.78rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-pill);
+    border: 1px solid var(--border); background: none; color: var(--fg-1); cursor: pointer;
   }
-  .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 500; }
-  .chip[aria-pressed="true"][data-severe="1"] { border-color: var(--danger); color: var(--danger); }
-  .sev { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
-  .sev button {
-    font: inherit; font-size: 0.78rem; padding: 0.15rem 0.6rem; border: none;
-    background: none; color: var(--muted); cursor: pointer; border-left: 1px solid var(--line);
-  }
-  .sev button:first-child { border-left: none; }
-  .sev button[aria-pressed="true"] { background: var(--accent); color: var(--bg); font-weight: 500; }
-  .progress { font-size: 0.86rem; color: var(--muted); margin: 0.6rem 0 0; }
-  .progress.outstanding { color: var(--ink); font-weight: 500; }
+  .chip[aria-pressed="true"] { border-color: var(--brand); color: var(--brand); font-weight: 500; }
+  .chip[aria-pressed="true"][data-severe="1"] { border-color: var(--status-bad); color: var(--status-bad); }
+  .progress { font-size: 0.86rem; color: var(--fg-2); margin: 0.6rem 0 0; }
+  .progress.outstanding { color: var(--fg-1); font-weight: 500; }
   .actions { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
 
-  /* --- output tabs --- */
-  .tabs { display: flex; gap: 0.4rem; margin: 0.2rem 0 0.6rem; }
-  .tabs button {
-    font: inherit; font-size: 0.82rem; padding: 0.25rem 0.75rem; border-radius: 6px;
-    border: 1px solid var(--line); background: none; color: var(--muted); cursor: pointer;
-  }
-  .tabs button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 500; }
-  pre {
-    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
-    padding: 0.8rem 0.9rem; overflow: auto; max-height: 20rem; margin: 0.5rem 0 0;
-    font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.45;
-  }
+  /* --- output: .smart-tabs over a .smart-code --- */
+  #sent-card .smart-tabs { margin: var(--space-1) 0 var(--space-2); }
+  #sent-json { margin: var(--space-2) 0 0; }
 </style>
 </head>
 <body>
@@ -139,16 +110,17 @@
       The same review, two ways — the check-in page is ordinary application
       code, so this choice belongs to the EHR, not the protocol.
     </p>
-    <div class="tabs">
+    <div class="smart-tabs" role="group" aria-label="Stored as">
       <button type="button" data-tab="fhir" aria-pressed="true">Standard FHIR</button>
       <button type="button" data-tab="native" aria-pressed="false">EHR-native model</button>
     </div>
     <p class="muted" id="tab-note" style="font-size:0.85rem"></p>
-    <pre id="sent-json"></pre>
+    <pre id="sent-json" class="smart-code short"></pre>
   </section>
 </div>
 </main>
 <div data-smart-footer></div>
+<script type="module" src="/assets/smart-json.js"></script>
 <script type="module" src="./autofill.js"></script>
 </body>
 </html>

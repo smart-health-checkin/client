@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,27 +11,10 @@
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* This demo simulates a clinic's own page, drawn on the site's design
-     system so the whole domain reads as one product family. Names below are
-     the demo's local vocabulary, mapped onto the shared tokens. */
-  :root {
-    --ink:      var(--fg-1);
-    --muted:    var(--fg-2);
-    --accent:   var(--brand);
-    --line:     var(--border);
-    --code-bg:  var(--gray-100);
-    --demo-bg:   var(--warning-wash);
-    --demo-line: #E7C88F;
-    --demo-ink:  #7A5A16;
-  }
+     system so the whole domain reads as one product family. */
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body {
-    margin: 0;
-    background: var(--bg-alt);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    line-height: 1.55;
-  }
+  body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.55; }
   .content > * { max-width: 54rem; }
 
   /* the demo strip, its panel and its controls are the shared components;
@@ -51,9 +34,9 @@
   }
 
   /* ---- clinic app ------------------------------------------------- */
-  .clinic-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .clinic-header { background: var(--surface); border-bottom: 1px solid var(--border); }
   .clinic-header .wrap { padding-top: var(--space-4); padding-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-4); }
-  .clinic-mark { color: var(--accent); flex: none; }
+  .clinic-mark { color: var(--brand); flex: none; }
   .clinic-name { font-weight: 600; font-size: var(--fs-md); letter-spacing: var(--tracking-snug); }
   .clinic-sub { color: var(--fg-3); font-size: var(--fs-sm); }
 
@@ -64,10 +47,10 @@
   h2 { font-size: var(--fs-md); font-weight: 600; margin: 0 0 var(--space-2); letter-spacing: var(--tracking-snug); }
   p { margin: var(--space-2) 0; }
   .small { font-size: var(--fs-sm); }
-  .muted { color: var(--muted); }
+  .muted { color: var(--fg-2); }
 
   #visit-context { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); font-size: var(--fs-sm); color: var(--fg-2); }
-  #visit-context b { color: var(--ink); font-weight: 500; }
+  #visit-context b { color: var(--fg-1); font-weight: 500; }
 
   ul.request-items { list-style: none; margin: var(--space-4) 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
   ul.request-items li {
@@ -85,7 +68,7 @@
   .start-group #start { border-radius: var(--radius-md) 0 0 var(--radius-md); }
   .start-group .caret {
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.35);
+    border-left: 1px solid color-mix(in srgb, var(--on-brand) 35%, transparent);
     padding: 10px 12px;
   }
   .wallet-menu {
@@ -100,7 +83,7 @@
     border-radius: var(--radius-md); padding: var(--space-3); color: var(--fg-1);
     display: flex; flex-direction: column; gap: 2px;
   }
-  .wallet-item:hover:not([disabled]) { background: var(--gray-50); }
+  .wallet-item:hover:not([disabled]) { background: var(--surface-alt); }
   .wallet-item[aria-current="true"] { background: var(--brand-wash); box-shadow: inset 2px 0 0 var(--brand); }
   .wallet-item[disabled] { opacity: 0.5; cursor: not-allowed; }
   .wallet-item strong { font-size: var(--fs-sm); font-weight: 600; }
@@ -108,17 +91,11 @@
 
   .smart-note { margin-top: var(--space-4); }
   label.ack { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); font-size: var(--fs-sm); }
-  a { color: var(--accent); }
+  a { color: var(--brand); }
 
   .outcome-head { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
   .outcome-head h2 { font-size: var(--fs-lg); margin: 0; }
 
-  /* the outcome pill is a .smart-chip; status only recolours it */
-  #outcome-status[data-status="completed"] { border-color: #9BD9CB; color: #12705E; background: var(--success-wash); }
-  #outcome-status[data-status="error"] { border-color: #F0B6B1; color: #A32A22; background: var(--danger-wash); }
-  table.items { width: 100%; border-collapse: collapse; margin: var(--space-4) 0 var(--space-1); font-size: var(--fs-sm); }
-  table.items th, table.items td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); }
-  table.items th { font-weight: 600; }
   /* .return-link carries .smart-btn.primary from the script */
   .return-link { margin-top: var(--space-4); }
 
@@ -127,24 +104,11 @@
     color: var(--fg-3); font-size: var(--fs-xs); letter-spacing: var(--tracking-caps);
     font-family: var(--font-mono); text-transform: uppercase; margin-bottom: var(--space-4);
   }
-  details.artifact { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: var(--space-2); background: var(--surface); }
-  details.artifact summary {
-    cursor: pointer; padding: var(--space-3) var(--space-4); font-size: var(--fs-sm);
-    display: flex; align-items: center; gap: var(--space-3); list-style: none;
-  }
-  details.artifact summary::-webkit-details-marker { display: none; }
-  details.artifact summary::before {
-    content: "\25B8"; color: var(--fg-3); font-size: var(--fs-xs); flex: none; transition: transform 0.15s ease;
-  }
-  details.artifact[open] summary::before { transform: rotate(90deg); }
+  /* details.artifact is a .smart-details; its summary holds a label and buttons */
+  details.artifact > summary { align-items: center; font-size: var(--fs-sm); }
   details.artifact summary .label { flex: 1; min-width: 0; }
   details.artifact summary .tools { display: flex; gap: var(--space-1); flex: none; }
   /* summary buttons carry .smart-btn.sm.mono from the script */
-  details.artifact pre {
-    background: var(--gray-50); border-top: 1px solid var(--border); margin: 0;
-    padding: var(--space-4); overflow: auto; max-height: 22rem;
-    font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
-  }
   .dev-links { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
   /* .dev-links a carries .smart-btn.sm.mono from the script */
 </style>
@@ -181,7 +145,7 @@
       <label class="control smart-field"><span class="lbl">Return URL</span><input class="smart-input" id="return-input" placeholder="(none)"></label>
     </div>
     <div class="panel-foot">
-      <button type="button" id="copy-link">Copy link to this setup</button>
+      <button type="button" class="smart-btn sm" id="copy-link">Copy link to this setup</button>
       <span>Every change is written to the URL, so any configuration here is a shareable, reproducible link.</span>
     </div>
   </div>
@@ -246,6 +210,7 @@
 </main>
 <div data-smart-footer></div>
 
+<script type="module" src="/assets/smart-json.js"></script>
 <script type="module" src="./main.js"></script>
 </body>
 </html>

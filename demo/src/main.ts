@@ -16,6 +16,7 @@ import { DEMO_REQUESTS } from "./requests.js";
 import { explainResponse, renderExplorer } from "./explore.js";
 import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.js";
 import { showShareLink } from "./share-link.js";
+import "./site.js";
 
 // The demo never posts anywhere unless you set a base in Demo controls.
 const DEFAULT_FHIR_BASE = "";
@@ -129,7 +130,7 @@ function renderArtifacts(): void {
   for (const artifact of artifacts) {
     const json = JSON.stringify(artifact.value, null, 2);
     const details = document.createElement("details");
-    details.className = "artifact";
+    details.className = "artifact smart-details";
 
     const summary = document.createElement("summary");
     const label = document.createElement("span");
@@ -138,18 +139,6 @@ function renderArtifacts(): void {
 
     const tools = document.createElement("span");
     tools.className = "tools";
-    const copy = document.createElement("button");
-    copy.className = "smart-btn sm mono";
-    copy.type = "button";
-    copy.textContent = "copy";
-    copy.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      void navigator.clipboard.writeText(json).then(() => {
-        copy.textContent = "copied";
-        setTimeout(() => (copy.textContent = "copy"), 1200);
-      });
-    };
     const openTab = document.createElement("button");
     openTab.className = "smart-btn sm mono";
     openTab.type = "button";
@@ -160,11 +149,13 @@ function renderArtifacts(): void {
       const blob = new Blob([json], { type: "application/json" });
       window.open(URL.createObjectURL(blob), "_blank");
     };
-    tools.append(copy, openTab);
+    tools.append(openTab);
 
     summary.append(label, tools);
+    // The chrome gives the block a copy button.
     const pre = document.createElement("pre");
-    pre.textContent = json;
+    pre.className = "smart-code short";
+    SmartJson.renderJson(pre, artifact.value);
     details.append(summary, pre);
     host.append(details);
   }
@@ -400,6 +391,8 @@ const HEADLINES: Record<string, string> = {
   failed: "Check-in didn't finish",
 };
 
+const STATUS_TONE: Record<string, string> = { completed: "ok", failed: "bad" };
+
 function renderOutcome(
   status: string,
   s: Settings,
@@ -410,7 +403,7 @@ function renderOutcome(
   section.hidden = false;
   el("outcome-headline").textContent = HEADLINES[status] ?? status;
   el("outcome-status").textContent = status;
-  el("outcome-status").dataset.status = status;
+  el("outcome-status").className = `smart-chip ${STATUS_TONE[status] ?? ""}`;
   showShareLink(document.getElementById("share-link"), "clinic-demo", status);
 
   el("outcome-summary").textContent =

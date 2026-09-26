@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,35 +11,17 @@
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* This demo simulates a clinic's own page, drawn on the site's design
-     system so the whole domain reads as one product family. Names below are
-     the demo's local vocabulary, mapped onto the shared tokens. */
-  :root {
-    --ink:      var(--fg-1);
-    --muted:    var(--fg-2);
-    --accent:   var(--brand);
-    --line:     var(--border);
-    --code-bg:  var(--gray-100);
-    --demo-bg:   var(--warning-wash);
-    --demo-line: #E7C88F;
-    --demo-ink:  #7A5A16;
-  }
+     system so the whole domain reads as one product family. */
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; }
+  body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.55; }
   .content > * { max-width: 42rem; }
   .content { padding-top: 2rem; padding-bottom: 4rem; display: flex; flex-direction: column; gap: 1.1rem; }
   h1 { font-size: 1.35rem; margin: 0; }
   h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
-  .muted { color: var(--muted); font-size: 0.92rem; }
-  .note.error { border-color: var(--danger); }
+  .muted { color: var(--fg-2); font-size: 0.92rem; }
   ul.meds { list-style: none; margin: 0.9rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-  ul.meds li { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.9rem; }
-  pre {
-    background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-md);
-    padding: var(--space-4); overflow-x: auto;
-    font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.6;
-  }
-  a { color: var(--accent); }
+  ul.meds li { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.6rem 0.9rem; }
+  a { color: var(--brand); }
   .choices { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 </style>
 </head>
@@ -68,7 +50,7 @@
 
   <section class="smart-panel">
     <h2>The whole binding</h2>
-<pre><code>@Injectable({ providedIn: "root" })
+<pre class="smart-code"><code>@Injectable({ providedIn: "root" })
 export class CheckinService {
   readonly wallets = signal&lt;Wallet[]&gt;([]);
   readonly status = signal&lt;Status&gt;("idle");

@@ -14,6 +14,7 @@
  * this is one reasonable way. Both demo apps use it.
  */
 import type { SmartArtifact, SmartCheckinRequest, SmartCheckinResponse } from "../../src/index.js";
+import "./site.js";
 
 // ----------------------------------------------------------------- previews
 
@@ -222,52 +223,47 @@ export function artifactLabel(view: ArtifactView): string {
 
 const STYLE = `
 .xp { display:flex; flex-direction:column; gap:8px; font-size:var(--fs-sm); }
-.xp-matrix-wrap { overflow-x:auto; margin:0 0 4px; }
-.xp-matrix { width:auto; min-width:100%; border-collapse:collapse; }
-.xp-matrix th, .xp-matrix td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; }
+.xp-matrix-wrap { margin:0 0 4px; }
+.xp-matrix { width:auto; min-width:100%; }
+.xp-matrix th, .xp-matrix td { padding:6px 8px; vertical-align:middle; white-space:nowrap; }
 .xp-matrix th:first-child, .xp-matrix td:first-child { white-space:normal; max-width:12rem; padding-right:12px; line-height:1.3; }
-.xp-matrix th { font-weight:600; color:var(--fg-1); vertical-align:bottom; }
-.xp-matrix th.art { text-align:center; font-family:var(--font-mono); font-size:11px; line-height:1.25; white-space:normal; overflow-wrap:anywhere; max-width:7rem; }
+.xp-matrix thead th { vertical-align:bottom; }
+.xp-matrix th.art { text-align:center; font-family:var(--font-mono); font-size:11px; line-height:1.25; white-space:normal; overflow-wrap:anywhere; max-width:7rem; text-transform:none; letter-spacing:0; }
 .xp-matrix th.art small { display:block; font-family:var(--font-sans); font-weight:400; font-size:11px; color:var(--fg-3); white-space:nowrap; margin-top:2px; }
 .xp-status { display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-sm); color:var(--fg-2); }
-.xp-status::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--gray-400); flex:none; }
+.xp-status::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--fg-3); flex:none; }
 .xp-status.success::before { background:var(--success); }
 .xp-status.info::before { background:var(--info); }
 .xp-status.warning::before { background:var(--warning); }
 .xp-status.danger::before { background:var(--danger); }
-.xp-matrix td.cell { text-align:center; color:var(--border-strong); width:1%; padding:2px 8px; }
-.xp-open { font:inherit; background:none; border:0; padding:0; color:inherit; cursor:pointer; border-radius:var(--radius-sm); }
+.xp-matrix td.cell { text-align:center; color:var(--fg-3); width:1%; padding:2px 8px; }
+.xp-open { font:inherit; background:none; border:0; padding:0; color:var(--fg-1); cursor:pointer; border-radius:var(--radius-sm); }
 .xp-open:hover, .xp-open:focus-visible { color:var(--brand); outline:none; text-decoration:underline; }
 .xp-dot { width:28px; height:28px; border-radius:50%; border:0; background:none; cursor:pointer; color:var(--brand); font-size:16px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
-.xp-dot:hover, .xp-dot:focus-visible { background:var(--brand); color:#fff; outline:none; }
-.xp-matrix td.on.xp-hl .xp-dot { background:var(--brand); color:#fff; }
+.xp-dot:hover, .xp-dot:focus-visible { background:var(--brand); color:var(--on-brand); outline:none; }
+.xp-matrix td.on.xp-hl .xp-dot { background:var(--brand); color:var(--on-brand); }
+/* .xp-art is a .smart-details whose rows run edge to edge */
+.xp-art { margin:0; overflow:hidden; transition:box-shadow .3s ease; }
+.xp-art > :not(summary) { margin:0; }
+.xp-art > summary { align-items:center; gap:12px; padding:6px 12px; font-weight:400; }
 .xp-art.xp-hl > summary { background:var(--brand-wash); }
 .xp-art.xp-flash { box-shadow:0 0 0 3px var(--brand-wash); }
-.xp-art { transition: box-shadow .3s ease; }
-.xp-art { border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); overflow:hidden; }
-.xp-art > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; padding:6px 12px; background:var(--gray-50); border-bottom:1px solid transparent; }
-.xp-art[open] > summary { border-bottom-color:var(--border); }
-.xp-art > summary::-webkit-details-marker { display:none; }
-.xp-art > summary::before { content:"\\25B8"; color:var(--fg-3); font-size:var(--fs-xs); flex:none; }
-.xp-art[open] > summary::before { content:"\\25BE"; }
 .xp-id { font-family:var(--font-mono); font-weight:600; color:var(--fg-1); white-space:nowrap; }
 .xp-mt { font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .xp-json-btn { flex:none; margin-left:auto; }
-.xp-card .xp-json-btn { margin-left:auto; }
 .xp-card { padding:8px 12px; color:var(--fg-2); border-bottom:1px solid var(--border-subtle); display:flex; flex-wrap:wrap; gap:4px 12px; }
 .xp-card .xp-id { color:var(--fg-2); font-weight:500; }
 .xp-res { border-bottom:1px solid var(--border-subtle); }
 .xp-res:last-child { border-bottom:0; }
 .xp-res > summary { list-style:none; cursor:pointer; display:grid; grid-template-columns:10rem minmax(0,1fr); gap:12px; padding:7px 12px; }
 .xp-res > summary::-webkit-details-marker { display:none; }
-.xp-res > summary:hover { background:var(--gray-50); }
+.xp-res > summary:hover { background:var(--surface-alt); }
 .xp-type { font-weight:600; color:var(--fg-1); }
 .xp-title { color:var(--fg-1); }
 .xp-facts { color:var(--fg-3); }
 .xp-facts span + span::before { content:" · "; }
 .xp-empty { padding:8px 12px; color:var(--fg-3); }
-.xp pre { margin:0; padding:10px 12px; background:var(--gray-50); border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:auto; max-height:22rem; font-family:var(--font-mono); font-size:var(--fs-xs); line-height:1.6; color:var(--fg-1); }
-.xp-res > pre { border-bottom:0; }
+.xp .smart-code { margin:0 12px 10px; }
 @media (max-width: 40rem) { .xp-res > summary { grid-template-columns:minmax(0,1fr); gap:2px; } }
 `;
 
@@ -315,7 +311,8 @@ function jsonToggle(
     event.stopPropagation();
     if (pre) { hide(); return; }
     if (box.reveal) box.reveal.open = true;
-    pre = h("pre", "xp-json", JSON.stringify(json, null, 2));
+    pre = h("pre", "xp-json smart-code short");
+    SmartJson.renderJson(pre, json);
     anchor.insertAdjacentElement("afterend", pre);
     button.textContent = `hide ${label}`;
   };
@@ -340,7 +337,7 @@ const STATUS_TONE: Record<string, string> = { fulfilled: "success", partial: "in
 
 /** Items down, artifacts across; a dot where an artifact fulfils an item. */
 function renderMatrix(view: ResponseView): HTMLTableElement {
-  const table = h("table", "xp-matrix");
+  const table = h("table", "xp-matrix smart-table");
   const head = h("tr");
   head.append(h("th", undefined, "Requested"), h("th", undefined, "Status"));
   view.artifacts.forEach((a, i) => {
@@ -395,12 +392,12 @@ export function renderExplorer(container: HTMLElement, view: ResponseView): void
   container.innerHTML = "";
   container.classList.add("xp");
   const table = renderMatrix(view);
-  const scroller = h("div", "xp-matrix-wrap");
+  const scroller = h("div", "xp-matrix-wrap smart-table-wrap");
   scroller.append(table);
   container.append(scroller);
   const boxes: HTMLDetailsElement[] = [];
   view.artifacts.forEach((a, i) => {
-    const details = h("details", "xp-art");
+    const details = h("details", "xp-art smart-details");
     details.dataset.art = String(i);
     boxes.push(details);
     details.open = view.artifacts.length === 1;
@@ -437,7 +434,9 @@ export function renderExplorer(container: HTMLElement, view: ResponseView): void
       for (const fact of r.facts) facts.append(h("span", undefined, fact));
       right.append(facts);
       sum.append(right);
-      res.append(sum, h("pre", undefined, JSON.stringify(r.json, null, 2)));
+      const pre = h("pre", "smart-code short");
+      SmartJson.renderJson(pre, r.json);
+      res.append(sum, pre);
       details.append(res);
     }
     container.append(details);

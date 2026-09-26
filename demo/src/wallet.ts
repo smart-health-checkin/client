@@ -526,7 +526,7 @@ const nameEl = document.querySelector(".wallet-name");
 if (nameEl) nameEl.textContent = brand.name;
 const tagEl = document.querySelector(".wallet-tag");
 if (tagEl) tagEl.textContent = brand.tagline;
-document.documentElement.style.setProperty("--accent", brand.accent);
+document.documentElement.style.setProperty("--wallet-accent", brand.accent);
 
 if (!served.opened) {
   const clinic = Object.assign(document.createElement("a"), { href: "./", textContent: "clinic check-in demo" });

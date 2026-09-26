@@ -9,59 +9,33 @@
 <link rel="stylesheet" href="/assets/smart-design.css">
 <script src="/assets/site-chrome.js" defer></script>
 <style>
-  :root {
-    --bg: #12161c; --surface: #1b212a; --ink: #e9edf2; --muted: #9aa6b4;
-    --accent: #7FB9F0; --line: #2b3441; --danger: #e08d84;
-  }
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-      --bg: #f4f6f9; --surface: #ffffff; --ink: #18202b; --muted: #5c6b7c;
-      --accent: var(--brand); --line: #dde3ea; --danger: #b3423a;
-    }
-  }
-  :root[data-theme="light"] {
-    --bg: #f4f6f9; --surface: #ffffff; --ink: #18202b; --muted: #5c6b7c;
-    --accent: var(--brand); --line: #dde3ea; --danger: #b3423a;
-  }
+  /* The wallet is a separate product; its brand accent (set by wallet.js
+     from the wallet's registry entry) colors only its mark and checkboxes. */
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: var(--font-sans); line-height: 1.5;
-  }
+  body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.5; }
   main { max-width: 26rem; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; display: flex; flex-direction: column; gap: 1rem; }
   .wallet-brand { display: flex; align-items: center; gap: 0.6rem; }
-  .wallet-brand svg { color: var(--accent); flex: none; }
+  .wallet-brand svg { color: var(--wallet-accent, var(--brand)); flex: none; }
+  .wallet-brand .smart-chip { margin-left: auto; }
   .wallet-name { font-weight: 600; font-size: 1rem; margin: 0; letter-spacing: 0; }
-  .wallet-tag { color: var(--muted); font-size: 0.8rem; }
-  .verifier {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.85rem 1rem;
-  }
+  .wallet-tag { color: var(--fg-3); font-size: 0.8rem; }
+  .verifier { padding: 0.85rem 1rem; }
   .verifier .origin { font-family: var(--font-mono); font-size: 0.85rem; word-break: break-all; }
-  .verifier .label { color: var(--muted); font-size: 0.8rem; }
+  .verifier .label { color: var(--fg-3); font-size: 0.8rem; }
   .consent-title { font-size: 1.1rem; margin: 0.5rem 0 0; }
-  .purpose { color: var(--muted); font-size: 0.92rem; margin: 0.15rem 0 0; }
+  .purpose { color: var(--fg-3); font-size: 0.92rem; margin: 0.15rem 0 0; }
   ul.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
-  ul.items li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.8rem 0.95rem; }
+  ul.items li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.8rem 0.95rem; }
   .item-top { display: flex; gap: 0.7rem; align-items: flex-start; }
-  .item-top input { margin-top: 0.25rem; flex: none; width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+  .item-top input { margin-top: 0.25rem; flex: none; width: 1.05rem; height: 1.05rem; accent-color: var(--wallet-accent, var(--brand)); }
   .item-title { font-weight: 500; }
-  .item-summary, .item-preview { color: var(--muted); font-size: 0.85rem; }
+  .item-summary, .item-preview { color: var(--fg-3); font-size: 0.85rem; }
   .item-preview { margin-top: 0.35rem; font-family: var(--font-mono); font-size: 0.78rem; }
   .actions { display: flex; gap: 0.6rem; margin-top: 0.35rem; }
-  button {
-    font: inherit; font-weight: 500; padding: 0.65rem 1.2rem; border-radius: 8px; cursor: pointer; flex: 1;
-  }
-  button.share { border: 1px solid var(--accent); background: var(--accent); color: var(--bg); }
-  button.decline { border: 1px solid var(--line); background: none; color: var(--ink); }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
-  .note { color: var(--muted); font-size: 0.8rem; text-align: center; }
-  .note a { color: var(--accent); }
-  .error { color: var(--danger); font-size: 0.9rem; }
-  .demo-tag {
-    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
-    border: 1px dashed var(--line); border-radius: 999px; padding: 0.1rem 0.5rem; color: var(--muted);
-  }
+  .actions .smart-btn { flex: 1; justify-content: center; }
+  .note { color: var(--fg-3); font-size: 0.8rem; text-align: center; }
+  .note a { color: var(--brand); }
 </style>
 </head>
 <body>
@@ -81,13 +55,13 @@
       <h1 class="wallet-name">Demo wallet</h1>
       <div class="wallet-tag">holds your records on this device</div>
     </div>
-    <span class="demo-tag" style="margin-left:auto">DEMO</span>
+    <span class="smart-chip">Demo</span>
   </div>
 
   <div id="waiting" class="note">Waiting for a request…</div>
 
   <div id="consent" hidden>
-    <div class="verifier">
+    <div class="verifier smart-panel">
       <div class="label">Requested by</div>
       <div class="origin" id="verifier-origin"></div>
     </div>
@@ -98,13 +72,13 @@
     <ul class="items" id="items"></ul>
 
     <div class="actions">
-      <button class="decline" id="decline">Not now</button>
-      <button class="share" id="share">Share selected</button>
+      <button class="smart-btn" id="decline">Not now</button>
+      <button class="smart-btn primary" id="share">Share selected</button>
     </div>
     <p class="note">You control every item. Nothing leaves this wallet unless you share it.</p>
   </div>
 
-  <p class="error" id="error" hidden></p>
+  <p class="smart-callout bad" id="error" hidden></p>
 </main>
 <div data-smart-footer id="site-foot"></div>
 <script>if (window.opener) document.getElementById("site-foot").remove();</script>

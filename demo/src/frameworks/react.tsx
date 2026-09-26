@@ -1,9 +1,10 @@
 /** React example: <CheckinPicker> from @smart-health-checkin/client/react. */
 
-import { StrictMode, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { CheckinResponse } from "../../../src/index.js";
 import { CheckinPicker } from "../../../src/react/index.js";
+import { pageTheme, watchPageTheme } from "../site.js";
 
 const REQUEST = {
   purpose: "Confirm your medications before your visit",
@@ -25,11 +26,14 @@ const REQUEST = {
 function MedicationCheckin() {
   const [response, setResponse] = useState<CheckinResponse | undefined>();
   const [note, setNote] = useState<string | undefined>();
+  // The picker takes the page's color mode, so a dark page gets a dark picker.
+  const [theme, setTheme] = useState(pageTheme);
+  useEffect(() => watchPageTheme(setTheme), []);
 
   const medications = response?.resources("meds", { type: "MedicationRequest" }).map(medicationText) ?? [];
 
   return (
-    <div className="card">
+    <div className="smart-panel">
       <h2>Medication review</h2>
       <p className="muted">
         Rendered by React. The picker is the same element every page uses,
@@ -40,6 +44,7 @@ function MedicationCheckin() {
         request={REQUEST}
         registry="./wallets.json"
         mock
+        theme={theme}
         heading="Confirm your medications"
         description="Bring in your medication list from a health app you use."
         onResponse={({ response }) => { setResponse(response); setNote(undefined); }}

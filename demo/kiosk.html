@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,31 +11,28 @@
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* A clinic's self check-in screen, on the site's design system. */
-  :root { --ink: var(--fg-1); --muted: var(--fg-2); --accent: var(--brand); --line: var(--border); }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; }
+  body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.55; }
   .content > * { max-width: 56rem; }
   .demo-toggle .caret { font-size: 0.7rem; }
-  .clinic-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .clinic-header { background: var(--surface); border-bottom: 1px solid var(--border); }
   .clinic-header .wrap { padding-top: var(--space-4); padding-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-4); }
-  .clinic-mark { color: var(--accent); flex: none; }
+  .clinic-mark { color: var(--brand); flex: none; }
   .clinic-name { font-weight: 600; font-size: var(--fs-md); letter-spacing: var(--tracking-snug); }
   .clinic-sub { color: var(--fg-3); font-size: var(--fs-sm); }
   .content { padding-top: var(--space-6); padding-bottom: var(--space-9); display: flex; flex-direction: column; gap: var(--space-5); }
   .kiosk-title { margin: 0 0 var(--space-2); font-size: var(--fs-2xl); letter-spacing: var(--tracking-tight); }
   h2 { margin: 0 0 var(--space-2); font-size: var(--fs-md); letter-spacing: var(--tracking-snug); }
-  p { margin: var(--space-2) 0; color: var(--muted); }
+  p { margin: var(--space-2) 0; color: var(--fg-2); }
   .kiosk { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-7); align-items: start; }
-  ul.ask { margin: var(--space-3) 0 0; padding-left: 1.2em; color: var(--muted); font-size: var(--fs-md); }
+  ul.ask { margin: var(--space-3) 0 0; padding-left: 1.2em; color: var(--fg-2); font-size: var(--fs-md); }
   ul.ask li { margin: var(--space-1) 0; }
   .qr { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; }
-  .qr canvas { border: 1px solid var(--line); border-radius: var(--radius-md); background: #fff; padding: var(--space-2); }
+  /* The QR code keeps its white field in dark mode, so phones can read it. */
+  .qr canvas { border: 1px solid var(--border); border-radius: var(--radius-md); background: #fff; padding: var(--space-2); }
   .qr .small { font-size: var(--fs-sm); color: var(--fg-3); max-width: 18rem; }
-  #status { font-size: var(--fs-sm); color: var(--muted); min-height: 1.5em; }
-  table.items { width: 100%; border-collapse: collapse; margin: var(--space-4) 0 var(--space-1); font-size: var(--fs-sm); }
-  table.items th, table.items td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); }
-  table.items th { font-weight: 600; }
+  #status { font-size: var(--fs-sm); color: var(--fg-2); min-height: 1.5em; }
   .small { font-size: var(--fs-sm); color: var(--fg-3); }
   @media (max-width: 46rem) { .kiosk { grid-template-columns: minmax(0, 1fr); } }
 </style>
@@ -87,6 +84,7 @@
 </main>
 <div data-smart-footer></div>
 
+<script type="module" src="/assets/smart-json.js"></script>
 <script type="module" src="./kiosk.js"></script>
 </body>
 </html>

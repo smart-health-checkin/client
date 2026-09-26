@@ -70,7 +70,7 @@ const REQUEST = {
   selector: "app-root",
   standalone: true,
   template: `
-    <div class="card">
+    <div class="smart-panel">
       <h2>Medication review</h2>
       <p class="muted">
         Rendered by Angular. The check-in call is the same plain async function
@@ -97,7 +97,7 @@ const REQUEST = {
         <p class="note">Nothing was shared — fill the form manually.</p>
       }
       @if (checkin.status() === "failed") {
-        <p class="note error">{{ checkin.error() }}</p>
+        <p class="smart-callout bad">{{ checkin.error() }}</p>
       }
       @if (medications().length) {
         <ul class="meds">

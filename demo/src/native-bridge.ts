@@ -21,11 +21,13 @@
 import "../../src/ui/index.js";
 import type { SmartCheckinPicker } from "../../src/ui/index.js";
 import type { SmartCheckinRequest } from "../../src/model/index.js";
+import { followPageTheme } from "./site.js";
 
 /** Characters per part: 200k UTF-16 chars stays well under the ~1 MB IPC limit. */
 const PART_CHARS = 200_000;
 
 const picker = document.getElementById("picker") as SmartCheckinPicker & HTMLElement;
+followPageTheme(picker);
 const purpose = document.getElementById("purpose")!;
 const status = document.getElementById("status")!;
 let port: MessagePort | undefined;

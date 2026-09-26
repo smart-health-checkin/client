@@ -2,6 +2,7 @@
 // so any browser can show the phone-wallet cases) and a live mode.
 import { customWallet, platformWallet, webWallet, type Wallet } from "../../src/index.js";
 import { STARBURST_ICON_URL, type SmartCheckinPicker } from "../../src/ui/index.js";
+import { pageIsDark, pageTheme, watchPageTheme } from "./site.js";
 import { DEMO_REQUESTS } from "./requests.js";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -46,9 +47,11 @@ const SITUATIONS: Record<string, () => Wallet[] | undefined> = {
 function apply(): void {
   const situation = ($("situation") as HTMLSelectElement).value;
   const skin = ($("skin") as HTMLSelectElement).value;
-  const theme = ($("theme") as HTMLSelectElement).value;
-  $("clinic").className = `clinic skin-${skin}${theme === "dark" ? " dark" : ""}`;
-  picker.setAttribute("theme", theme);
+  // "Same as this page" hands the picker the page's mode, as a real page would.
+  const choice = ($("theme") as HTMLSelectElement).value;
+  const dark = choice === "page" ? pageIsDark() : choice === "dark";
+  $("clinic").className = `clinic skin-${skin}${dark ? " dark" : ""}`;
+  picker.setAttribute("theme", choice === "page" ? pageTheme() : choice);
   picker.toggleAttribute("remember", ($("remember") as HTMLSelectElement).value === "on");
   if (($("appearance") as HTMLSelectElement).value === "flat") picker.setAttribute("appearance", "flat");
   else picker.removeAttribute("appearance");
@@ -70,7 +73,7 @@ window.open = ((...args: Parameters<typeof window.open>) =>
 
 picker.request = DEMO_REQUESTS["allergy-review"]!.request;
 for (const id of ["situation", "skin", "theme", "appearance", "remember"]) $(id).addEventListener("change", apply);
-apply();
+watchPageTheme(() => apply());
 
 const show = (line: string) => {
   log.textContent = (log.textContent === "Events from the picker appear here." ? "" : log.textContent + "\n") + line;

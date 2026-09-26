@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg-alt); color: var(--fg-1); font-family: var(--font-sans); line-height: 1.55; }
+  body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.55; }
   .content > * { max-width: 64rem; }
   .content { padding-top: 2rem; padding-bottom: 4rem; display: grid; gap: 1.25rem; }
   h1 { font-size: 1.4rem; margin: 0; }
@@ -28,7 +28,9 @@
   .clinic h2 { margin: 0; font-size: 1.15rem; }
   .log { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: var(--font-mono); font-size: var(--fs-xs); white-space: pre-wrap; min-height: 8rem; overflow-x: auto; }
 
-  /* Skins: the clinic page's colors, and the picker restyled only through its custom properties. */
+  /* Skins: the clinic page's colors, and the picker restyled only through its
+     custom properties. They are samples of other sites' looks, so they keep
+     their own colors in both modes. */
   .skin-smart { --clinic-bg: #F6F8FA; --clinic-ink: #1F2933; --clinic-head: #0E6FB8; --clinic-head-ink: #fff; --clinic-font: var(--font-sans); }
   .skin-portal {
     --clinic-bg: #F7F4F1; --clinic-ink: #22262B; --clinic-head: #246FB5; --clinic-head-ink: #fff; --clinic-font: "Source Sans 3", sans-serif;
@@ -85,6 +87,7 @@
     </label>
     <label>Theme
       <select id="theme">
+        <option value="page">Same as this page</option>
         <option value="light">Light</option>
         <option value="dark">Dark</option>
       </select>
