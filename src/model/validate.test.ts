@@ -218,7 +218,7 @@ test("accepts an extension selector kind as a valid request item (spec §5.4.3)"
 });
 
 test("the mock wallet answers an extension selector item unsupported and the rest normally", async () => {
-  const { buildMockResponse } = await import("../kit/mock-wallet.js");
+  const { buildMockResponse } = await import("../testing/mock.js");
   const request = {
     type: "smart-health-checkin-request" as const,
     version: "1" as const,
@@ -253,7 +253,7 @@ test("a QuestionnaireResponse must echo the requested canonical exactly (spec §
 });
 
 test("the mock answers a Patient item with a Patient, claims requested profiles, and answers inline forms", async () => {
-  const { buildMockResponse } = await import("../kit/mock-wallet.js");
+  const { buildMockResponse } = await import("../testing/mock.js");
   const UC = "http://hl7.org/fhir/us/core/StructureDefinition/";
   const request = {
     type: "smart-health-checkin-request" as const,

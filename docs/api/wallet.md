@@ -13,7 +13,7 @@ type MatchableEntry = {
 };
 ```
 
-Defined in: src/wallet/match.ts:17
+Defined in: [src/wallet/match.ts:17](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L17)
 
 #### Properties
 
@@ -23,7 +23,7 @@ Defined in: src/wallet/match.ts:17
 fullUrl: string;
 ```
 
-Defined in: src/wallet/match.ts:17
+Defined in: [src/wallet/match.ts:17](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L17)
 
 ##### resource
 
@@ -31,7 +31,7 @@ Defined in: src/wallet/match.ts:17
 resource: MatchableResource;
 ```
 
-Defined in: src/wallet/match.ts:17
+Defined in: [src/wallet/match.ts:17](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L17)
 
 ***
 
@@ -47,7 +47,7 @@ type MatchableResource = {
 };
 ```
 
-Defined in: src/wallet/match.ts:16
+Defined in: [src/wallet/match.ts:16](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L16)
 
 Which of a patient's records answer a `selection.fhir` item (spec §5.4.1, §5.5).
 
@@ -78,7 +78,7 @@ optional meta?: {
 };
 ```
 
-Defined in: src/wallet/match.ts:16
+Defined in: [src/wallet/match.ts:16](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L16)
 
 ###### profile?
 
@@ -92,7 +92,7 @@ optional profile?: ReadonlyArray<string>;
 resourceType: string;
 ```
 
-Defined in: src/wallet/match.ts:16
+Defined in: [src/wallet/match.ts:16](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L16)
 
 ***
 
@@ -106,7 +106,7 @@ type ParsedWalletRequest = {
 };
 ```
 
-Defined in: [src/kit/mock-wallet.ts:204](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L204)
+Defined in: src/wallet/seal.ts:29
 
 #### Properties
 
@@ -116,7 +116,7 @@ Defined in: [src/kit/mock-wallet.ts:204](https://github.com/smart-health-checkin
 deviceRequestBytes: Uint8Array;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:206](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L206)
+Defined in: src/wallet/seal.ts:31
 
 ##### encryptionInfoBytes
 
@@ -124,7 +124,7 @@ Defined in: [src/kit/mock-wallet.ts:206](https://github.com/smart-health-checkin
 encryptionInfoBytes: Uint8Array;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:207](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L207)
+Defined in: src/wallet/seal.ts:32
 
 ##### smartRequest
 
@@ -132,7 +132,7 @@ Defined in: [src/kit/mock-wallet.ts:207](https://github.com/smart-health-checkin
 smartRequest: SmartCheckinRequest;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:205](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L205)
+Defined in: src/wallet/seal.ts:30
 
 ***
 
@@ -147,7 +147,7 @@ type SelectionContent = {
 };
 ```
 
-Defined in: src/wallet/match.ts:19
+Defined in: [src/wallet/match.ts:19](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L19)
 
 #### Properties
 
@@ -157,7 +157,7 @@ Defined in: src/wallet/match.ts:19
 kind: "selection.fhir";
 ```
 
-Defined in: src/wallet/match.ts:20
+Defined in: [src/wallet/match.ts:20](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L20)
 
 ##### profiles?
 
@@ -165,7 +165,7 @@ Defined in: src/wallet/match.ts:20
 optional profiles?: ReadonlyArray<string>;
 ```
 
-Defined in: src/wallet/match.ts:21
+Defined in: [src/wallet/match.ts:21](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L21)
 
 ##### profilesFrom?
 
@@ -173,7 +173,7 @@ Defined in: src/wallet/match.ts:21
 optional profilesFrom?: ReadonlyArray<string>;
 ```
 
-Defined in: src/wallet/match.ts:22
+Defined in: [src/wallet/match.ts:22](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L22)
 
 ##### resourceTypes?
 
@@ -181,7 +181,7 @@ Defined in: src/wallet/match.ts:22
 optional resourceTypes?: ReadonlyArray<string>;
 ```
 
-Defined in: src/wallet/match.ts:23
+Defined in: [src/wallet/match.ts:23](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L23)
 
 ***
 
@@ -195,7 +195,7 @@ type ServeWebWalletOptions = {
 };
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:44
+Defined in: [src/wallet/serve-web-wallet.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L44)
 
 `@smart-health-checkin/client/wallet`: for building a wallet.
 
@@ -213,7 +213,7 @@ Defined in: src/wallet/serve-web-wallet.ts:44
 optional closeAfterReply?: boolean;
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:49
+Defined in: [src/wallet/serve-web-wallet.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L49)
 
 Close the tab after replying (default true).
 
@@ -225,7 +225,7 @@ Close the tab after replying (default true).
 optional onInvalidRequest(message, origin): void;
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:47
+Defined in: [src/wallet/serve-web-wallet.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L47)
 
 Called when a request can't be read; the EHR also gets an error reply.
 
@@ -246,7 +246,7 @@ Called when a request can't be read; the EHR also gets an error reply.
 onRequest(context): Promise<WebWalletAnswer>;
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:45
+Defined in: [src/wallet/serve-web-wallet.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L45)
 
 ###### Parameters
 
@@ -283,7 +283,7 @@ type WebWalletAnswer =
 };
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:34
+Defined in: [src/wallet/serve-web-wallet.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L34)
 
 What the wallet answers with.
 
@@ -383,7 +383,7 @@ type WebWalletRequestContext = {
 };
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:24
+Defined in: [src/wallet/serve-web-wallet.ts:24](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L24)
 
 `@smart-health-checkin/client/wallet`: for building a wallet.
 
@@ -401,7 +401,7 @@ Defined in: src/wallet/serve-web-wallet.ts:24
 origin: string;
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:28
+Defined in: [src/wallet/serve-web-wallet.ts:28](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L28)
 
 The EHR page's origin, from the browser. Show it to the patient; the response is bound to it.
 
@@ -411,7 +411,7 @@ The EHR page's origin, from the browser. Show it to the patient; the response is
 parsed: ParsedWalletRequest;
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:30
+Defined in: [src/wallet/serve-web-wallet.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L30)
 
 The parsed wire request, for wallets that seal their own responses.
 
@@ -421,7 +421,7 @@ The parsed wire request, for wallets that seal their own responses.
 request: SmartCheckinRequest;
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:26
+Defined in: [src/wallet/serve-web-wallet.ts:26](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L26)
 
 The SMART request, validated.
 
@@ -490,9 +490,12 @@ Defined in: [src/kit/web-wallet.ts:19](https://github.com/smart-health-checkin/c
 function buildSignedDeviceResponse(input): Promise<Uint8Array<ArrayBufferLike>>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:758](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L758)
+Defined in: src/wallet/seal.ts:132
 
-Build a signed DeviceResponse carrying the SMART response element.
+A structurally real SMART Health Card: a JWS whose payload is the raw-DEFLATEd
+`{ iss, nbf, vc.credentialSubject.fhirBundle }` (one Patient, one Coverage),
+so anything that decodes cards can show what is in it. The signature is
+zeros — nothing verifies it, and nothing should.
 
 #### Parameters
 
@@ -514,7 +517,7 @@ Build a signed DeviceResponse carrying the SMART response element.
 function parseWalletRequest(navigatorArgument): ParsedWalletRequest;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:211](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L211)
+Defined in: src/wallet/seal.ts:36
 
 Wallet side: recover the SMART request from a navigator.credentials.get argument.
 
@@ -536,7 +539,7 @@ Wallet side: recover the SMART request from a navigator.credentials.get argument
 function recipientJwkFromEncryptionInfo(encryptionInfoBytes): JsonWebKey;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:282](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L282)
+Defined in: src/wallet/seal.ts:107
 
 #### Parameters
 
@@ -561,7 +564,7 @@ function sealWalletResponse(input): Promise<{
 }>;
 ```
 
-Defined in: [src/kit/mock-wallet.ts:227](https://github.com/smart-health-checkin/client/blob/main/src/kit/mock-wallet.ts#L227)
+Defined in: src/wallet/seal.ts:52
 
 Wallet side: sign and HPKE-seal a SMART response for the verifier.
 `verifierOrigin` is the requesting page's origin — the SessionTranscript
@@ -596,7 +599,7 @@ function selectEntries(
    options?): MatchableEntry[];
 ```
 
-Defined in: src/wallet/match.ts:60
+Defined in: [src/wallet/match.ts:60](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L60)
 
 The entries that answer the selector, plus the entries they reference.
 `exclude` names fullUrls never to pull in by reference (usually the
@@ -623,7 +626,7 @@ Patient, which has its own item).
 function selects(content, resource): boolean;
 ```
 
-Defined in: src/wallet/match.ts:44
+Defined in: [src/wallet/match.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/wallet/match.ts#L44)
 
 Does this resource answer the selector?
 
@@ -649,7 +652,7 @@ function serveWebWallet(options): {
 };
 ```
 
-Defined in: src/wallet/serve-web-wallet.ts:56
+Defined in: [src/wallet/serve-web-wallet.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/wallet/serve-web-wallet.ts#L56)
 
 Start answering. Returns `{ opened }`: false when the page wasn't opened by
 an EHR (no `window.opener`), so the wallet can show its own landing page.

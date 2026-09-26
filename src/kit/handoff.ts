@@ -14,9 +14,9 @@
  * sealed credential coming back.
  */
 
-import { createBrowserLocalAuthority } from "../browser/index.js";
+import { createBrowserKeyCustody } from "../browser/index.js";
 import type { SmartCheckinRequest } from "../model/index.js";
-import { parseWalletRequest } from "./mock-wallet.js";
+import { parseWalletRequest } from "../wallet/seal.js";
 import { isDecline, WalletDeclinedError } from "../core/errors.js";
 import { customWallet, platformWallet, type Wallet } from "../core/wallets.js";
 
@@ -161,7 +161,7 @@ export function handoffWallet(options: Omit<HandoffOptions, "signal"> & { name?:
     kind: "handoff",
     name: options.name ?? "Use your phone",
     description: options.description ?? "Scan a code with your phone and answer there",
-    keys: createBrowserLocalAuthority({ origin: new URL(options.handoffUrl, here()).origin }),
+    keys: createBrowserKeyCustody({ origin: new URL(options.handoffUrl, here()).origin }),
     open() {
       const controller = new AbortController();
       return { getCredential: createHandoffCredentialGetter({ ...options, signal: controller.signal }), cancel: () => controller.abort() };

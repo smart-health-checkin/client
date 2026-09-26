@@ -56,6 +56,7 @@ async function main(): Promise<void> {
       try {
         const answer = await answerHandoff(instantMailbox, sessionId!, envelope, responder);
         el("ask").hidden = true;
+        el("note").textContent = "";
         el("done").hidden = false;
         el("done-headline").textContent = "declined" in answer ? "Nothing was shared" : "Sent to the kiosk";
         el("done-text").textContent = "declined" in answer

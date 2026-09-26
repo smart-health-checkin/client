@@ -14,7 +14,7 @@
  */
 
 import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
-import { parseWalletRequest, sealWalletResponse, type ParsedWalletRequest } from "../kit/mock-wallet.js";
+import { parseWalletRequest, sealWalletResponse, type ParsedWalletRequest } from "./seal.js";
 import {
   WEB_WALLET_READY_MESSAGE_TYPE,
   WEB_WALLET_REQUEST_MESSAGE_TYPE,

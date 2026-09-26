@@ -15,7 +15,7 @@ export {
   recipientJwkFromEncryptionInfo,
   sealWalletResponse,
   type ParsedWalletRequest,
-} from "../kit/mock-wallet.js";
+} from "./seal.js";
 export {
   WEB_WALLET_READY_MESSAGE_TYPE,
   WEB_WALLET_REQUEST_MESSAGE_TYPE,

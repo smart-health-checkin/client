@@ -13,3 +13,4 @@ export * from "./hpke.js";
 export * from "./response.js";
 export * from "./verify.js";
 export { extractDcapiResponse } from "../browser/index.js";
+export * from "./inspect-request.js";

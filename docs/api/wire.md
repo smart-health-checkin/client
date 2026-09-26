@@ -194,6 +194,55 @@ hex: string;
 
 ***
 
+### DeviceRequestInspection
+
+```ts
+type DeviceRequestInspection = {
+  deviceRequest: JsonValue;
+  deviceRequestDiagnostic: string;
+  deviceRequestHex: string;
+  docRequests: ItemsRequestInspection[];
+};
+```
+
+Defined in: src/wire/inspect-request.ts:41
+
+#### Properties
+
+##### deviceRequest
+
+```ts
+deviceRequest: JsonValue;
+```
+
+Defined in: src/wire/inspect-request.ts:44
+
+##### deviceRequestDiagnostic
+
+```ts
+deviceRequestDiagnostic: string;
+```
+
+Defined in: src/wire/inspect-request.ts:43
+
+##### deviceRequestHex
+
+```ts
+deviceRequestHex: string;
+```
+
+Defined in: src/wire/inspect-request.ts:42
+
+##### docRequests
+
+```ts
+docRequests: ItemsRequestInspection[];
+```
+
+Defined in: src/wire/inspect-request.ts:45
+
+***
+
 ### DeviceResponseDocumentInspection
 
 ```ts
@@ -456,6 +505,82 @@ Defined in: [src/wire/verify.ts:45](https://github.com/smart-health-checkin/clie
 
 ***
 
+### EncryptionInfoInspection
+
+```ts
+type EncryptionInfoInspection = {
+  encryptionInfo: JsonValue;
+  encryptionInfoDiagnostic: string;
+  encryptionInfoHex: string;
+  nonce?: {
+     base64url: string;
+     hex: string;
+  };
+  recipientPublicKey?: JsonValue;
+};
+```
+
+Defined in: src/wire/inspect-request.ts:48
+
+#### Properties
+
+##### encryptionInfo
+
+```ts
+encryptionInfo: JsonValue;
+```
+
+Defined in: src/wire/inspect-request.ts:51
+
+##### encryptionInfoDiagnostic
+
+```ts
+encryptionInfoDiagnostic: string;
+```
+
+Defined in: src/wire/inspect-request.ts:50
+
+##### encryptionInfoHex
+
+```ts
+encryptionInfoHex: string;
+```
+
+Defined in: src/wire/inspect-request.ts:49
+
+##### nonce?
+
+```ts
+optional nonce?: {
+  base64url: string;
+  hex: string;
+};
+```
+
+Defined in: src/wire/inspect-request.ts:52
+
+###### base64url
+
+```ts
+base64url: string;
+```
+
+###### hex
+
+```ts
+hex: string;
+```
+
+##### recipientPublicKey?
+
+```ts
+optional recipientPublicKey?: JsonValue;
+```
+
+Defined in: src/wire/inspect-request.ts:53
+
+***
+
 ### HpkeSealResult
 
 ```ts
@@ -683,6 +808,159 @@ recomputedSha256: string;
 
 ***
 
+### ItemsRequestInspection
+
+```ts
+type ItemsRequestInspection = {
+  docType?: string;
+  itemsRequest: JsonValue;
+  itemsRequestDiagnostic: string;
+  itemsRequestHex: string;
+  readerAuth?: {
+     payloadIsDetached: boolean;
+     protectedHeaders?: JsonValue;
+     readerAuthHex: string;
+     signatureHex?: string;
+     unprotectedHeaders?: JsonValue;
+  };
+  requestedElements: {
+     elementIdentifier: string;
+     intentToRetain: boolean;
+     namespace: string;
+  }[];
+  requestInfo?: JsonValue;
+  smartHealthCheckin: SmartRequestInspection;
+};
+```
+
+Defined in: src/wire/inspect-request.ts:12
+
+#### Properties
+
+##### docType?
+
+```ts
+optional docType?: string;
+```
+
+Defined in: src/wire/inspect-request.ts:16
+
+##### itemsRequest
+
+```ts
+itemsRequest: JsonValue;
+```
+
+Defined in: src/wire/inspect-request.ts:15
+
+##### itemsRequestDiagnostic
+
+```ts
+itemsRequestDiagnostic: string;
+```
+
+Defined in: src/wire/inspect-request.ts:14
+
+##### itemsRequestHex
+
+```ts
+itemsRequestHex: string;
+```
+
+Defined in: src/wire/inspect-request.ts:13
+
+##### readerAuth?
+
+```ts
+optional readerAuth?: {
+  payloadIsDetached: boolean;
+  protectedHeaders?: JsonValue;
+  readerAuthHex: string;
+  signatureHex?: string;
+  unprotectedHeaders?: JsonValue;
+};
+```
+
+Defined in: src/wire/inspect-request.ts:24
+
+###### payloadIsDetached
+
+```ts
+payloadIsDetached: boolean;
+```
+
+###### protectedHeaders?
+
+```ts
+optional protectedHeaders?: JsonValue;
+```
+
+###### readerAuthHex
+
+```ts
+readerAuthHex: string;
+```
+
+###### signatureHex?
+
+```ts
+optional signatureHex?: string;
+```
+
+###### unprotectedHeaders?
+
+```ts
+optional unprotectedHeaders?: JsonValue;
+```
+
+##### requestedElements
+
+```ts
+requestedElements: {
+  elementIdentifier: string;
+  intentToRetain: boolean;
+  namespace: string;
+}[];
+```
+
+Defined in: src/wire/inspect-request.ts:17
+
+###### elementIdentifier
+
+```ts
+elementIdentifier: string;
+```
+
+###### intentToRetain
+
+```ts
+intentToRetain: boolean;
+```
+
+###### namespace
+
+```ts
+namespace: string;
+```
+
+##### requestInfo?
+
+```ts
+optional requestInfo?: JsonValue;
+```
+
+Defined in: src/wire/inspect-request.ts:22
+
+##### smartHealthCheckin
+
+```ts
+smartHealthCheckin: SmartRequestInspection;
+```
+
+Defined in: src/wire/inspect-request.ts:23
+
+***
+
 ### JsonValue
 
 ```ts
@@ -764,6 +1042,81 @@ ok: true;
 
 ```ts
 value: SmartCheckinResponse;
+```
+
+***
+
+### OrgIsoMdocInspection
+
+```ts
+type OrgIsoMdocInspection = {
+  deviceRequest: DeviceRequestInspection;
+  encryptionInfo?: EncryptionInfoInspection;
+  protocol: typeof PROTOCOL_ID;
+  sessionTranscript?: {
+     diagnostic: string;
+     hex: string;
+     origin: string;
+  };
+};
+```
+
+Defined in: src/wire/inspect-request.ts:56
+
+#### Properties
+
+##### deviceRequest
+
+```ts
+deviceRequest: DeviceRequestInspection;
+```
+
+Defined in: src/wire/inspect-request.ts:58
+
+##### encryptionInfo?
+
+```ts
+optional encryptionInfo?: EncryptionInfoInspection;
+```
+
+Defined in: src/wire/inspect-request.ts:59
+
+##### protocol
+
+```ts
+protocol: typeof PROTOCOL_ID;
+```
+
+Defined in: src/wire/inspect-request.ts:57
+
+##### sessionTranscript?
+
+```ts
+optional sessionTranscript?: {
+  diagnostic: string;
+  hex: string;
+  origin: string;
+};
+```
+
+Defined in: src/wire/inspect-request.ts:60
+
+###### diagnostic
+
+```ts
+diagnostic: string;
+```
+
+###### hex
+
+```ts
+hex: string;
+```
+
+###### origin
+
+```ts
+origin: string;
 ```
 
 ***
@@ -1003,6 +1356,64 @@ publicJwk: JsonWebKey;
 ```
 
 Defined in: [src/wire/reader-auth.ts:13](https://github.com/smart-health-checkin/client/blob/main/src/wire/reader-auth.ts#L13)
+
+***
+
+### SmartRequestCarrierResolution
+
+```ts
+type SmartRequestCarrierResolution = {
+  companionElementIdentifier?: string;
+  companionPresent: boolean;
+  json?: string;
+  requestInfoPresent: boolean;
+  source: "requestInfo" | "companion" | "none";
+};
+```
+
+Defined in: src/wire/inspect-request.ts:33
+
+#### Properties
+
+##### companionElementIdentifier?
+
+```ts
+optional companionElementIdentifier?: string;
+```
+
+Defined in: src/wire/inspect-request.ts:38
+
+##### companionPresent
+
+```ts
+companionPresent: boolean;
+```
+
+Defined in: src/wire/inspect-request.ts:37
+
+##### json?
+
+```ts
+optional json?: string;
+```
+
+Defined in: src/wire/inspect-request.ts:34
+
+##### requestInfoPresent
+
+```ts
+requestInfoPresent: boolean;
+```
+
+Defined in: src/wire/inspect-request.ts:36
+
+##### source
+
+```ts
+source: "requestInfo" | "companion" | "none";
+```
+
+Defined in: src/wire/inspect-request.ts:35
 
 ***
 
@@ -1923,6 +2334,26 @@ Defined in: [src/wire/response.ts:133](https://github.com/smart-health-checkin/c
 
 ***
 
+### inspectDeviceRequestBytes()
+
+```ts
+function inspectDeviceRequestBytes(bytes): DeviceRequestInspection;
+```
+
+Defined in: src/wire/inspect-request.ts:99
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `bytes` | `Uint8Array` |
+
+#### Returns
+
+[`DeviceRequestInspection`](#devicerequestinspection)
+
+***
+
 ### inspectDeviceResponseBytes()
 
 ```ts
@@ -1940,6 +2371,68 @@ Defined in: [src/wire/response.ts:288](https://github.com/smart-health-checkin/c
 #### Returns
 
 `Promise`\<[`DeviceResponseInspection`](#deviceresponseinspection)\>
+
+***
+
+### inspectEncryptionInfoBytes()
+
+```ts
+function inspectEncryptionInfoBytes(bytes): EncryptionInfoInspection;
+```
+
+Defined in: src/wire/inspect-request.ts:179
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `bytes` | `Uint8Array` |
+
+#### Returns
+
+[`EncryptionInfoInspection`](#encryptioninfoinspection)
+
+***
+
+### inspectItemsRequestBytes()
+
+```ts
+function inspectItemsRequestBytes(bytes): ItemsRequestInspection;
+```
+
+Defined in: src/wire/inspect-request.ts:130
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `bytes` | `Uint8Array` |
+
+#### Returns
+
+[`ItemsRequestInspection`](#itemsrequestinspection)
+
+***
+
+### inspectOrgIsoMdocNavigatorArgument()
+
+```ts
+function inspectOrgIsoMdocNavigatorArgument(arg, options?): Promise<OrgIsoMdocInspection>;
+```
+
+Defined in: src/wire/inspect-request.ts:67
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `arg` | `unknown` |
+| `options` | \{ `origin?`: `string`; \} |
+| `options.origin?` | `string` |
+
+#### Returns
+
+`Promise`\<[`OrgIsoMdocInspection`](#orgisomdocinspection)\>
 
 ***
 

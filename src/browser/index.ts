@@ -1,7 +1,7 @@
 /**
  * browser — the thin DOM layer: Digital Credentials API support detection,
  * the navigator.credentials.get call, and the key-custody seam
- * (VerifierAuthority). Everything below this layer is DOM-free.
+ * (KeyCustody). Everything below this layer is DOM-free.
  */
 
 import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
@@ -39,7 +39,7 @@ export function detectDcApiSupport(): DcApiSupport {
 }
 
 export type PreparedCredentialRequest = {
-  /** Opaque handle for completing the request with the same authority. */
+  /** Opaque handle for completing the request with the same key custody. */
   handle: string;
   /** Pass to navigator.credentials.get(...). */
   navigatorArgument: OrgIsoMdocNavigatorArgument;
@@ -87,7 +87,7 @@ export type CredentialCompletion =
  * A server-owned implementation keeps the key behind two HTTP calls for
  * deployments that specifically don't want the page to hold the response.
  */
-export type VerifierAuthority = {
+export type KeyCustody = {
   kind: string;
   prepareCredentialRequest(input: { request: SmartCheckinRequest }): Promise<PreparedCredentialRequest>;
   completeCredentialRequest(input: { handle: string; credential: unknown }): Promise<CredentialCompletion>;
@@ -100,11 +100,11 @@ type BrowserLocalSession = {
 };
 
 /** Ephemeral, single-use verifier key held in the page. The default. */
-export function createBrowserLocalAuthority(options: { origin?: string } = {}): VerifierAuthority {
+export function createBrowserKeyCustody(options: { origin?: string } = {}): KeyCustody {
   const origin =
     options.origin ??
     (typeof location !== "undefined" ? location.origin : undefined);
-  if (!origin) throw new Error("browser-local authority needs an origin");
+  if (!origin) throw new Error("browser key custody needs an origin");
   const sessions = new Map<string, BrowserLocalSession>();
   let counter = 0;
 
@@ -147,7 +147,7 @@ export function createBrowserLocalAuthority(options: { origin?: string } = {}): 
 }
 
 /**
- * HTTP client for a server-owned authority. Two calls, JSON both ways:
+ * HTTP client for server-held keys. Two calls, JSON both ways:
  *
  *   POST {base}/credential-requests
  *     → { "request": SmartCheckinRequest }
@@ -163,7 +163,7 @@ export function createBrowserLocalAuthority(options: { origin?: string } = {}): 
  * including what the server must store and verify, is in
  * docs/server-authority.md.
  */
-export function createServerAuthority(baseUrl: string): VerifierAuthority {
+export function createServerKeyCustody(baseUrl: string): KeyCustody {
   const base = baseUrl.replace(/\/$/, "");
   return {
     kind: "server-owned",

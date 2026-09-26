@@ -9,10 +9,10 @@
  */
 
 import {
-  createBrowserLocalAuthority,
-  createServerAuthority,
+  createBrowserKeyCustody,
+  createServerKeyCustody,
   type CredentialCompletion,
-  type PreparedCredentialRequest,
+  type KeyCustody,
 } from "../browser/index.js";
 import { validateResponseAgainstRequest, type SmartCheckinRequest } from "../model/index.js";
 import { CheckinError, isDecline, type CheckinErrorCode } from "./errors.js";
@@ -24,16 +24,9 @@ import { platformWallet, type Wallet, type WalletSession } from "./wallets.js";
 /**
  * Where the verifier's private key lives. "browser" (default): a fresh key in
  * the page for each check-in. `{ server }`: your server holds it, behind two
- * HTTP calls (see the server key custody guide). Or your own implementation.
+ * HTTP calls (see the server-held keys guide). Or your own implementation.
  */
-export type KeyCustody = {
-  /** "browser-local" for the default; anything else is treated as server-held. */
-  kind: string;
-  /** Build the Digital Credentials API argument, keeping the private key wherever custody is. */
-  prepareCredentialRequest(input: { request: SmartCheckinRequest }): Promise<PreparedCredentialRequest>;
-  /** Open and verify the wallet's answer with that key. */
-  completeCredentialRequest(input: { handle: string; credential: unknown }): Promise<CredentialCompletion>;
-};
+export type { KeyCustody };
 
 export type CheckinOptions = {
   /** Which wallet to ask. Defaults to the phone's own wallet. */
@@ -135,8 +128,8 @@ export async function runCheckin(input: CheckinRequestInput, options: CheckinOpt
 }
 
 function resolveCustody(keys: CheckinOptions["keys"]): KeyCustody {
-  if (!keys || keys === "browser") return createBrowserLocalAuthority();
-  if ("server" in keys && typeof keys.server === "string") return createServerAuthority(keys.server);
+  if (!keys || keys === "browser") return createBrowserKeyCustody();
+  if ("server" in keys && typeof keys.server === "string") return createServerKeyCustody(keys.server);
   return keys as KeyCustody;
 }
 

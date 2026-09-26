@@ -6,7 +6,7 @@
  * Development and tests only; never offer the mock wallet to patients.
  */
 import { customWallet, type Wallet } from "../core/wallets.js";
-import { createMockWalletCredentialGetter, type MockWalletOptions } from "../kit/mock-wallet.js";
+import { createMockWalletCredentialGetter, type MockWalletOptions } from "../testing/mock.js";
 import type { WalletRegistry } from "../model/index.js";
 
 /** A wallet that answers at once with the data you specify, or plausible fabricated data. */
@@ -44,4 +44,4 @@ export {
   type MockItemSpec,
   type MockItemSpecs,
   type MockWalletOptions,
-} from "../kit/mock-wallet.js";
+} from "../testing/mock.js";
