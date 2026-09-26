@@ -3,20 +3,24 @@
  *
  * The point of the code below is the shape of the integration:
  *
- *   const result = await wallet.start(request);
- *   // …then this page decides what to do with result.response.
+ *   picker.request = request;
+ *   picker.addEventListener("smart-checkin-response", (e) => use(e.detail.response));
+ *   // …then this page decides what to do with the response.
  *
+ * `<smart-checkin-picker>` lists the wallets, runs the check-in with the one
+ * the patient picks, and reports back; everything after that is this page.
  * Posting to FHIR happens explicitly afterwards, using the optional `fhir`
  * helper — the check-in kit itself has no idea a FHIR server exists.
  */
 
-import { wallets, type SmartCheckinRequest, type SmartCheckinResponse, type Wallet } from "../../src/index.js";
-import { mockWallet } from "../../src/testing/index.js";
+import { wallets, type SmartCheckinRequest, type SmartCheckinResponse } from "../../src/index.js";
 import { DEMO_REQUESTS } from "./requests.js";
 import { explainResponse, renderExplorer } from "./explore.js";
 import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.js";
 import { showShareLink } from "./share-link.js";
-import "./site.js";
+import type { SmartCheckinPicker } from "../../src/ui/index.js";
+import { followPageTheme } from "./site.js";
+import { DEFAULT_REGISTRY, pickerChoice, setUpPicker } from "./demo-picker.js";
 
 // The demo never posts anywhere unless you set a base in Demo controls.
 const DEFAULT_FHIR_BASE = "";
@@ -26,28 +30,15 @@ const DEMO_PATIENT = "Patient/example";
 const DEMO_PATIENT_NAME = "Jordan Reyes (demo)";
 const DEMO_APPOINTMENT = "Appointment/demo-visit";
 
-/**
- * The wallets this page offers: the phone's own, the registry's web wallets
- * (`wallets=<url>` swaps in a different registry), and the mock. Unavailable
- * ones stay in the menu with the reason, since this is a developer demo. The
- * demo wallet leads because it works in any browser; a real deployment would
- * more likely lead with the platform wallet.
- */
-async function loadWallets(registryUrl: string | null): Promise<Wallet[]> {
-  return wallets({ registry: registryUrl ?? "./wallets.json", extra: [mockWallet()], includeUnavailable: true });
-}
-
-let WALLETS: Wallet[] = [];
-const defaultWalletId = (): string =>
-  (WALLETS.find((w) => w.id === "demo" && w.available) ?? WALLETS.find((w) => w.available))?.id ?? "platform";
-
-type WalletMode = string;
 type AfterMode = "none" | PostMode;
 
 type Settings = {
   request: SmartCheckinRequest;
   scenarioKey: string | null;
-  wallet: WalletMode;
+  /** Offer only this wallet (`wallet=`); null offers every one. */
+  wallet: string | null;
+  /** The wallet registry (`wallets=`). */
+  registry: string;
   after: AfterMode;
   patient: string;
   appointment: string;
@@ -75,11 +66,10 @@ function readSettings(): Settings {
       ? p.get("scenario")!
       : DEFAULT_SCENARIO;
   const after = p.get("post");
-  const walletParam = p.get("wallet") ?? (p.get("mock") === "1" ? "auto" : p.get("mock"));
   return {
     request: passthrough ?? DEMO_REQUESTS[scenarioKey!]!.request,
     scenarioKey,
-    wallet: walletParam ?? defaultWalletId(),
+    ...pickerChoice(p),
     after: after === "transaction" || after === "individual" ? after : "none",
     patient: p.get("patient") ?? DEMO_PATIENT,
     appointment: p.get("appointment") ?? DEMO_APPOINTMENT,
@@ -92,15 +82,7 @@ function setParam(key: string, value: string, dropWhen?: string): void {
   const p = params();
   if (!value || value === dropWhen) p.delete(key);
   else p.set(key, value);
-  if (key === "wallet") p.delete("mock");
   location.hash = `#${p.toString()}`;
-}
-
-function walletFor(id: WalletMode): Wallet | undefined {
-  // back-compat with the old ?wallet=app / auto values
-  const aliases: Record<string, string> = { app: "demo", auto: "mock" };
-  const wanted = aliases[id] ?? id;
-  return WALLETS.find((w) => w.id === wanted);
 }
 
 function hostOf(url: string): string {
@@ -163,10 +145,14 @@ function renderArtifacts(): void {
 
 // ------------------------------------------------------------------ render
 
-let running = false;
+const picker = document.getElementById("picker") as SmartCheckinPicker;
+followPageTheme(picker);
+let current: Settings;
+let pickerSetup = "";
 
 function render(): void {
   const s = readSettings();
+  current = s;
 
   const scenarioSelect = el("scenario-select") as HTMLSelectElement;
   const options = Object.keys(DEMO_REQUESTS).map((key) => {
@@ -204,7 +190,8 @@ function render(): void {
   bind("appointment-input", "appointment", s.appointment, DEMO_APPOINTMENT);
   bind("fhir-input", "fhir", s.fhirBase, DEFAULT_FHIR_BASE);
   bind("return-input", "returnUrl", s.returnUrl, "");
-  bind("registry-input", "wallets", params().get("wallets") ?? "", "./wallets.json");
+  bind("registry-input", "wallets", params().get("wallets") ?? "", DEFAULT_REGISTRY);
+  void renderWalletSelect(s);
 
   const copyLink = el("copy-link") as HTMLButtonElement;
   copyLink.onclick = () => {
@@ -277,90 +264,64 @@ function render(): void {
       : `Caution: this page will post shared data to ${hostOf(s.fhirBase)}. Only proceed with test data and a server you recognize.`;
   }
 
-  const wallet = walletFor(s.wallet);
-  const statusNote = el("status-note");
-  const start = el("start") as HTMLButtonElement;
-  const updateStart = (): void => {
-    start.disabled = running || (needsAck && !ack.checked) || !wallet?.available;
-  };
-
-  if (!wallet) {
-    statusNote.textContent = "No wallet selected.";
-  } else if (!wallet.available) {
-    statusNote.textContent = `${wallet.name} isn't available here${wallet.unavailableReason ? ` (${wallet.unavailableReason})` : ""}. Pick another from the button's menu.`;
-  } else if (wallet.kind === "platform") {
-    statusNote.textContent =
-      "Your own health app answers through the Digital Credentials API — on a desktop, the browser offers a QR code to scan with your phone.";
-  } else if (wallet.kind === "mock") {
-    statusNote.textContent =
-      "Simulated response: fabricated data, instantly, with no consent screen. Development only.";
-  } else {
-    statusNote.textContent = `${wallet.name} will open in a tab, where you choose what to share.`;
+  // The picker: which wallets it offers comes from the URL; what it asks for
+  // is the scenario. It stays inert until a posting caution is acknowledged.
+  const setup = JSON.stringify([s.registry, s.wallet]);
+  if (setup !== pickerSetup) {
+    pickerSetup = setup;
+    void setUpPicker(picker, { registry: s.registry, wallet: s.wallet });
   }
-  updateStart();
-  ack.onchange = updateStart;
-  start.textContent = wallet && wallet.kind !== "platform"
-    ? `Check in with ${wallet.name}`
-    : "Check in with your health app";
-  renderWalletMenu(s, wallet);
-
-  start.onclick = () => void checkIn(s);
+  picker.request = s.request;
+  picker.reset();
+  const gate = (): void => {
+    picker.inert = needsAck && !ack.checked;
+  };
+  gate();
+  ack.onchange = gate;
   el("outcome-section").hidden = true;
 }
 
-/**
- * A split button: the primary action uses the current wallet, the caret
- * opens the rest. The list comes from the kit; the rendering is ours.
- */
-function renderWalletMenu(s: Settings, current: Wallet | undefined): void {
-  const menu = el("wallet-menu");
-  menu.innerHTML = "";
-  for (const wallet of WALLETS) {
-    const item = document.createElement("button");
-    item.type = "button";
-    item.className = "wallet-item";
-    item.disabled = !wallet.available;
-    item.setAttribute("aria-current", String(wallet.id === current?.id));
-    const name = document.createElement("strong");
-    name.textContent = wallet.name;
-    const note = document.createElement("span");
-    note.textContent = wallet.available
-      ? (wallet.description ?? "")
-      : `Not available here${wallet.unavailableReason ? ` — ${wallet.unavailableReason}` : ""}`;
-    item.append(name, note);
-    item.onclick = () => {
-      el("wallet-menu").hidden = true;
-      (el("wallet-toggle") as HTMLButtonElement).setAttribute("aria-expanded", "false");
-      setParam("wallet", wallet.id, "platform");
-    };
-    menu.append(item);
+/** Demo controls: offer every wallet, or only one of them. */
+let registryNames: { url: string; list: Promise<Array<{ id: string; name: string }>> } | undefined;
+async function renderWalletSelect(s: Settings): Promise<void> {
+  if (registryNames?.url !== s.registry) {
+    registryNames = { url: s.registry, list: wallets({ registry: s.registry, platform: false }).catch(() => []) };
   }
-  void s;
+  const listed = await registryNames.list;
+  const select = el("wallet-select") as HTMLSelectElement;
+  const choices: Array<[string, string]> = [
+    ["", "every wallet"],
+    ["platform", "the device's own wallet"],
+    ...listed.map((w): [string, string] => [w.id, w.name]),
+    ["mock", "the simulated response"],
+  ];
+  if (s.wallet && !choices.some(([id]) => id === s.wallet)) choices.push([s.wallet, `${s.wallet} (not in the registry)`]);
+  select.replaceChildren(...choices.map(([value, label]) => Object.assign(document.createElement("option"), { value, textContent: label })));
+  select.value = s.wallet ?? "";
+  select.onchange = () => setParam("wallet", select.value);
 }
 
 // -------------------------------------------------------------------- flow
 
-async function checkIn(s: Settings): Promise<void> {
-  const start = el("start") as HTMLButtonElement;
-  running = true;
-  start.disabled = true;
-  start.textContent = "Waiting for your health app…";
+// The picker runs the check-in; this page takes it from the result.
+picker.addEventListener("smart-checkin-response", (event) => {
+  const { response } = event.detail;
+  if (response) void checkedIn(current, response.json);
+});
+picker.addEventListener("smart-checkin-declined", () => renderOutcome("declined", current));
+picker.addEventListener("smart-checkin-error", (event) => {
+  // Only a check-in that started has an outcome; the picker shows the rest itself.
+  const { wallet, message, code } = event.detail;
+  if (wallet) renderOutcome("failed", current, undefined, code ? `${message} (${code})` : message);
+});
 
+async function checkedIn(s: Settings, response: SmartCheckinResponse): Promise<void> {
   try {
-    // 1. Ask the chosen wallet (inside the click), and await the result.
-    const chosen = walletFor(s.wallet);
-    if (!chosen) throw new Error("no wallet selected");
-    const result = await chosen.start(s.request);
-    if (result.status !== "completed" || !result.response) {
-      renderOutcome(result.status, s, undefined, result.status === "failed" ? `${result.error.message} (${result.error.code})` : undefined);
-      return;
-    }
-    const response = result.response.json;
     showArtifact("response", "SMART response (verified and validated)", response);
     renderOutcome("completed", s, response);
 
-    // 2. From here it is ordinary application code. This page happens to post
-    //    FHIR using the optional helper; the check-in library was not involved.
+    // From here it is ordinary application code. This page happens to post
+    // FHIR using the optional helper; the check-in library was not involved.
     if (s.after !== "none" && s.fhirBase) {
       const bundle = buildCheckinBundle({
         request: s.request,
@@ -378,10 +339,6 @@ async function checkIn(s: Settings): Promise<void> {
     }
   } catch (e) {
     renderOutcome("failed", s, undefined, e instanceof Error ? e.message : String(e));
-  } finally {
-    running = false;
-    start.disabled = false;
-    start.textContent = "Check in with your health app";
   }
 }
 
@@ -458,24 +415,9 @@ toggle.onclick = () => {
   toggle.setAttribute("aria-expanded", String(open));
 };
 
-const toggleMenu = el("wallet-toggle") as HTMLButtonElement;
-toggleMenu.onclick = () => {
-  const menu = el("wallet-menu");
-  const open = menu.hidden;
-  menu.hidden = !open;
-  toggleMenu.setAttribute("aria-expanded", String(open));
-};
-document.addEventListener("click", (event) => {
-  if (!(event.target as HTMLElement).closest(".start-group")) {
-    el("wallet-menu").hidden = true;
-    toggleMenu.setAttribute("aria-expanded", "false");
-  }
-});
-
 window.addEventListener("hashchange", render);
 
 try {
-  WALLETS = await loadWallets(params().get("wallets"));
   render();
 } finally {
   // index.html keeps the panels invisible until this first render (no layout shift).

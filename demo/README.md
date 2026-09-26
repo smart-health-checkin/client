@@ -17,7 +17,7 @@ Every option goes in the URL fragment, after `#`. Fragments aren't sent to serve
 | --- | --- |
 | `scenario` | One of the demo requests: `visit-prep` (the default), `insurance-only`, `new-patient`, `allergy-review`, `medlist-refresh`. |
 | `request` | A full `SmartCheckinRequest`, base64url-encoded, sent as is. Wins over `scenario`. |
-| `wallet` | Which wallet answers: a registry id (`demo`, the default, or `evergreen`), `platform` for the device's own wallet, or `mock`. `app` and `auto` still mean `demo` and `mock`. |
+| `wallet` | Offer only this wallet: a registry id (`demo` or `evergreen`), `platform` for the device's own wallet, or `mock` for the simulated response. Without it, the page offers all of them. |
 | `wallets` | A wallet registry URL to use instead of `./wallets.json`. |
 | `patient` | A FHIR Patient reference on the target server, such as `Patient/123`. |
 | `appointment` | A FHIR Appointment reference. |
@@ -25,16 +25,19 @@ Every option goes in the URL fragment, after `#`. Fragments aren't sent to serve
 | `post` | `none` (the default), `transaction`, or `individual`. |
 | `returnUrl` | Where the patient goes after a completed check-in. |
 
-Unknown options are ignored.
+Unknown options are ignored. The [form autofill demo](../demo/autofill.html) and the [kiosk's phone page](../demo/handoff.html) take `wallet` and `wallets` too.
+
+The patient chooses a wallet in [`<smart-checkin-picker>`](../docs/wallets.md#the-picker). It lists the device's own wallet when this browser can reach it, the registry's web wallets, and the simulated response.
 
 Nothing is posted unless both `post` and `fhir` are set. The public HAPI R4 test server is recognized. For any other server, the page names the host and asks you to confirm first. Never point this demo at a server with real patient data.
 
 ## Example URLs
 
 ```text
-…/demo/                                   the demo wallet, in a tab (the default)
-…/demo/#wallet=platform                   the device's own wallet
-…/demo/#wallet=mock                       an instant made-up answer, no consent screen
+…/demo/                                   every wallet, for the patient to choose
+…/demo/#wallet=demo                       only the demo wallet, in a tab
+…/demo/#wallet=platform                   only the device's own wallet
+…/demo/#wallet=mock                       only the simulated response: an instant made-up answer, no consent screen
 …/demo/#wallet=mock&post=transaction&fhir=<base>   then post it there
 …/demo/tutorial.html                      the tutorial's finished page
 …/demo/autofill.html                      prefill a form from the app

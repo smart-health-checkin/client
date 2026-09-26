@@ -1,16 +1,17 @@
 /**
  * Autofill sketch: the provider's own form, prefilled by the patient's app
- * via `await wallet.start(request)`, which then asks only for what the shared
+ * through `<smart-checkin-picker>`, which then asks only for what the shared
  * record couldn't carry.
  *
  * Deliberately compact — this gestures at the capability rather than being a
  * production intake form. Two taps fill a gap: a symptom chip and a severity.
  */
 
-import { detectDcApiSupport, platformWallet, webWallet, type Wallet } from "../../src/index.js";
-import { mockWallet } from "../../src/testing/index.js";
+import type { CheckinResponse } from "../../src/index.js";
+import type { SmartCheckinPicker } from "../../src/ui/index.js";
 import { showShareLink } from "./share-link.js";
-import "./site.js";
+import { followPageTheme } from "./site.js";
+import { pickerChoice, setUpPicker } from "./demo-picker.js";
 
 const ALLERGY_REVIEW = {
   purpose: "Review your allergy list before your visit",
@@ -60,18 +61,7 @@ type Row = {
 };
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
-const params = new URLSearchParams(location.hash.replace(/^#/, ""));
-const walletParam = params.get("wallet") ?? (params.get("mock") === "1" ? "auto" : params.get("mock"));
-// Defaults to the demo wallet, which works in any browser; #wallet=platform
-// asks the device's own. "demo" is the wallet's registry id, "app" its old name.
-const wallet: "platform" | "app" | "auto" =
-  walletParam === "platform" ? "platform" : walletParam === "auto" || walletParam === "mock" ? "auto" : "app";
-const chosenWallet: Wallet =
-  wallet === "app"
-    ? webWallet({ id: "demo", name: "Demo wallet", walletUrl: "./wallet.html" })
-    : wallet === "auto"
-      ? mockWallet()
-      : platformWallet();
+const picker = el("picker") as SmartCheckinPicker;
 
 const rows: Row[] = [];
 let outputTab: "fhir" | "native" = "fhir";
@@ -88,21 +78,18 @@ const needsDetail = (row: Row): boolean =>
   ((row.gaps.reaction && row.symptoms.size === 0) || (row.gaps.severity && !row.severity));
 
 function init(): void {
-  const support = detectDcApiSupport();
-  const note = el("status-note");
-  const button = el("prefill") as HTMLButtonElement;
-  if (wallet === "app") {
-    note.textContent = "Demo wallet: opens in a new tab where you choose what to share.";
-  } else if (wallet === "auto") {
-    note.textContent = "Automatic mock wallet — fabricated demo allergies, no consent screen.";
-  } else if (support.state === "supported") {
-    note.textContent =
-      "Your own wallet can answer — on a desktop the browser offers a QR code to scan with your phone. (Drop #wallet=platform to use the demo wallet tab instead.)";
-  } else {
-    note.textContent = `Digital Credentials API not available here (${support.reason}). Drop #wallet=platform to run with the demo wallet tab.`;
-    button.disabled = true;
-  }
-  button.onclick = () => void prefill();
+  // The picker offers the demo's wallets (URL options in demo-picker.ts) and runs the check-in.
+  followPageTheme(picker);
+  void setUpPicker(picker, pickerChoice(new URLSearchParams(location.hash.replace(/^#/, ""))));
+  picker.request = ALLERGY_REVIEW;
+  picker.addEventListener("smart-checkin-response", (event) => {
+    if (event.detail.response) prefill(event.detail.response);
+    else notPrefilled("the response stayed on the server", event.detail.result.status);
+  });
+  picker.addEventListener("smart-checkin-declined", () => notPrefilled(undefined, "declined"));
+  picker.addEventListener("smart-checkin-error", (event) => {
+    if (event.detail.wallet) notPrefilled(event.detail.message, "failed");
+  });
   el("manual").onclick = () => startManual();
   el("add-row").onclick = () => addRow();
   el("new-allergy").onkeydown = (event) => {
@@ -117,63 +104,51 @@ function init(): void {
   }
 }
 
-async function prefill(): Promise<void> {
-  const button = el("prefill") as HTMLButtonElement;
-  button.disabled = true;
-  button.textContent = "Waiting for your health app…";
-  try {
-    const result = await chosenWallet.start(ALLERGY_REVIEW);
-    if (result.status !== "completed" || !result.response) {
-      el("status-note").textContent =
-        result.status === "declined"
-          ? "Nothing was shared. You can fill the form at the front desk instead."
-          : `Could not prefill: ${result.status === "failed" ? result.error.message : "the response stayed on the server"}`;
-      showShareLink(document.getElementById("share-link"), "autofill-demo", result.status);
-      return;
+function notPrefilled(reason: string | undefined, status: string): void {
+  el("status-note").textContent = reason
+    ? `Could not prefill: ${reason}`
+    : "Nothing was shared. You can fill the form at the front desk instead.";
+  showShareLink(document.getElementById("share-link"), "autofill-demo", status);
+}
+
+function prefill(response: CheckinResponse): void {
+  for (const resource of response.resources("allergies", { type: "AllergyIntolerance" })) {
+    const reactions = reactionTexts(resource);
+    const criticality =
+      typeof resource.criticality === "string" ? resource.criticality : undefined;
+    const name = codeText(resource) ?? "(unnamed allergy)";
+    const existing = rows.find((r) => sameAllergen(r.name, name));
+    if (existing) {
+      // The app confirms something the person already typed: keep their
+      // answers, but let the record's detail close the gap.
+      existing.reportedReactions = reactions;
+      existing.criticality = criticality;
+      existing.confirmedByApp = true;
+      existing.gaps = gapsFor(reactions, criticality);
+      continue;
     }
-    for (const resource of result.response.resources("allergies", { type: "AllergyIntolerance" })) {
-      const reactions = reactionTexts(resource);
-      const criticality =
-        typeof resource.criticality === "string" ? resource.criticality : undefined;
-      const name = codeText(resource) ?? "(unnamed allergy)";
-      const existing = rows.find((r) => sameAllergen(r.name, name));
-      if (existing) {
-        // The app confirms something the person already typed: keep their
-        // answers, but let the record's detail close the gap.
-        existing.reportedReactions = reactions;
-        existing.criticality = criticality;
-        existing.confirmedByApp = true;
-        existing.gaps = gapsFor(reactions, criticality);
-        continue;
-      }
-      rows.push({
-        name,
-        reportedReactions: reactions,
-        criticality,
-        symptoms: new Set(
-          SYMPTOM_TAGS.filter((tag) => reactions.some((r) => matchesTag(tag.label, r))).map(
-            (tag) => tag.label,
-          ),
+    rows.push({
+      name,
+      reportedReactions: reactions,
+      criticality,
+      symptoms: new Set(
+        SYMPTOM_TAGS.filter((tag) => reactions.some((r) => matchesTag(tag.label, r))).map(
+          (tag) => tag.label,
         ),
-        severity: "",
-        removed: false,
-        gaps: gapsFor(reactions, criticality),
-      });
-    }
-    const missing = rows.filter(needsDetail).length;
-    el("status-note").textContent = !rows.length
-      ? "Your app returned no allergy records — add any you know of below."
-      : missing
-        ? `${rows.length} allergies came from your app. ${missing} ${missing === 1 ? "is" : "are"} missing detail your record doesn't carry — only those need you.`
-        : `${rows.length} allergies came from your app, all complete.`;
-    el("review-card").hidden = false;
-    render();
-  } catch (e) {
-    el("status-note").textContent = `Could not prefill: ${e instanceof Error ? e.message : String(e)}`;
-  } finally {
-    button.disabled = false;
-    button.textContent = "Prefill from your health app";
+      ),
+      severity: "",
+      removed: false,
+      gaps: gapsFor(reactions, criticality),
+    });
   }
+  const missing = rows.filter(needsDetail).length;
+  el("status-note").textContent = !rows.length
+    ? "Your app returned no allergy records — add any you know of below."
+    : missing
+      ? `${rows.length} allergies came from your app. ${missing} ${missing === 1 ? "is" : "are"} missing detail your record doesn't carry — only those need you.`
+      : `${rows.length} allergies came from your app, all complete.`;
+  el("review-card").hidden = false;
+  render();
 }
 
 const sameAllergen = (a: string, b: string): boolean =>

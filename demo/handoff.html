@@ -19,8 +19,7 @@
   p { margin: var(--space-2) 0; color: var(--fg-2); }
   .from { font-size: var(--fs-sm); color: var(--fg-3); }
   ul.ask { margin: var(--space-3) 0; padding-left: 1.2em; color: var(--fg-2); }
-  .choices { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
-  .choices .smart-btn { justify-content: center; }
+  #picker { margin-top: var(--space-4); }
   #note { font-size: var(--fs-sm); color: var(--fg-3); min-height: 1.5em; }
   a { color: var(--brand); }
 </style>
@@ -45,7 +44,8 @@
     <p>They're asking your health app for:</p>
     <ul class="ask" id="items"></ul>
     <p>You choose what to share, item by item.</p>
-    <div class="choices" id="choices"></div>
+    <smart-checkin-picker id="picker" mode="pick" heading="Answer with your health app"
+      description="Your app's answer goes to the kiosk, sealed so only it can read it."></smart-checkin-picker>
   </section>
   <section class="smart-panel" id="done" hidden>
     <h2 id="done-headline"></h2>

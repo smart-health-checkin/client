@@ -19,7 +19,7 @@
   h1 { font-size: var(--fs-xl); margin: 0; letter-spacing: var(--tracking-tight); }
   h2 { font-size: var(--fs-md); margin: 0 0 var(--space-2); letter-spacing: var(--tracking-snug); }
   .sub { color: var(--fg-2); font-size: var(--fs-sm); margin: var(--space-2) 0 0; }
-  .start-row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .start-row { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); }
   .add-row { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
   .add-row .smart-input { flex: 1; font-family: var(--font-sans); }
   .smart-note { margin-top: var(--space-3); }
@@ -80,8 +80,9 @@
   </header>
 
   <section class="smart-panel">
+    <smart-checkin-picker id="picker" heading="Prefill from your health app"
+      description="Bring in your allergy list from a health app you already use."></smart-checkin-picker>
     <div class="start-row">
-      <button id="prefill" class="smart-btn primary">Prefill from your health app</button>
       <button id="manual" class="smart-btn">I'll enter them myself</button>
     </div>
     <p class="smart-note" id="status-note"></p>

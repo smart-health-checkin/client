@@ -62,32 +62,10 @@
   /* .chip carries .smart-chip from the script; only placement is local */
   .chip { flex: none; margin-left: auto; }
 
-  /* a split button: one control, divided — the halves are .smart-btn */
-  .start-group { position: relative; display: inline-flex; margin-top: var(--space-4); }
-  .start-group #start { border-radius: var(--radius-md) 0 0 var(--radius-md); }
-  .start-group .caret {
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    border-left: 1px solid color-mix(in srgb, var(--on-brand) 35%, transparent);
-    padding: 10px 12px;
-  }
-  .wallet-menu {
-    position: absolute; top: calc(100% + var(--space-2)); left: 0; z-index: 20;
-    min-width: 20rem; max-width: min(26rem, 90vw);
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg); padding: var(--space-1);
-    display: flex; flex-direction: column;
-  }
-  .wallet-item {
-    font: inherit; text-align: left; background: none; border: none; cursor: pointer;
-    border-radius: var(--radius-md); padding: var(--space-3); color: var(--fg-1);
-    display: flex; flex-direction: column; gap: 2px;
-  }
-  .wallet-item:hover:not([disabled]) { background: var(--surface-alt); }
-  .wallet-item[aria-current="true"] { background: var(--brand-wash); box-shadow: inset 2px 0 0 var(--brand); }
-  .wallet-item[disabled] { opacity: 0.5; cursor: not-allowed; }
-  .wallet-item strong { font-size: var(--fs-sm); font-weight: 600; }
-  .wallet-item span { font-size: var(--fs-sm); color: var(--fg-3); line-height: 1.4; }
-
+  /* the picker is <smart-checkin-picker>; its width is set in demo.css.
+     While the FHIR server caution is unacknowledged it is inert. */
+  #picker { margin-top: var(--space-4); }
+  #picker[inert] { opacity: 0.5; }
   .smart-note { margin-top: var(--space-4); }
   label.ack { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); font-size: var(--fs-sm); }
   a { color: var(--brand); }
@@ -133,6 +111,7 @@
     <div class="control-grid">
       <label class="control smart-field"><span class="lbl">Scenario</span><select class="smart-select" id="scenario-select"></select></label>
       <label class="control smart-field"><span class="lbl">Wallet registry</span><input class="smart-input" id="registry-input" placeholder="./wallets.json"></label>
+      <label class="control smart-field"><span class="lbl">Wallets offered</span><select class="smart-select" id="wallet-select"></select></label>
       <label class="control smart-field"><span class="lbl">After the response</span><select class="smart-select" id="submit-select">
         <option value="none">keep it in the page</option>
         <option value="transaction">post to FHIR (transaction)</option>
@@ -175,18 +154,13 @@
     <p class="muted small">
       You choose what to share. Your care team only receives what you approve.
     </p>
-    <div class="start-group">
-      <button id="start" class="smart-btn primary" disabled>Check in with your health app</button>
-      <button id="wallet-toggle" class="smart-btn primary caret" aria-expanded="false"
-              aria-haspopup="menu" aria-label="Choose who answers">▾</button>
-      <div id="wallet-menu" class="wallet-menu" role="menu" hidden></div>
-    </div>
-    <p class="smart-note" id="status-note"></p>
     <p class="smart-note warning" id="backend-note" hidden></p>
     <label class="ack" id="backend-ack-wrap" hidden>
       <input type="checkbox" id="backend-ack">
       I recognize this server and I am using test data only.
     </label>
+    <smart-checkin-picker id="picker" heading="Check in with your health app"
+      description="Choose the app that holds your records."></smart-checkin-picker>
   </section>
 
   <section class="smart-panel" id="outcome-section" hidden>

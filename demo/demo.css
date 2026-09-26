@@ -13,3 +13,8 @@
 /* Demos fill in after their scripts run; keeping main at least a screen
    tall keeps the footer below the fold, so it doesn't jump as they do. */
 main#main { min-height: 100vh; }
+
+/* <smart-checkin-picker> on the demo pages: a column wide enough for its
+   rows, never wider than the page. Its colors follow the page's mode
+   (followPageTheme, demo/src/site.ts). */
+smart-checkin-picker { max-width: 26rem; }

@@ -200,12 +200,12 @@ Each demo page runs the real flow and shows one way to use the library. Source i
 
 | Page | What it shows |
 | --- | --- |
-| [Clinic check-in](../demo/) | The reference EHR: [`wallets()`](api/checkin.md#wallets) for a menu, [`wallet.start`](api/checkin.md#start) in the click, the raw response, the optional FHIR helper |
+| [Clinic check-in](../demo/) | The reference EHR: [the picker](wallets.md#the-picker), the raw response, the optional FHIR helper |
 | [Tutorial's finished page](../demo/tutorial.html) | The finished page from [the tutorial](tutorial.md): the picker, a request, and a form filled from the answer |
 | [React](../demo/react.html) | [`<CheckinPicker>`](api/react.md#checkinpicker) and [`response.resources("meds", { type: "MedicationRequest" })`](api/checkin.md#resources) |
 | [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |
-| [Form autofill](../demo/autofill.html) | Prefill from `response.resources`, then ask only for what's missing |
-| [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | [`handoffWallet()`](api/handoff.md#handoffwallet) and [`answerHandoff`](api/handoff.md#answerhandoff) |
+| [Form autofill](../demo/autofill.html) | [The picker](wallets.md#the-picker), then prefill from [`response.resources`](api/checkin.md#resources) and ask only for what's missing |
+| [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | [`handoffWallet()`](api/handoff.md#handoffwallet), and the picker in [pick mode](wallets.md#pick-only) with [`answerHandoff`](api/handoff.md#answerhandoff) |
 | [Demo wallet](../demo/wallet.html) | A web wallet built on [`serveWebWallet`](api/wallet.md#servewebwallet) |
 
-The clinic demo takes options in the URL fragment, such as `#wallet=mock` or `#wallet=platform`. [Clinic demo options](../demo/README.md) lists them.
+The clinic demo takes options in the URL fragment, such as `#wallet=mock` to offer only the simulated response or `#wallet=platform` to offer only the device's own wallet. [Clinic demo options](../demo/README.md) lists them.
