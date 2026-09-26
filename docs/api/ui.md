@@ -6,7 +6,7 @@
 
 ### SmartCheckinPicker
 
-Defined in: [src/ui/picker-element.ts:84](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L84)
+Defined in: [src/ui/picker-element.ts:88](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L88)
 
 #### Extends
 
@@ -20,7 +20,7 @@ Defined in: [src/ui/picker-element.ts:84](https://github.com/smart-health-checki
 new SmartCheckinPicker(): SmartCheckinPicker;
 ```
 
-Defined in: [src/ui/picker-element.ts:103](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L103)
+Defined in: [src/ui/picker-element.ts:107](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L107)
 
 ###### Returns
 
@@ -4054,7 +4054,7 @@ HTMLElementBase.writingSuggestions
 static observedAttributes: string[];
 ```
 
-Defined in: [src/ui/picker-element.ts:85](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L85)
+Defined in: [src/ui/picker-element.ts:89](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L89)
 
 #### Accessors
 
@@ -4066,7 +4066,7 @@ Defined in: [src/ui/picker-element.ts:85](https://github.com/smart-health-checki
 get checkinOptions(): Omit<CheckinOptions, "wallet" | "signal" | "session">;
 ```
 
-Defined in: [src/ui/picker-element.ts:126](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L126)
+Defined in: [src/ui/picker-element.ts:142](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L142)
 
 Passed to `runCheckin`: `keys`, `healthCards`, `fetch`.
 
@@ -4080,7 +4080,7 @@ Passed to `runCheckin`: `keys`, `healthCards`, `fetch`.
 set checkinOptions(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:129](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L129)
+Defined in: [src/ui/picker-element.ts:145](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L145)
 
 ###### Parameters
 
@@ -4134,6 +4134,42 @@ Defined in: node\_modules/typescript/lib/lib.dom.d.ts:10714
 HTMLElementBase.classList
 ```
 
+##### motion
+
+###### Get Signature
+
+```ts
+get motion(): PickerMotion;
+```
+
+Defined in: [src/ui/picker-element.ts:126](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L126)
+
+How much the picker moves: "subtle" (the default: short fades, and a sweep
+round the mark while it waits) or "none". Reflects the `motion` attribute.
+A reduced-motion preference on the device always means none.
+
+###### Returns
+
+[`PickerMotion`](#pickermotion)
+
+###### Set Signature
+
+```ts
+set motion(value): void;
+```
+
+Defined in: [src/ui/picker-element.ts:129](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L129)
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `value` | [`PickerMotion`](#pickermotion) |
+
+###### Returns
+
+`void`
+
 ##### part
 
 ###### Get Signature
@@ -4184,7 +4220,7 @@ HTMLElementBase.part
 get request(): CheckinRequestInput | undefined;
 ```
 
-Defined in: [src/ui/picker-element.ts:118](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L118)
+Defined in: [src/ui/picker-element.ts:134](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L134)
 
 What to ask the patient for. Required unless `mode="pick"`.
 
@@ -4198,7 +4234,7 @@ What to ask the patient for. Required unless `mode="pick"`.
 set request(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:121](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L121)
+Defined in: [src/ui/picker-element.ts:137](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L137)
 
 ###### Parameters
 
@@ -4257,7 +4293,7 @@ get strings(): {
 };
 ```
 
-Defined in: [src/ui/picker-element.ts:134](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L134)
+Defined in: [src/ui/picker-element.ts:150](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L150)
 
 Replace any of the picker's text. Missing keys keep their defaults.
 
@@ -4540,7 +4576,7 @@ webDivider: string = "or a health app on the web";
 set strings(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:137](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L137)
+Defined in: [src/ui/picker-element.ts:153](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L153)
 
 ###### Parameters
 
@@ -4644,7 +4680,7 @@ HTMLElementBase.textContent
 get wallets(): Wallet[] | undefined;
 ```
 
-Defined in: [src/ui/picker-element.ts:143](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L143)
+Defined in: [src/ui/picker-element.ts:159](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L159)
 
 The wallets to offer (from `wallets()`), instead of the `registry` / `platform` / `mock` attributes.
 
@@ -4658,7 +4694,7 @@ The wallets to offer (from `wallets()`), instead of the `registry` / `platform` 
 set wallets(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:146](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L146)
+Defined in: [src/ui/picker-element.ts:162](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L162)
 
 ###### Parameters
 
@@ -4683,7 +4719,7 @@ addEventListener<K>(
    options?): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:465](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L465)
+Defined in: [src/ui/picker-element.ts:487](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L487)
 
 ###### Type Parameters
 
@@ -4718,7 +4754,7 @@ addEventListener(
    options?): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:470](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L470)
+Defined in: [src/ui/picker-element.ts:492](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L492)
 
 ###### Parameters
 
@@ -4918,7 +4954,7 @@ attributeChangedCallback(
    newValue): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:166](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L166)
+Defined in: [src/ui/picker-element.ts:182](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L182)
 
 ###### Parameters
 
@@ -5242,7 +5278,7 @@ HTMLElementBase.computedStyleMap
 connectedCallback(): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:151](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L151)
+Defined in: [src/ui/picker-element.ts:167](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L167)
 
 ###### Returns
 
@@ -6895,7 +6931,7 @@ removeEventListener<K>(
    options?): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:471](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L471)
+Defined in: [src/ui/picker-element.ts:493](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L493)
 
 ###### Type Parameters
 
@@ -6930,7 +6966,7 @@ removeEventListener(
    options?): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:476](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L476)
+Defined in: [src/ui/picker-element.ts:498](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L498)
 
 ###### Parameters
 
@@ -7107,7 +7143,7 @@ HTMLElementBase.requestPointerLock
 reset(): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:185](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L185)
+Defined in: [src/ui/picker-element.ts:201](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L201)
 
 Back to the list of wallets, cancelling anything in progress.
 
@@ -7460,7 +7496,7 @@ HTMLElementBase.setHTMLUnsafe
 setOutcome(outcome): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:173](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L173)
+Defined in: [src/ui/picker-element.ts:189](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L189)
 
 In `mode="pick"`, tell the picker how the check-in ended so it can say so.
 
@@ -7613,6 +7649,18 @@ HTMLElementBase.webkitMatchesSelector
 
 ## Type Aliases
 
+### PickerMotion
+
+```ts
+type PickerMotion = "subtle" | "none";
+```
+
+Defined in: [src/ui/picker-element.ts:83](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L83)
+
+The `motion` attribute's values.
+
+***
+
 ### PickerOutcome
 
 ```ts
@@ -7630,7 +7678,7 @@ type PickerOutcome =
 };
 ```
 
-Defined in: [src/ui/picker-element.ts:57](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L57)
+Defined in: [src/ui/picker-element.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L58)
 
 In pick mode, how the page's check-in ended.
 
@@ -7672,7 +7720,7 @@ type SmartCheckinPickerEventMap = {
 };
 ```
 
-Defined in: [src/ui/picker-element.ts:74](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L74)
+Defined in: [src/ui/picker-element.ts:75](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L75)
 
 The element's events and what each carries in `detail`.
 
@@ -7687,7 +7735,7 @@ smart-checkin-choose: CustomEvent<{
 }>;
 ```
 
-Defined in: [src/ui/picker-element.ts:75](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L75)
+Defined in: [src/ui/picker-element.ts:76](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L76)
 
 ##### smart-checkin-declined
 
@@ -7698,7 +7746,7 @@ smart-checkin-declined: CustomEvent<{
 }>;
 ```
 
-Defined in: [src/ui/picker-element.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L77)
+Defined in: [src/ui/picker-element.ts:78](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L78)
 
 ##### smart-checkin-error
 
@@ -7711,7 +7759,7 @@ smart-checkin-error: CustomEvent<{
 }>;
 ```
 
-Defined in: [src/ui/picker-element.ts:78](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L78)
+Defined in: [src/ui/picker-element.ts:79](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L79)
 
 ##### smart-checkin-response
 
@@ -7723,7 +7771,7 @@ smart-checkin-response: CustomEvent<{
 }>;
 ```
 
-Defined in: [src/ui/picker-element.ts:76](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L76)
+Defined in: [src/ui/picker-element.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L77)
 
 ## Variables
 
@@ -8013,22 +8061,10 @@ webDivider: string = "or a health app on the web";
 ### PICKER\_CSS
 
 ```ts
-const PICKER_CSS: "\n:host {\n  --_font: var(--smart-checkin-font, Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif);\n  --_text: var(--smart-checkin-text, #1F2933);\n  --_text-2: var(--smart-checkin-text-muted, #4B5563);\n  --_text-3: var(--smart-checkin-text-faint, #7B8794);\n  --_surface: var(--smart-checkin-surface, #FFFFFF);\n  --_row: var(--smart-checkin-row, #FFFFFF);\n  --_border: var(--smart-checkin-border, #E4E7EB);\n  --_icon-bg: var(--smart-checkin-icon-background, #FFFFFF);\n  --_accent: var(--smart-checkin-accent, #0E6FB8);\n  --_accent-hover: var(--smart-checkin-accent-hover, #094D80);\n  --_on-accent: var(--smart-checkin-on-accent, #FFFFFF);\n  --_ok: var(--smart-checkin-success, #1A8C76);\n  --_warn: var(--smart-checkin-warning, #B85C17);\n  --_radius: var(--smart-checkin-radius, 10px);\n  --_radius-lg: var(--smart-checkin-radius-large, 14px);\n  --_icon-radius: var(--smart-checkin-icon-radius, 9px);\n  --_card-border: var(--smart-checkin-card-border, 1px solid var(--_border));\n  --_card-padding: var(--smart-checkin-card-padding, 16px);\n  --_focus: var(--smart-checkin-focus, var(--_accent));\n  display: block;\n  font-family: var(--_font);\n  color: var(--_text);\n  -webkit-text-size-adjust: 100%;\n}\n:host([theme=\"dark\"]) {\n  --_text: var(--smart-checkin-text, #E6EAEF);\n  --_text-2: var(--smart-checkin-text-muted, #B4BDC7);\n  --_text-3: var(--smart-checkin-text-faint, #8894A1);\n  --_surface: var(--smart-checkin-surface, #1A212B);\n  --_row: var(--smart-checkin-row, #202834);\n  --_border: var(--smart-checkin-border, #313C4A);\n  --_icon-bg: var(--smart-checkin-icon-background, #F6F8FA);\n  --_accent: var(--smart-checkin-accent, #3D9BDA);\n  --_accent-hover: var(--smart-checkin-accent-hover, #2B86C4);\n  --_on-accent: var(--smart-checkin-on-accent, #0B1520);\n  --_ok: var(--smart-checkin-success, #2BB896);\n  --_warn: var(--smart-checkin-warning, #E08A3E);\n  color-scheme: dark;\n}\n@media (prefers-color-scheme: dark) {\n  :host([theme=\"auto\"]) {\n    --_text: var(--smart-checkin-text, #E6EAEF);\n    --_text-2: var(--smart-checkin-text-muted, #B4BDC7);\n    --_text-3: var(--smart-checkin-text-faint, #8894A1);\n    --_surface: var(--smart-checkin-surface, #1A212B);\n    --_row: var(--smart-checkin-row, #202834);\n    --_border: var(--smart-checkin-border, #313C4A);\n    --_icon-bg: var(--smart-checkin-icon-background, #F6F8FA);\n    --_accent: var(--smart-checkin-accent, #3D9BDA);\n    --_accent-hover: var(--smart-checkin-accent-hover, #2B86C4);\n    --_on-accent: var(--smart-checkin-on-accent, #0B1520);\n    --_ok: var(--smart-checkin-success, #2BB896);\n    --_warn: var(--smart-checkin-warning, #E08A3E);\n    color-scheme: dark;\n  }\n}\n:host([hidden]) { display: none; }\n* { box-sizing: border-box; }\nbutton { font: inherit; color: inherit; cursor: pointer; }\nbutton:focus-visible, input:focus-visible { outline: 2px solid var(--_focus); outline-offset: 2px; }\n\n.card { background: var(--_surface); border: var(--_card-border); border-radius: var(--_radius-lg); padding: var(--_card-padding); display: grid; gap: 12px; }\n:host([appearance=\"flat\"]) .card { background: transparent; border: 0; padding: 0; }\n.title { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.25; text-wrap: balance; }\n.description { margin: -6px 0 0; font-size: 14px; line-height: 1.4; color: var(--_text-2); text-wrap: pretty; }\n\n.primary { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--_accent); color: var(--_on-accent); border: 0; border-radius: var(--_radius); padding: 12px 14px; min-height: 56px; }\n.primary:hover { background: var(--_accent-hover); }\n.primary .glyph { width: 32px; height: 32px; flex: none; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--_on-accent) 18%, transparent); overflow: hidden; }\n.primary .glyph svg { width: 18px; height: 18px; }\n.primary .glyph img { width: 32px; height: 32px; object-fit: contain; background: #fff; }\n.primary .glyph .icon { width: 32px; height: 32px; border: 0; border-radius: 0; }\n.text { flex: 1; min-width: 0; display: grid; gap: 1px; }\n.primary .name { font-size: 16px; font-weight: 700; line-height: 1.25; text-wrap: balance; }\n.primary .detail { font-size: 13px; line-height: 1.3; opacity: .88; text-wrap: pretty; }\n\n.divider { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--_text-2); }\n.divider::before, .divider::after { content: \"\"; flex: 1; height: 1px; background: var(--_border); }\n\n.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }\n.row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--_row); border: 1px solid var(--_border); border-radius: var(--_radius); padding: 10px 12px; min-height: 56px; }\n.row:hover { border-color: var(--_accent); }\n.row .name { font-size: 15px; font-weight: 600; line-height: 1.25; text-wrap: balance; }\n.row .detail { font-size: 13px; line-height: 1.3; color: var(--_text-2); text-wrap: pretty; }\n.chevron { width: 16px; height: 16px; flex: none; color: var(--_text-3); }\n\n.icon { width: 36px; height: 36px; flex: none; border-radius: var(--_icon-radius); overflow: hidden; display: grid; place-items: center; background: var(--_icon-bg); border: 1px solid var(--_border); }\n.icon img { width: 100%; height: 100%; object-fit: contain; }\n.icon.letter { border: 0; color: #fff; font-weight: 700; font-size: 16px; }\n.stack { display: flex; align-items: center; flex: none; min-width: 36px; height: 36px; padding-left: 9px; }\n.stack .icon { width: 22px; height: 22px; border-radius: 6px; font-size: 11px; margin-left: -9px; border: 0; box-shadow: 0 0 0 2px var(--_row); }\n\n.link { justify-self: start; background: none; border: 0; padding: 4px 0; color: var(--_accent); font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }\n\n.status { display: flex; gap: 12px; align-items: flex-start; }\n.status .text { gap: 4px; }\n.status .name { font-size: 16px; font-weight: 700; line-height: 1.25; text-wrap: balance; }\n.status .detail { font-size: 14px; line-height: 1.4; color: var(--_text-2); text-wrap: pretty; }\n.spinner { width: 28px; height: 28px; flex: none; border-radius: 50%; border: 3px solid var(--_border); border-top-color: var(--_accent); animation: spin 1s linear infinite; }\n@keyframes spin { to { transform: rotate(360deg); } }\n@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }\n.badge { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; color: #fff; }\n.badge svg { width: 16px; height: 16px; }\n.badge.ok { background: var(--_ok); }\n.badge.warn { background: var(--_warn); }\n.actions { display: flex; flex-wrap: wrap; gap: 8px; }\n.button { border: 1px solid var(--_border); background: var(--_row); border-radius: var(--_radius); padding: 8px 14px; font-size: 14px; font-weight: 600; }\n.button.accent { background: var(--_accent); border-color: var(--_accent); color: var(--_on-accent); }\n\n.footer { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--_text-3); }\n.footer svg { width: 14px; height: 14px; }\n:host([footer=\"off\"]) .footer { display: none; }\n\ndialog { border: 0; padding: 0; background: transparent; color: var(--_text); max-width: none; max-height: none; }\ndialog::backdrop { background: rgba(15, 20, 28, .45); }\ndialog .card { width: min(420px, calc(100vw - 32px)); max-height: min(640px, calc(100dvh - 48px)); overflow: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); }\n@media (max-width: 600px) {\n  dialog { margin: auto 0 0; width: 100%; }\n  dialog .card { width: 100%; max-height: 92dvh; border-radius: var(--_radius-lg) var(--_radius-lg) 0 0; padding-bottom: calc(var(--_card-padding) + env(safe-area-inset-bottom, 0px)); }\n}\n.dialog-head { display: flex; align-items: flex-start; gap: 8px; }\n.dialog-head .text { gap: 4px; }\n.dialog-head .name { font-size: 18px; font-weight: 700; line-height: 1.25; }\n.dialog-head .detail { font-size: 14px; color: var(--_text-2); }\n.close { width: 32px; height: 32px; flex: none; display: grid; place-items: center; background: none; border: 0; color: var(--_text-3); border-radius: 8px; margin: -6px -6px 0 0; }\n.close svg { width: 16px; height: 16px; }\n.search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--_border); border-radius: var(--_radius); padding: 0 10px; background: var(--_row); }\n.search svg { width: 16px; height: 16px; color: var(--_text-3); flex: none; }\n.search input { border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--_text); padding: 10px 0; flex: 1; min-width: 0; }\n.search:focus-within { outline: 2px solid var(--_focus); outline-offset: 2px; }\n.empty { font-size: 14px; color: var(--_text-2); margin: 0; }\n.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }\n";
+const PICKER_CSS: string;
 ```
 
-Defined in: [src/ui/styles.ts:14](https://github.com/smart-health-checkin/client/blob/main/src/ui/styles.ts#L14)
-
-The picker's stylesheet. Every visual choice reads a public custom property
-with a SMART default, so a page reskins it by setting variables on the
-element (or any ancestor):
-
-  smart-checkin-picker {
-    --smart-checkin-accent: #205E9B;
-    --smart-checkin-radius: 24px;
-    --smart-checkin-font: "Source Sans 3", sans-serif;
-  }
-
-Parts (`::part(...)`) are exposed for anything the variables don't cover.
+Defined in: [src/ui/styles.ts:20](https://github.com/smart-health-checkin/client/blob/main/src/ui/styles.ts#L20)
 
 ***
 
@@ -8038,7 +8074,7 @@ Parts (`::part(...)`) are exposed for anything the variables don't cover.
 const STARBURST_ICON_URL: string;
 ```
 
-Defined in: [src/ui/icons.ts:15](https://github.com/smart-health-checkin/client/blob/main/src/ui/icons.ts#L15)
+Defined in: [src/ui/icons.ts:23](https://github.com/smart-health-checkin/client/blob/main/src/ui/icons.ts#L23)
 
 The starburst on white, as a data: URL suitable for a wallet registry's iconUrl.
 
@@ -8062,7 +8098,7 @@ The SMART starburst, square viewBox, for inline use.
 function defineCheckinPicker(tagName?): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:486](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L486)
+Defined in: [src/ui/picker-element.ts:508](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L508)
 
 Register `<smart-checkin-picker>` (safe to call more than once).
 

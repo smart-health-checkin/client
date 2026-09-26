@@ -11,6 +11,14 @@ const STARBURST_POLYGONS =
 /** The SMART starburst, square viewBox, for inline use. */
 export const STARBURST_SVG = `<svg viewBox="57.0752 -11.1948 95.1696 95.1696" aria-hidden="true" focusable="false">${STARBURST_POLYGONS}</svg>`;
 
+/** The starburst cropped to its petals, for the status mark (waiting, shared, declined). */
+export const STARBURST_MARK_SVG = `<svg viewBox="59 -1 91 75" aria-hidden="true" focusable="false">${STARBURST_POLYGONS}</svg>`;
+
+/** The starburst's shape as a mask, so the waiting sweep dims only the petals. */
+export const STARBURST_MASK_URL =
+  "data:image/svg+xml," +
+  encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="59 -1 91 75">${STARBURST_POLYGONS.replace(/ fill="#[0-9a-f]+"/g, "")}</svg>`);
+
 /** The starburst on white, as a data: URL suitable for a wallet registry's iconUrl. */
 export const STARBURST_ICON_URL =
   "data:image/svg+xml," +
@@ -27,7 +35,6 @@ export const ICONS = {
   chevron: stroke('<path d="M9 5l7 7-7 7"/>', ' class="chevron"'),
   search: stroke('<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>'),
   check: stroke('<path d="M5 12.5l4.5 4.5L19 7.5"/>', ' stroke-width="3"'),
-  alert: stroke('<path d="M12 6v8M12 18v.5"/>', ' stroke-width="3"'),
   close: stroke('<path d="M6 6l12 12M18 6L6 18"/>'),
   flask: stroke('<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/>'),
 };

@@ -107,6 +107,7 @@ In React, `<CheckinPicker>` is fully typed; writing `<smart-checkin-picker>` in 
 | `theme` | `light` (default), `dark`, or `auto` to follow the device. |
 | `appearance="flat"` | No card border or background. |
 | `footer="off"` | Hide the SMART Health Check-in mark. |
+| `motion` | `subtle` (default) or `none`. See [Motion](#motion). |
 | `heading`, `description` | Replace the two lines at the top. |
 
 ### Properties
@@ -114,6 +115,7 @@ In React, `<CheckinPicker>` is fully typed; writing `<smart-checkin-picker>` in 
 | Property | What it does |
 | --- | --- |
 | `request` | What to ask for. Required unless `mode="pick"`. |
+| `motion` | `"subtle"` or `"none"`; reflects the `motion` attribute. |
 | `wallets` | A list from `wallets()`, used instead of `registry`, `platform`, and `mock`. Use it to add a kiosk hand-off or your own wallets. |
 | `checkinOptions` | Passed to `runCheckin`: `keys` for server-held keys, `healthCards` for card trust. |
 | `strings` | Replace any text, for wording or translation. See `DEFAULT_STRINGS`. |
@@ -148,10 +150,34 @@ smart-checkin-picker {
 | `--smart-checkin-text`, `--smart-checkin-text-muted`, `--smart-checkin-text-faint` | `#1F2933`, `#4B5563`, `#7B8794` |
 | `--smart-checkin-surface`, `--smart-checkin-row`, `--smart-checkin-border` | white, white, `#E4E7EB` |
 | `--smart-checkin-radius`, `--smart-checkin-radius-large`, `--smart-checkin-icon-radius` | `10px`, `14px`, `9px` |
-| `--smart-checkin-success`, `--smart-checkin-warning` | `#1A8C76`, `#B85C17` |
+| `--smart-checkin-success` | `#1A8C76`, the check when shared |
+| `--smart-checkin-mark-muted` | `#B9C2CC` (dark `#4A5866`), the mark's petals when declined or failed |
+| `--smart-checkin-motion-speed` | `1`; multiplies every duration. See [Motion](#motion). |
 | `--smart-checkin-card-border`, `--smart-checkin-card-padding` | `1px solid` the border color, `16px` |
 
-For anything else, style these parts with `::part()`: `card`, `title`, `description`, `primary`, `list`, `row`, `more`, `icon`, `status`, `footer`, `dialog`.
+For anything else, style these parts with `::part()`: `card`, `title`, `description`, `primary`, `list`, `row`, `more`, `icon`, `status`, `mark` (the starburst beside a status), `check` (on the mark when shared), `footer`, `dialog`.
+
+### Motion
+
+With `motion="subtle"`, the default, the picker moves a little:
+
+| State | What moves |
+| --- | --- |
+| Choosing | The choices fade up in turn (180 ms each, 40 ms apart). A press shrinks one slightly. |
+| Waiting for the wallet | A soft dim wedge turns round the starburst, once every 2.6 s, until the wallet answers. The petals stay bright. |
+| Shared | The check and the message fade in (240 ms). |
+| Declined or failed | The petals fade to gray (320 ms) and the message fades in. |
+
+- `motion="none"` stops all of it: the mark is still, and state changes happen at once.
+- A device set to reduce motion (`prefers-reduced-motion: reduce`) always gets `none`, whatever the attribute says.
+- `--smart-checkin-motion-speed` scales every duration: `2` is half as fast, `0.5` twice as fast.
+
+The wedge is drawn in `--smart-checkin-surface`, so it matches the card in light and dark themes. Set that property if your card has another background.
+
+```css
+smart-checkin-picker { --smart-checkin-motion-speed: 1.5; }
+smart-checkin-picker::part(mark) { width: 36px; height: 30px; }
+```
 
 ### Pick only
 

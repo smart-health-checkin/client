@@ -21,9 +21,10 @@
  * - `theme`: "light" (default), "dark", or "auto" (follow the device).
  * - `appearance="flat"`: no card border or background.
  * - `footer="off"`: hide the SMART Health Check-in mark.
+ * - `motion`: "subtle" (default) or "none". `prefers-reduced-motion: reduce` always means none.
  * - `heading`, `description`: replace the two lines at the top.
  *
- * Properties: `request` (what to ask for), `wallets` (a list from `wallets()`,
+ * Properties: `motion` (reflects the attribute), `request` (what to ask for), `wallets` (a list from `wallets()`,
  * instead of the attributes), `strings` (any text), `checkinOptions`
  * (passed to `runCheckin`, e.g. `keys` or `healthCards`).
  *
@@ -41,7 +42,7 @@ import type { CheckinResponse } from "../core/response.js";
 import { wallets as listWallets, type Wallet, type WalletSession } from "../core/wallets.js";
 import { mockWallet } from "../testing/index.js";
 import { arrangeWallets, monogram, recallChoice, rememberChoice } from "../picker/index.js";
-import { ICONS, STARBURST_SVG } from "./icons.js";
+import { ICONS, STARBURST_MARK_SVG, STARBURST_SVG } from "./icons.js";
 import { DEFAULT_STRINGS, fill, type PickerStrings } from "./strings.js";
 import { PICKER_CSS } from "./styles.js";
 
@@ -78,8 +79,11 @@ export type SmartCheckinPickerEventMap = {
   "smart-checkin-error": CustomEvent<{ wallet?: Wallet; code?: CheckinErrorCode; message: string; result?: CheckinResult }>;
 };
 
+/** The `motion` attribute's values. */
+export type PickerMotion = "subtle" | "none";
+
 /** Public properties a page may set before the element is defined. */
-const PROPERTIES = ["request", "checkinOptions", "wallets", "strings"] as const;
+const PROPERTIES = ["request", "checkinOptions", "wallets", "strings", "motion"] as const;
 
 export class SmartCheckinPicker extends HTMLElementBase {
   static observedAttributes = ["registry", "platform", "remember", "mock", "mode", "heading", "description"];
@@ -112,6 +116,18 @@ export class SmartCheckinPicker extends HTMLElementBase {
         (this as Record<string, unknown>)[name] = value;
       }
     }
+  }
+
+  /**
+   * How much the picker moves: "subtle" (the default: short fades, and a sweep
+   * round the mark while it waits) or "none". Reflects the `motion` attribute.
+   * A reduced-motion preference on the device always means none.
+   */
+  get motion(): PickerMotion {
+    return this.getAttribute("motion") === "none" ? "none" : "subtle";
+  }
+  set motion(value: PickerMotion) {
+    this.setAttribute("motion", value === "none" ? "none" : "subtle");
   }
 
   /** What to ask the patient for. Required unless `mode="pick"`. */
@@ -367,6 +383,12 @@ export class SmartCheckinPicker extends HTMLElementBase {
     return `<div class="footer" part="footer">${STARBURST_SVG}${this.t("footer")}</div>`;
   }
 
+  // The starburst beside a status. Waiting adds the sweep; shared adds the check.
+  private mark(extra: "sweep" | "check" | "" = ""): string {
+    const inner = extra === "sweep" ? `<span class="sweep"><span class="veil"></span></span>` : extra === "check" ? `<span class="check" part="check">${ICONS.check}</span>` : "";
+    return `<span class="mark" part="mark" aria-hidden="true">${STARBURST_MARK_SVG}${inner}</span>`;
+  }
+
   private status(badge: string, title: string, detail: string, actions = ""): string {
     return `<div class="status" part="status" role="status">${badge}<span class="text"><span class="name">${title}</span><span class="detail">${detail}</span></span></div>${actions}`;
   }
@@ -396,24 +418,24 @@ export class SmartCheckinPicker extends HTMLElementBase {
     else if (v.kind === "waiting") {
       const web = v.wallet.kind === "web";
       body = this.status(
-        `<span class="spinner" aria-hidden="true"></span>`,
+        this.mark("sweep"),
         web ? this.t("waitingWebTitle", { name: v.wallet.name }) : this.t("waitingPlatformTitle"),
         web ? this.t("waitingWebDetail") : this.t("waitingPlatformDetail"),
         web ? `<div class="actions"><button class="button" data-action="cancel">${this.t("cancel")}</button></div>` : "",
       );
     } else if (v.kind === "done") {
-      body = this.status(`<span class="badge ok">${ICONS.check}</span>`, this.t("doneTitle", { name: v.wallet.name }), this.t("doneDetail"), `<button class="link" data-action="different">${this.t("shareAgain")}</button>`);
+      body = this.status(this.mark("check"), this.t("doneTitle", { name: v.wallet.name }), this.t("doneDetail"), `<button class="link" data-action="different">${this.t("shareAgain")}</button>`);
     } else if (v.kind === "declined") {
-      body = this.status(`<span class="badge warn">${ICONS.alert}</span>`, this.t("declinedTitle"), this.t("declinedDetail", { name: v.wallet.name }), this.actions());
+      body = this.status(this.mark(), this.t("declinedTitle"), this.t("declinedDetail", { name: v.wallet.name }), this.actions());
     } else {
       body = this.status(
-        `<span class="badge warn">${ICONS.alert}</span>`,
+        this.mark(),
         this.t(v.code === "blocked" ? "blockedTitle" : "errorTitle"),
         v.code === "blocked" ? this.t("blockedDetail") : this.t("errorDetail", { message: v.message }),
         this.actions(),
       );
     }
-    this.main.innerHTML = `<div class="card" part="card">${body}${this.footer()}</div>`;
+    this.main.innerHTML = `<div class="card" part="card" data-state="${v.kind}">${body}${this.footer()}</div>`;
     this.wireImages(this.main);
   }
 

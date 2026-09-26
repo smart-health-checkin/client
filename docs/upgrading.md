@@ -1,5 +1,15 @@
 # Upgrading
 
+## 0.3 to 0.4
+
+No breaking API changes. The picker's status looks and moves differently:
+
+- **The SMART starburst stands beside each status.** While waiting for a wallet, a dim wedge turns round it instead of a spinner. When shared, it carries a green check. When declined or failed, its petals turn gray instead of an orange alert badge. See [Motion](wallets.md#motion).
+- **New attribute `motion`**: `subtle` (default) or `none`. A reduced-motion preference on the device always means `none`. Also a `motion` property.
+- **New custom properties**: `--smart-checkin-motion-speed` (multiplies every duration, default `1`) and `--smart-checkin-mark-muted` (the gray petals).
+- **New parts**: `mark` and `check`.
+- `--smart-checkin-warning` no longer has anything to color; the declined and failed states use the gray mark.
+
 ## 0.2 to 0.3
 
 0.3 follows the rewritten spec. The main change: a response is judged part by part. A bad record, a missing status, or a failed signature no longer fails the whole check-in. Only a few problems still do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) [XV-1](https://smart-health-checkin.org/spec/#XV-1), [XV-2](https://smart-health-checkin.org/spec/#XV-2), and the steps spec [§8](https://smart-health-checkin.org/spec/#8-same-device-presentation-flow) marks as failures).

@@ -10,7 +10,13 @@
  *   }
  *
  * Parts (`::part(...)`) are exposed for anything the variables don't cover.
+ *
+ * Motion: `motion="subtle"` (default) or `motion="none"` on the element;
+ * `prefers-reduced-motion: reduce` always turns it off.
+ * `--smart-checkin-motion-speed` multiplies every duration (default 1).
  */
+import { STARBURST_MASK_URL } from "./icons.js";
+
 export const PICKER_CSS = `
 :host {
   --_font: var(--smart-checkin-font, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
@@ -26,6 +32,8 @@ export const PICKER_CSS = `
   --_on-accent: var(--smart-checkin-on-accent, #FFFFFF);
   --_ok: var(--smart-checkin-success, #1A8C76);
   --_warn: var(--smart-checkin-warning, #B85C17);
+  --_mark-off: var(--smart-checkin-mark-muted, #B9C2CC);
+  --_m: var(--smart-checkin-motion-speed, 1);
   --_radius: var(--smart-checkin-radius, 10px);
   --_radius-lg: var(--smart-checkin-radius-large, 14px);
   --_icon-radius: var(--smart-checkin-icon-radius, 9px);
@@ -50,6 +58,7 @@ export const PICKER_CSS = `
   --_on-accent: var(--smart-checkin-on-accent, #0B1520);
   --_ok: var(--smart-checkin-success, #2BB896);
   --_warn: var(--smart-checkin-warning, #E08A3E);
+  --_mark-off: var(--smart-checkin-mark-muted, #4A5866);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -66,6 +75,7 @@ export const PICKER_CSS = `
     --_on-accent: var(--smart-checkin-on-accent, #0B1520);
     --_ok: var(--smart-checkin-success, #2BB896);
     --_warn: var(--smart-checkin-warning, #E08A3E);
+    --_mark-off: var(--smart-checkin-mark-muted, #4A5866);
     color-scheme: dark;
   }
 }
@@ -113,11 +123,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--_focus); ou
 .status .detail { font-size: 14px; line-height: 1.4; color: var(--_text-2); text-wrap: pretty; }
 .spinner { width: 28px; height: 28px; flex: none; border-radius: 50%; border: 3px solid var(--_border); border-top-color: var(--_accent); animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
-.badge { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; color: #fff; }
-.badge svg { width: 16px; height: 16px; }
-.badge.ok { background: var(--_ok); }
-.badge.warn { background: var(--_warn); }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .button { border: 1px solid var(--_border); background: var(--_row); border-radius: var(--_radius); padding: 8px 14px; font-size: 14px; font-weight: 600; }
 .button.accent { background: var(--_accent); border-color: var(--_accent); color: var(--_on-accent); }
@@ -145,4 +150,61 @@ dialog .card { width: min(420px, calc(100vw - 32px)); max-height: min(640px, cal
 .search:focus-within { outline: 2px solid var(--_focus); outline-offset: 2px; }
 .empty { font-size: 14px; color: var(--_text-2); margin: 0; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* The status mark: the starburst beside waiting, shared, declined, and failed. */
+.mark { position: relative; width: 44px; height: 36px; flex: none; }
+.mark > svg { display: block; width: 100%; height: 100%; }
+.mark .check { position: absolute; right: -6px; bottom: -5px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--_ok); color: #fff; box-shadow: 0 0 0 2px var(--_surface); }
+.mark .check svg { width: 12px; height: 12px; }
+/* Waiting: the petals stay bright while a feathered veil in the surface color
+   turns round the mark. The still .sweep clips it to the petals; only the
+   veil's transform animates. */
+.sweep { position: absolute; inset: 0; pointer-events: none;
+  -webkit-mask: url("${STARBURST_MASK_URL}") center / 100% 100% no-repeat;
+  mask: url("${STARBURST_MASK_URL}") center / 100% 100% no-repeat; }
+.veil { position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--_surface) 58%, transparent) 50deg,
+    color-mix(in srgb, var(--_surface) 58%, transparent) 70deg,
+    transparent 130deg,
+    transparent 360deg);
+  animation: smart-checkin-sweep calc(2.6s * var(--_m)) linear infinite; }
+@keyframes smart-checkin-sweep { to { transform: rotate(360deg); } }
+@keyframes smart-checkin-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes smart-checkin-fade { from { opacity: 0; } }
+@keyframes smart-checkin-mark-off { to { fill: var(--_mark-off); } }
+
+/* Choosing: the choices fade up in turn; a press shrinks them slightly.
+   "backwards" so the animation lets go of transform once it ends. */
+.card[data-state="choose"] > .primary,
+.card[data-state="choose"] .list > li { animation: smart-checkin-rise calc(180ms * var(--_m)) ease-out backwards; }
+.card[data-state="choose"] .list > li:nth-child(1) { animation-delay: calc(40ms * var(--_m)); }
+.card[data-state="choose"] .list > li:nth-child(2) { animation-delay: calc(80ms * var(--_m)); }
+.card[data-state="choose"] .list > li:nth-child(3) { animation-delay: calc(120ms * var(--_m)); }
+.card[data-state="choose"] .list > li:nth-child(n+4) { animation-delay: calc(160ms * var(--_m)); }
+.primary, .row { transition: transform calc(90ms * var(--_m)) ease-out, background-color calc(120ms * var(--_m)), border-color calc(120ms * var(--_m)); }
+.primary:active, .row:active { transform: scale(.98); }
+
+/* Shared: the check and the text fade in. */
+.card[data-state="done"] .check,
+.card[data-state="done"] .status .text { animation: smart-checkin-fade calc(240ms * var(--_m)) ease-out both; }
+
+/* Declined or failed: the petals fade to gray and the message fades in. */
+.card[data-state="declined"] .mark polygon,
+.card[data-state="error"] .mark polygon { animation: smart-checkin-mark-off calc(320ms * var(--_m)) ease-out both; }
+.card[data-state="declined"] .status .text,
+.card[data-state="error"] .status .text { animation: smart-checkin-fade calc(240ms * var(--_m)) ease-out both; }
+
+/* motion="none", or a reduced-motion preference: nothing moves. */
+:host([motion="none"]) *, :host([motion="none"]) *::before, :host([motion="none"]) *::after { animation: none !important; transition: none !important; }
+:host([motion="none"]) .sweep { display: none; }
+:host([motion="none"]) .card[data-state="declined"] .mark polygon,
+:host([motion="none"]) .card[data-state="error"] .mark polygon { fill: var(--_mark-off); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .sweep { display: none; }
+  .card[data-state="declined"] .mark polygon,
+  .card[data-state="error"] .mark polygon { fill: var(--_mark-off); }
+}
 `;
