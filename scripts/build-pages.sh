@@ -24,11 +24,13 @@ cp demo/angular.html $OUT/demo/angular.html
 cp demo/kiosk.html $OUT/demo/kiosk.html
 cp demo/handoff.html $OUT/demo/handoff.html
 cp demo/picker.html $OUT/demo/picker.html
+# The bridge page native apps open in a Custom Tab (docs/native-apps.md).
+cp demo/native-bridge.html $OUT/demo/native-bridge.html
 # The Demos menu, read by the site chrome.
 cp demo/nav.json $OUT/demo/nav.json
 # The tutorial's finished page, cut from docs/tutorial.md.
 bun scripts/tutorial-page.ts $OUT/demo/tutorial.html
-bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts demo/src/picker.ts --outdir $OUT/demo --format esm --minify
+bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts demo/src/picker.ts demo/src/native-bridge.ts --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/react.tsx --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/angular.ts --outdir $OUT/demo --format esm --minify
 # hosted builds under /lib/ so the URL space stays organized

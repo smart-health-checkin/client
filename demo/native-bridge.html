@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check in with your health app</title>
+<link rel="stylesheet" href="/assets/smart-design.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-alt); color: var(--fg-1); font-family: var(--font-sans); line-height: 1.5; }
+  main { max-width: 32rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; display: grid; gap: 1rem; }
+  h1 { font-size: 1.3rem; margin: 0; }
+  p { margin: 0; color: var(--fg-2); }
+  #status { font-size: var(--fs-sm); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Check in with your health app</h1>
+  <p id="purpose">Waiting for the app…</p>
+  <smart-checkin-picker id="picker" hidden></smart-checkin-picker>
+  <p id="status" role="status"></p>
+</main>
+<script type="module" src="./native-bridge.js"></script>
+</body>
+</html>
