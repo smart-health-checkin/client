@@ -13,7 +13,7 @@ pattern.
 
 ## Try the example app
 
-Install the [example app's APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-verifier-app.apk)
+Install the [example app's APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-verifier.apk)
 on an Android phone or emulator (open the link on the phone, or `adb install -r` the download). It's
 released with the [reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest)
 and signed with the key this site's `assetlinks.json` lists, so both buttons work as installed:
