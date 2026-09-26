@@ -1,0 +1,13 @@
+{
+  "label": "Demos",
+  "href": "./",
+  "items": [
+    { "title": "Clinic check-in", "href": "./" },
+    { "title": "Tutorial page", "href": "tutorial.html", "note": "The tutorial, finished" },
+    { "title": "Kiosk check-in", "href": "kiosk.html", "note": "Hand off to the phone" },
+    { "title": "Allergy autofill", "href": "autofill.html#wallet=demo" },
+    { "title": "React example", "href": "react.html" },
+    { "title": "Angular example", "href": "angular.html" },
+    { "title": "Demo wallet", "href": "wallet.html", "note": "The responder side" }
+  ]
+}

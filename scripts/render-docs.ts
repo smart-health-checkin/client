@@ -377,7 +377,7 @@ for (const [slug, to] of Object.entries(MOVED)) {
   writeFileSync(join(OUT, `${slug}.md`), `Moved to ${ORIGIN_FOR_REDIRECTS}${BASE}/docs/${to}\n`);
 }
 
-// nav.json: the site's "Developers" menu (smart-health-checkin.github.io/assets/site-chrome.js mirrors it).
+// nav.json: the "Developers" menu, read by the site chrome at runtime.
 writeFileSync(
   join(OUT_ROOT, "nav.json"),
   JSON.stringify(
