@@ -6,6 +6,10 @@ Deploys to smart-health-checkin.org/client/.
 
 - Check: `bun install && bun run typecheck && bun test`. Tests fetch the
   spec's fixtures at the pinned tag (`scripts/fetch-fixtures.sh`) on first run.
+- Conformance: `conformance/conformance.test.ts` runs the spec's conformance
+  cases (pinned by `SPEC_CONFORMANCE_REF` in `scripts/fetch-conformance.sh`).
+  `conformance/known-failures.json` lists what fails today; when a fix makes a
+  listed case pass, the suite fails until you remove it from the list.
 - Site: `scripts/build-pages.sh`. It builds the hosted bundles and runs them
   (`scripts/verify-lib.ts`), checks every link (`scripts/check-links.ts`), and
   serves every GitHub release's bundles at `/lib/<version>/`

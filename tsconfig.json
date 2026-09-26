@@ -19,7 +19,8 @@
   },
   "include": [
     "src",
-    "demo/src"
+    "demo/src",
+    "conformance"
   ],
   "exclude": [
     "demo/src/frameworks/checkin.service.ts"

@@ -1,0 +1,32 @@
+{
+  "claims": ["request-json", "response-json", "cross-validation", "request-cbor", "transcript", "hpke-open", "mdoc-verify", "wallet-response"],
+  "notClaimed": {},
+  "knownFailures": {
+    "request-json/mixed-form-with-profiles": "validate.ts allows selection fields on form.fhir",
+    "request-json/mixed-selection-with-questionnaire": "validate.ts allows questionnaire fields on selection.fhir",
+    "request-json/empty-profiles": "validate.ts accepts empty profiles[]",
+    "request-json/empty-resource-types": "validate.ts accepts empty resourceTypes[]",
+    "request-json/duplicate-member": "JSON.parse keeps the last duplicate member",
+    "response-json/fhir-value-not-resource": "validate.ts only checks that value exists",
+    "cross-validation/fhir-version-not-requested": "rejects the whole response instead of one Artifact (D6)",
+    "cross-validation/fhir-version-bad-format": "rejects the whole response instead of one Artifact (D6)",
+    "request-cbor/wrong-protocol": "parseWalletRequest ignores the request protocol",
+    "request-cbor/padded-base64url": "base64url decoder accepts padding",
+    "request-cbor/wrong-doc-type": "parseWalletRequest doesn't check docType",
+    "request-cbor/intent-not-bool": "parseWalletRequest doesn't check intentToRetain",
+    "request-cbor/unknown-version": "parseWalletRequest doesn't check DeviceRequest version",
+    "request-cbor/encryption-key-wrong-curve": "parseWalletRequest doesn't check the recipient key's kty/crv",
+    "request-cbor/encryption-info-wrong-tag": "parseWalletRequest doesn't check encryptionInfo's \"dcapi\" tag",
+    "hpke-open/wrong-response-tag": "openWalletResponse doesn't check the \"dcapi\" tag",
+    "hpke-open/padded-base64url": "base64url decoder accepts padding",
+    "hpke-open/wrong-protocol": "openWalletResponse ignores credential.protocol",
+    "mdoc-verify/missing-validity-info": "verify.ts doesn't require validityInfo",
+    "mdoc-verify/document-doc-type": "verify.ts doesn't check docType",
+    "mdoc-verify/mso-doc-type-mismatch": "verify.ts doesn't compare MSO docType with the document's",
+    "mdoc-verify/status-not-ok": "verify.ts doesn't check DeviceResponse status",
+    "mdoc-verify/version-unknown": "verify.ts doesn't check DeviceResponse version",
+    "mdoc-verify/unknown-alg": "verify.ts doesn't read the protected alg",
+    "mdoc-verify/unsupported-digest-algorithm": "verify.ts doesn't check MSO digestAlgorithm",
+    "mdoc-verify/missing-response-element": "verify.ts doesn't require the smart_health_checkin_response element"
+  }
+}

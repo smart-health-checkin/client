@@ -10,3 +10,6 @@ docs-site/
 # The spec's fixtures, fetched by tag (scripts/fetch-fixtures.sh)
 fixtures/
 .cache/
+
+# The spec's conformance cases, fetched at a pinned ref (scripts/fetch-conformance.sh)
+spec-conformance/
