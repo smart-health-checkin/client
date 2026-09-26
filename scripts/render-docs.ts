@@ -9,7 +9,7 @@
  */
 
 import { marked } from "marked";
-import { createHighlighter } from "shiki";
+import { createCssVariablesTheme, createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, CHECKED_MODULES, anchorFor } from "./api-index.ts";
@@ -31,7 +31,7 @@ const outFor = (slug: string, ext: "html" | "md"): string =>
 const DOCS_STYLE = `
   * { box-sizing: border-box; }
   body {
-    margin:0; background:var(--bg); color:var(--fg-1);
+    margin:0;
     font-family:var(--font-sans); font-size:var(--fs-base); line-height:var(--lh-normal);
     -webkit-font-smoothing:antialiased;
   }
@@ -54,26 +54,17 @@ const DOCS_STYLE = `
     display:block; padding:5px 10px; margin-left:-10px; border-radius:var(--radius-sm);
     color:var(--fg-2); text-decoration:none; line-height:1.35;
   }
-  .rail-list a:hover { color:var(--brand); background:var(--gray-50); }
-  .rail-list a[aria-current="page"] { color:var(--brand); font-weight:600; background:var(--brand-wash); }
+  .rail-list a:hover { color:var(--brand); background:var(--surface-alt); }
+  .rail-list a[aria-current="page"] { color:var(--brand-ink); font-weight:600; background:var(--brand-wash); }
   .rail-list ul.rail-sub { margin:2px 0 var(--space-2) var(--space-3); padding-left:var(--space-2); border-left:1px solid var(--border); }
   .rail-list ul.rail-sub a { font-family:var(--font-mono); font-size:var(--fs-xs); padding:3px 8px; margin-left:0; }
   details.rail-phone { display:none; }
   @media (max-width: 68rem) {
     .layout { grid-template-columns:minmax(0,1fr); gap:0; }
     .rail { display:none; }
-    details.rail-phone {
-      display:block; margin:0 0 var(--space-5); border:1px solid var(--border); border-radius:var(--radius-md);
-      background:var(--surface); font-size:var(--fs-sm); max-width:42rem;
-    }
-    details.rail-phone > summary {
-      cursor:pointer; padding:0 var(--space-4); min-height:44px; display:flex; align-items:center;
-      font-weight:600; color:var(--fg-1); list-style:none;
-    }
-    details.rail-phone > summary::-webkit-details-marker { display:none; }
-    details.rail-phone > summary::after { content:"\\25BE"; margin-left:auto; color:var(--fg-3); }
-    details.rail-phone[open] > summary::after { content:"\\25B4"; }
-    details.rail-phone .rail-list { padding:0 var(--space-4) var(--space-3); border-top:1px solid var(--border); }
+    /* The disclosure is a .smart-prose details; only its size and spacing are local. */
+    details.rail-phone { display:block; margin:0 0 var(--space-5); font-size:var(--fs-sm); max-width:42rem; }
+    details.rail-phone > summary { min-height:44px; align-items:center; }
     details.rail-phone .rail-list a { margin-left:0; min-height:40px; display:flex; align-items:center; }
   }
   @media (max-width: 46rem) {
@@ -87,23 +78,6 @@ const DOCS_STYLE = `
   p, li { margin:var(--space-3) 0; color:var(--fg-2); }
   li > p { margin:var(--space-2) 0; }
   strong { color:var(--fg-1); }
-  code { font-family:var(--font-mono); font-size:0.88em; background:var(--gray-100); padding:1px 5px; border-radius:var(--radius-sm); color:var(--fg-1); }
-  pre { background:var(--gray-50); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); overflow-x:auto; }
-  pre code { background:none; padding:0; font-size:var(--fs-sm); line-height:1.6; }
-  /* Wide tables scroll inside their wrapper, with a shadow at the edge that has more. */
-  .table-wrap {
-    overflow-x:auto; margin:var(--space-4) 0;
-    background:
-      linear-gradient(to right, var(--bg) 30%, transparent) left / 24px 100% no-repeat local,
-      linear-gradient(to left, var(--bg) 30%, transparent) right / 24px 100% no-repeat local,
-      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.14), transparent) left / 10px 100% no-repeat scroll,
-      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.14), transparent) right / 10px 100% no-repeat scroll;
-  }
-  table { width:100%; border-collapse:collapse; margin:0; font-size:var(--fs-sm); }
-  th, td { text-align:left; padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--border); vertical-align:top; }
-  th { font-weight:600; color:var(--fg-1); }
-  blockquote { margin:var(--space-4) 0; padding:var(--space-2) var(--space-4); border-left:3px solid var(--brand-bright); background:var(--brand-wash); border-radius:0 var(--radius-sm) var(--radius-sm) 0; color:var(--fg-2); }
-  blockquote p { margin:var(--space-2) 0; }
   a { color:var(--brand); }
   hr { border:none; border-top:1px solid var(--border); margin:var(--space-7) 0; }
   .pager { display:flex; justify-content:space-between; gap:var(--space-4); margin-top:var(--space-7); padding-top:var(--space-4); border-top:1px solid var(--border); font-size:var(--fs-sm); }
@@ -128,9 +102,6 @@ const DOCS_STYLE = `
   .card:hover { border-color:var(--brand); }
   .card strong { display:block; margin-bottom:var(--space-1); }
   .card span { color:var(--fg-2); font-size:var(--fs-sm); }
-  pre.shiki, pre.shiki span { color: var(--shiki-light); background-color: transparent; }
-  pre.shiki { background: var(--gray-50) !important; }
-  pre.shiki code { display:block; font-size:var(--fs-sm); line-height:1.6; }
 `;
 
 type MenuEntry = { title: string; href: string; note: string; slug: string };
@@ -205,7 +176,7 @@ function keepHyphenated(html: string): string {
 }
 
 const shell = (title: string, slug: string, body: string, opts: { markdown?: string; current?: string; parent?: { href: string; label: string } } = {}): string => `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -221,7 +192,7 @@ ${header()}
 <nav data-smart-breadcrumb${slug === ROOT_SLUG ? " hidden" : ""}${opts.parent ? ` data-parent-href="${opts.parent.href}" data-parent-label="${opts.parent.label}"` : ""}${opts.current ? ` data-current="${opts.current}"` : ""}></nav>
 <div class="layout">
   ${rail(slug)}
-  <main id="main">${keepHyphenated(withPhoneRail(slug, body))}</main>
+  <main id="main" class="smart-prose">${keepHyphenated(withPhoneRail(slug, body))}</main>
 </div>
 ${footer()}
 </body>
@@ -230,7 +201,7 @@ ${footer()}
 
 function rewriteLinks(html: string): string {
   return html
-    .replace(/<table>/g, '<div class="table-wrap"><table>')
+    .replace(/<table>/g, '<div class="smart-table-wrap"><table>')
     .replace(/<\/table>/g, "</table></div>")
     .replace(/href="(?:\.\.\/)?api\/index\.md"/g, `href="${BASE}/docs/api/"`)
     .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
@@ -241,21 +212,22 @@ function rewriteLinks(html: string): string {
     .replace(/href="([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/$1.html$2"`);
 }
 
-// Build-time syntax highlighting: dual-theme CSS variables, so the page
-// follows the reader's light/dark preference with no client-side JS.
+// Build-time syntax highlighting with Shiki's css-variables theme: the shared
+// stylesheet maps its variables onto the site's --syn-* colors, so code
+// follows light and dark with no client-side JS (MAINTAINING.md, "Syntax
+// highlighting").
 const highlighter = await createHighlighter({
-  themes: ["github-light", "github-dark"],
-  langs: ["ts", "js", "tsx", "json", "html", "bash", "sh", "text"],
+  themes: [createCssVariablesTheme()],
+  langs: ["ts", "tsx", "js", "json", "html", "css", "xml", "sh", "kotlin"],
 });
 
 const LANG_ALIASES: Record<string, string> = {
   javascript: "js",
   typescript: "ts",
-  shell: "bash",
-  sh: "bash",
-  console: "bash",
+  bash: "sh",
+  shell: "sh",
+  console: "sh",
   jsonc: "json",
-  "": "text",
 };
 
 // GitHub-style heading ids, so "page.md#section" links work, unique per page.
@@ -289,11 +261,7 @@ marked.use({
       const requested = (lang ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
       const resolved = LANG_ALIASES[requested] ?? requested;
       const supported = highlighter.getLoadedLanguages().includes(resolved) ? resolved : "text";
-      return highlighter.codeToHtml(text, {
-        lang: supported,
-        themes: { light: "github-light", dark: "github-dark" },
-        defaultColor: false,
-      });
+      return highlighter.codeToHtml(text, { lang: supported, theme: "css-variables" });
     },
   },
 });
