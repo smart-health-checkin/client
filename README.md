@@ -28,7 +28,7 @@ const result = await runCheckin({
   }],
 });
 
-if (result.status === "completed" && result.response) {
+if (result.status === "completed") {
   result.response.resources("allergies"); // decrypted, verified, cross-checked
 }
 ```

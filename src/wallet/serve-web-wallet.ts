@@ -24,6 +24,8 @@ import {
 export type WebWalletRequestContext = {
   /** The SMART request, validated. */
   request: SmartCheckinRequest;
+  /** Items this library can't process; answer each `unsupported`. */
+  unsupportedItems: ParsedWalletRequest["unsupportedItems"];
   /** The EHR page's origin, from the browser. Show it to the patient; the response is bound to it. */
   origin: string;
   /** The parsed wire request, for wallets that seal their own responses. */
@@ -32,11 +34,15 @@ export type WebWalletRequestContext = {
 
 /** What the wallet answers with. */
 export type WebWalletAnswer =
-  /** Seal this response for the EHR and send it. */
+  /**
+   * Seal this response for the EHR and send it. It is checked against the
+   * request first, and a mismatch becomes an error reply. If the patient
+   * reviewed the request and declined everything, send `declineAll(request)`.
+   */
   | { response: SmartCheckinResponse }
   /** Send a credential you sealed yourself (for example, to inject faults when testing). */
   | { credential: { protocol: string; data: { response: string } } }
-  /** The patient said no. */
+  /** The patient closed the wallet without reviewing the request ([HOLD-4]). */
   | { declined: true }
   /** Something went wrong; the EHR sees the message. */
   | { error: string };
@@ -79,14 +85,19 @@ export function serveWebWallet(options: ServeWebWalletOptions): { opened: boolea
     }
 
     try {
-      const answer = await options.onRequest({ request: parsed.smartRequest, origin, parsed });
+      const answer = await options.onRequest({ request: parsed.smartRequest, unsupportedItems: parsed.unsupportedItems, origin, parsed });
       if ("declined" in answer) reply({ outcome: "declined" });
       else if ("error" in answer) reply({ outcome: "error", message: answer.error });
       else {
         const credential =
           "credential" in answer
             ? answer.credential
-            : await sealWalletResponse({ smartResponse: answer.response, encryptionInfoBytes: parsed.encryptionInfoBytes, verifierOrigin: origin });
+            : await sealWalletResponse({
+                smartResponse: answer.response,
+                encryptionInfoBytes: parsed.encryptionInfoBytes,
+                verifierOrigin: origin,
+                request: parsed.smartRequest,
+              });
         reply({ outcome: "approved", credential });
       }
     } catch (e) {

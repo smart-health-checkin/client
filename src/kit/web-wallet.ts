@@ -29,7 +29,7 @@ export type WebWalletResponseMessage =
 export type WebWalletOptions = {
   /**
    * URL of the wallet web app (same-origin or any origin you trust). Usually
-   * comes from a registry entry — see `resolveResponders`.
+   * comes from a registry entry — see `wallets()`.
    */
   walletUrl: string;
   /**

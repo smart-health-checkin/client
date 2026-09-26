@@ -1,4 +1,4 @@
-// Demo of <smart-checkin-picker>: canned situations (a fixed responder list,
+// Demo of <smart-checkin-picker>: canned situations (a fixed wallet list,
 // so any browser can show the phone-wallet cases) and a live mode.
 import { customWallet, platformWallet, webWallet, type Wallet } from "../../src/index.js";
 import { STARBURST_ICON_URL, type SmartCheckinPicker } from "../../src/ui/index.js";

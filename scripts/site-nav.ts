@@ -53,15 +53,9 @@ export const GUIDES: Guide[] = [
   { level: "reference", file: "docs/registry.md", slug: "registry", title: "Registry format",
     blurb: "The wallets.json format and its validators." },
   { level: "reference", file: "docs/upgrading.md", slug: "upgrading", title: "Upgrading",
-    blurb: "Where every 0.1 name went, with before-and-after examples." },
+    blurb: "What changed in each version, and how to move to 0.3." },
   { level: "reference", file: "demo/README.md", slug: "demo", title: "Demo options",
     blurb: "The demo pages and the URL options of the clinic demo." },
 ];
 
-/** Old guide pages merged into others: slug → where they live now. */
-export const MOVED: Record<string, string> = {
-  picker: "wallets.html#the-picker",
-  kiosk: "wallets.html#kiosk-hand-off",
-  fhir: "responses.html#writing-fhir",
-  "server-authority": "production.html#server-held-keys",
-};
+

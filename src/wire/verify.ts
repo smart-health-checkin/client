@@ -1,5 +1,5 @@
 /**
- * Cryptographic verification of an opened DeviceResponse (draft spec §8.7):
+ * Cryptographic verification of an opened DeviceResponse (spec §8.5):
  *
  * - issuerAuth: COSE_Sign1 (ES256) over the tag-24 MSO payload, verified
  *   against the certificate carried in the x5chain header. Chain-of-trust
@@ -15,6 +15,7 @@
 
 import { arrayBufferCopy, concatBytes, sha256, bytesEqual } from "./bytes.js";
 import { CborTag, cborDecode, cborEncode, mapGet } from "./cbor.js";
+import { WarningList, type CheckinWarning } from "./warnings.js";
 import { importCertificatePublicKey } from "./reader-auth.js";
 
 const X5CHAIN_HEADER_LABEL = 33;
@@ -311,3 +312,189 @@ function normalizeEcdsaSignature(signature: Uint8Array): Uint8Array {
   }
   throw new Error(`unsupported ECDSA signature length ${signature.length}`);
 }
+
+// ---------------------------------------------------------------------------
+// The Verifier's document checks, spec §8.5 steps [VRS-4]..[VRS-8] and [VRS-10].
+// Only a missing SMART document or response element fails; every signature,
+// digest, and structure problem is a warning (spec §2, [RCV-1]).
+
+const MDOC_DOC_TYPE = "org.smarthealthit.checkin.1";
+const MDOC_NAMESPACE = "org.smarthealthit.checkin";
+const RESPONSE_ELEMENT = "smart_health_checkin_response";
+const ES256 = -7;
+/** Allowance for clock differences when checking validityInfo ([VRS-10]). */
+const CLOCK_SKEW_MS = 5 * 60_000;
+
+export type DeviceResponseCheck =
+  | {
+      ok: true;
+      /** The SMART response JSON text from the issuer-signed element. */
+      smartResponseText: string;
+      warnings: CheckinWarning[];
+      /** The issuerAuth certificate chain, leaf first, for callers applying trust policy. */
+      x5chain: Uint8Array[];
+    }
+  | { ok: false; error: string; rule: string; warnings: CheckinWarning[] };
+
+/**
+ * Check a decrypted DeviceResponse as a Verifier (spec §8.5 steps 3–7 and
+ * [VRS-10]) and return the SMART response text. Never throws.
+ */
+export async function checkDeviceResponse(input: {
+  deviceResponseBytes: Uint8Array;
+  sessionTranscript: Uint8Array;
+  /** The time to check validityInfo against; defaults to now. */
+  now?: Date;
+}): Promise<DeviceResponseCheck> {
+  const w = new WarningList();
+  const fail = (error: string, rule: string): DeviceResponseCheck => ({ ok: false, error, rule, warnings: w.items });
+
+  // [VRS-4]
+  let decoded: unknown;
+  try {
+    decoded = cborDecode(input.deviceResponseBytes, w.duplicateKeys);
+  } catch (e) {
+    return fail(`the DeviceResponse is not decodable CBOR: ${messageOf(e)}`, "VRS-4");
+  }
+  if (mapGet(decoded, "version") !== "1.0") w.add("device-response-version", "VRS-4", `DeviceResponse version is ${JSON.stringify(mapGet(decoded, "version"))}, not "1.0"`);
+  if (mapGet(decoded, "status") !== 0) w.add("device-response-status", "VRS-4", `DeviceResponse status is ${JSON.stringify(mapGet(decoded, "status"))}, not 0`);
+  const documents = mapGet(decoded, "documents");
+  const docs = Array.isArray(documents) ? documents : [];
+  const smartDocs = docs.filter((d) => mapGet(d, "docType") === MDOC_DOC_TYPE);
+  if (smartDocs.length === 0) return fail(`no document has docType ${MDOC_DOC_TYPE}`, "VRS-4");
+  if (docs.length > 1) w.add("documents", "VRS-4", `the DeviceResponse has ${docs.length} documents; using the first ${MDOC_DOC_TYPE} one`);
+  const doc = smartDocs[0];
+  const issuerSigned = mapGet(doc, "issuerSigned");
+
+  // [VRS-8], located first so a missing element fails regardless of signatures.
+  const items = mapGet(mapGet(issuerSigned, "nameSpaces"), MDOC_NAMESPACE);
+  let itemTag: CborTag | undefined;
+  let item: unknown;
+  for (const candidate of Array.isArray(items) ? items : []) {
+    if (!(candidate instanceof CborTag) || !(candidate.value instanceof Uint8Array)) continue;
+    let inner: unknown;
+    try {
+      inner = cborDecode(candidate.value, w.duplicateKeys);
+    } catch {
+      continue;
+    }
+    if (mapGet(inner, "elementIdentifier") === RESPONSE_ELEMENT) {
+      itemTag = candidate;
+      item = inner;
+      break;
+    }
+  }
+  const text = mapGet(item, "elementValue");
+  if (!itemTag || typeof text !== "string") return fail(`no ${RESPONSE_ELEMENT} element with a text value`, "VRS-8");
+
+  // [VRS-5] issuerAuth and the MSO.
+  const issuerAuth = asCoseSign1(mapGet(issuerSigned, "issuerAuth"));
+  let x5chain: Uint8Array[] = [];
+  let mso: unknown;
+  if (!issuerAuth || !(issuerAuth[2] instanceof Uint8Array)) {
+    w.add("issuer-signature", "VRS-5", "issuerAuth is missing or has no payload");
+  } else {
+    try {
+      const msoTag = cborDecode(issuerAuth[2], w.duplicateKeys);
+      if (msoTag instanceof CborTag && msoTag.value instanceof Uint8Array) mso = cborDecode(msoTag.value, w.duplicateKeys);
+    } catch {
+      // reported below as missing MSO fields
+    }
+    x5chain = extractX5Chain(issuerAuth);
+    if (algOf(issuerAuth) !== ES256) {
+      w.add("alg", "ALG-2", `issuerAuth alg is ${JSON.stringify(algOf(issuerAuth))}, not ES256 (-7); its signature was not verified`);
+    } else if (x5chain.length === 0) {
+      w.add("issuer-signature", "VRS-5", "issuerAuth has no x5chain certificate");
+    } else {
+      try {
+        const key = await importCertificatePublicKey(x5chain[0]!);
+        if (!(await verifyCoseSign1(issuerAuth, key))) w.add("issuer-signature", "VRS-5", "the issuerAuth signature does not verify");
+      } catch (e) {
+        w.add("issuer-signature", "VRS-5", `the issuerAuth signature could not be checked: ${messageOf(e)}`);
+      }
+    }
+  }
+  if (!(mso instanceof Map)) {
+    w.add("mso-fields", "VRS-5", "the MSO could not be decoded");
+  } else {
+    if (mapGet(mso, "version") !== "1.0") w.add("mso-fields", "VRS-5", `MSO version is ${JSON.stringify(mapGet(mso, "version"))}, not "1.0"`);
+    if (mapGet(mso, "docType") !== MDOC_DOC_TYPE) w.add("mso-doc-type", "VRS-5", `the MSO's docType ${JSON.stringify(mapGet(mso, "docType"))} is not the document's`);
+    checkValidity(mapGet(mso, "validityInfo"), input.now ?? new Date(), w);
+  }
+
+  // [VRS-6] the value digest, over the tag-24 bytes as received.
+  const digestAlgorithm = mapGet(mso, "digestAlgorithm");
+  if (digestAlgorithm !== "SHA-256") {
+    w.add("digest-algorithm", "ALG-2", `MSO digestAlgorithm is ${JSON.stringify(digestAlgorithm)}, not SHA-256; the value digest was not checked`);
+  } else {
+    const digestID = mapGet(item, "digestID");
+    const expected = mapGet(mapGet(mapGet(mso, "valueDigests"), MDOC_NAMESPACE), typeof digestID === "number" ? digestID : -1);
+    if (!(expected instanceof Uint8Array)) w.add("digest", "VRS-6", `the MSO has no digest for digestID ${JSON.stringify(digestID)}`);
+    else if (!bytesEqual(await sha256(cborEncode(itemTag)), expected)) w.add("digest", "VRS-6", "the response element's digest does not match the MSO");
+  }
+
+  // [VRS-7] the device signature over this session's DeviceAuthentication.
+  const deviceSigned = mapGet(doc, "deviceSigned");
+  const deviceSignature = asCoseSign1(mapGet(mapGet(deviceSigned, "deviceAuth"), "deviceSignature"));
+  const deviceKey = mapGet(mapGet(mso, "deviceKeyInfo"), "deviceKey");
+  if (!deviceSignature) {
+    w.add("device-signature", "VRS-7", "the device signature is missing");
+  } else if (algOf(deviceSignature) !== ES256) {
+    w.add("alg", "ALG-2", `the device signature's alg is ${JSON.stringify(algOf(deviceSignature))}, not ES256 (-7); it was not verified`);
+  } else if (!(deviceKey instanceof Map)) {
+    w.add("device-signature", "VRS-7", "the MSO has no deviceKey");
+  } else {
+    try {
+      const rebuilt = buildDeviceAuthenticationBytes({
+        sessionTranscript: input.sessionTranscript,
+        docType: MDOC_DOC_TYPE,
+        deviceNameSpaces: mapGet(deviceSigned, "nameSpaces"),
+      });
+      const attached = deviceSignature[2];
+      if (attached !== null && !bytesEqual(attached, rebuilt)) {
+        w.add("device-signature", "VRS-7", "the device signature carries an attached payload that is not this session's DeviceAuthentication");
+      } else {
+        const key = await importCoseEc2PublicKey(deviceKey);
+        if (!(await verifyCoseSign1([deviceSignature[0], deviceSignature[1], null, deviceSignature[3]], key, rebuilt))) {
+          w.add("device-signature", "VRS-7", "the device signature does not verify over this session");
+        }
+      }
+    } catch (e) {
+      w.add("device-signature", "VRS-7", `the device signature could not be checked: ${messageOf(e)}`);
+    }
+  }
+
+  return { ok: true, smartResponseText: text, warnings: w.items, x5chain };
+}
+
+function checkValidity(validityInfo: unknown, now: Date, w: WarningList): void {
+  if (!(validityInfo instanceof Map)) {
+    w.add("mso-validity-info", "VRS-5", "the MSO has no validityInfo");
+    return;
+  }
+  const time = (name: string): number | undefined => {
+    const v = validityInfo.get(name);
+    const s = v instanceof CborTag && v.tag === 0 ? v.value : undefined;
+    const t = typeof s === "string" ? Date.parse(s) : NaN;
+    return Number.isNaN(t) ? undefined : t;
+  };
+  const from = time("validFrom");
+  const until = time("validUntil");
+  if (time("signed") === undefined || from === undefined || until === undefined) {
+    w.add("mso-validity-info", "VRS-5", "validityInfo lacks tag-0 signed, validFrom, or validUntil dates");
+    return;
+  }
+  if (now.getTime() + CLOCK_SKEW_MS < from || now.getTime() - CLOCK_SKEW_MS > until) {
+    w.add("mso-validity", "VRS-10", `the MSO is valid from ${new Date(from).toISOString()} until ${new Date(until).toISOString()}, which excludes ${now.toISOString()}`);
+  }
+}
+
+function algOf(cose: CoseSign1): unknown {
+  try {
+    return mapGet(cborDecode(cose[0]), 1);
+  } catch {
+    return undefined;
+  }
+}
+
+const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));

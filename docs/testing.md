@@ -83,7 +83,7 @@ test("a declined item is reported, the rest still arrives", async () => {
   const result = await runCheckin(request, {
     wallet: mockWallet({ items: { allergies: { fhir: myAllergyBundle }, coverage: { status: "declined" } } }),
   });
-  if (result.status !== "completed" || !result.response) throw new Error(result.status);
+  if (result.status !== "completed") throw new Error(result.status);
   expect(result.response.status("coverage")).toBe("declined");
   expect(result.response.resources("allergies", { type: "AllergyIntolerance" })).toHaveLength(1);
 });
@@ -166,11 +166,14 @@ A web wallet with synthetic patients. Its testing panel can send a deliberately 
 | `bad-shc-signature` | A SMART Health Card with a broken signature |
 | `combine-allergies-meds` | Allergies and medications in one shared Bundle. A valid response, for scenario O7. |
 
-What your EHR should do with each:
+What this library does with each, and what your EHR should do (spec §6.4 and §8.5):
 
 - **`oversized` and `combine-allergies-meds`:** accept the response intact.
 - **`bad-shc-signature`:** accept the response. The card arrives with `valid: false` and is left out of `resources()`.
-- **Every other fault:** fail the check-in with `invalid-response`.
+- **`bad-signature`:** complete the check-in with a `device-signature` or `issuer-signature` warning in `result.warnings`.
+- **`wrong-canonical` and `unaccepted-media-type`:** complete it with that record set aside; `response.disregarded()` says why.
+- **`missing-status` and `duplicate-status`:** complete it; that item has no status (`response.status(id)` is `undefined`).
+- **`wrong-request-id`, `bad-encryption`, and `wrong-origin`:** fail with `invalid-response`.
 
 ## Reading a failed result
 
@@ -186,7 +189,7 @@ if (result.status === "failed") console.log(result.error.code, result.error.chec
 | `blocked` | The browser blocked the wallet's tab. | That `start()` or `runCheckin()` runs inside the click, before any `await`. |
 | `timeout` | The web wallet didn't answer in 5 minutes. | That the wallet posts `ready` to its opener and replies with the same `requestId`. |
 | `wallet-error` | The wallet reported an error, or its transport threw. | The message: it's the wallet's own words. |
-| `invalid-response` | The response failed decryption, signatures, or validation. | `error.check`: `open` for decryption and signatures, `cross` for a response that doesn't match the request. |
+| `invalid-response` | The response couldn't be decoded or decrypted, had no SMART response in it, or answers a different request. | `error.check`, the spec requirement that failed: `VRS-3` didn't decrypt (usually the wrong origin), `VRS-2`/`VRS-4`/`VRS-8` couldn't find the parts, `XV-1`/`XV-2` a response that isn't a reply to this request. |
 | `server` | Server-held keys failed to prepare or open the request. | Your key server's logs. |
 
 A declined check-in is not a failure: `result.status` is `"declined"`, with no error.

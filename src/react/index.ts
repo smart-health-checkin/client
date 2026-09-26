@@ -4,8 +4,10 @@
  * - `<CheckinPicker>` renders the `<smart-checkin-picker>` web component and
  *   maps its events to callbacks. It is the same UI as the element; there is
  *   one implementation.
- * - `useCheckin` is for pages drawing their own buttons: it resolves the
- *   responders and runs the flow, opening web wallets inside the click.
+ * - `useCheckin` is for pages drawing their own buttons: it lists the
+ *   wallets and runs the flow, opening web wallets inside the click.
+ * - Importing this module also types `<smart-checkin-picker>` for JSX, for
+ *   pages that use the element directly.
  *
  * React is a peer dependency, needed only if you import this module.
  */
@@ -28,7 +30,7 @@ export type CheckinPickerProps = {
   platform?: boolean;
   /** Remember the last app used on this site (default false). */
   remember?: boolean;
-  /** Offer the simulated responder. Development only. */
+  /** Offer the simulated wallet. Development only. */
   mock?: boolean;
   /** "checkin" (default) runs the flow; "pick" only chooses. */
   mode?: "checkin" | "pick";
@@ -45,7 +47,8 @@ export type CheckinPickerProps = {
   className?: string;
   style?: CSSProperties;
   onChoose?: (detail: { wallet: Wallet; session?: WalletSession }) => void;
-  onResponse?: (detail: { wallet: Wallet; response: CheckinResponse; result: CheckinResult }) => void;
+  /** `response` is absent when a server holding the keys kept the data (`result.status` is "kept-on-server"). */
+  onResponse?: (detail: { wallet: Wallet; response?: CheckinResponse; result: CheckinResult }) => void;
   onDeclined?: (detail: { wallet: Wallet; result?: CheckinResult }) => void;
   onError?: (detail: { wallet?: Wallet; code?: CheckinErrorCode; message: string }) => void;
   /** Receives the element, e.g. to call `setOutcome` in pick mode. */
@@ -152,3 +155,26 @@ export function useCheckin(
 }
 
 export type { PickerOutcome };
+
+/** Attributes of `<smart-checkin-picker>` when written directly in JSX. Set `request` and the other properties through a ref. */
+export type SmartCheckinPickerAttributes = {
+  registry?: string;
+  platform?: "off";
+  remember?: boolean | "";
+  mock?: boolean | "";
+  mode?: "checkin" | "pick";
+  theme?: "light" | "dark" | "auto";
+  appearance?: "flat";
+  footer?: "off";
+  heading?: string;
+  description?: string;
+};
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "smart-checkin-picker": React.DetailedHTMLProps<React.HTMLAttributes<SmartCheckinPicker>, SmartCheckinPicker> &
+        SmartCheckinPickerAttributes & { class?: string };
+    }
+  }
+}

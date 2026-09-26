@@ -8,6 +8,6 @@
     { "title": "Allergy autofill", "href": "autofill.html#wallet=demo" },
     { "title": "React example", "href": "react.html" },
     { "title": "Angular example", "href": "angular.html" },
-    { "title": "Demo wallet", "href": "wallet.html", "note": "The responder side" }
+    { "title": "Demo wallet", "href": "wallet.html", "note": "The Wallet side" }
   ]
 }

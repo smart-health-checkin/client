@@ -82,23 +82,23 @@
     border-left: 1px solid rgba(255, 255, 255, 0.35);
     padding: 10px 12px;
   }
-  .responder-menu {
+  .wallet-menu {
     position: absolute; top: calc(100% + var(--space-2)); left: 0; z-index: 20;
     min-width: 20rem; max-width: min(26rem, 90vw);
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg); padding: var(--space-1);
     display: flex; flex-direction: column;
   }
-  .responder-item {
+  .wallet-item {
     font: inherit; text-align: left; background: none; border: none; cursor: pointer;
     border-radius: var(--radius-md); padding: var(--space-3); color: var(--fg-1);
     display: flex; flex-direction: column; gap: 2px;
   }
-  .responder-item:hover:not([disabled]) { background: var(--gray-50); }
-  .responder-item[aria-current="true"] { background: var(--brand-wash); box-shadow: inset 2px 0 0 var(--brand); }
-  .responder-item[disabled] { opacity: 0.5; cursor: not-allowed; }
-  .responder-item strong { font-size: var(--fs-sm); font-weight: 600; }
-  .responder-item span { font-size: var(--fs-sm); color: var(--fg-3); line-height: 1.4; }
+  .wallet-item:hover:not([disabled]) { background: var(--gray-50); }
+  .wallet-item[aria-current="true"] { background: var(--brand-wash); box-shadow: inset 2px 0 0 var(--brand); }
+  .wallet-item[disabled] { opacity: 0.5; cursor: not-allowed; }
+  .wallet-item strong { font-size: var(--fs-sm); font-weight: 600; }
+  .wallet-item span { font-size: var(--fs-sm); color: var(--fg-3); line-height: 1.4; }
 
   .smart-note { margin-top: var(--space-4); }
   label.ack { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); font-size: var(--fs-sm); }
@@ -204,9 +204,9 @@
     </p>
     <div class="start-group">
       <button id="start" class="smart-btn primary" disabled>Check in with your health app</button>
-      <button id="responder-toggle" class="smart-btn primary caret" aria-expanded="false"
+      <button id="wallet-toggle" class="smart-btn primary caret" aria-expanded="false"
               aria-haspopup="menu" aria-label="Choose who answers">▾</button>
-      <div id="responder-menu" class="responder-menu" role="menu" hidden></div>
+      <div id="wallet-menu" class="wallet-menu" role="menu" hidden></div>
     </div>
     <p class="smart-note" id="status-note"></p>
     <p class="smart-note warning" id="backend-note" hidden></p>

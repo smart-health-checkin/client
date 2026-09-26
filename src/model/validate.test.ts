@@ -1,9 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
+  parseSmartCheckinRequest,
   validateResponseAgainstRequest,
   validateSmartCheckinRequest,
   validateSmartCheckinResponse,
+  type ResponseValidation,
 } from "./validate.js";
+
+/** Ids of the Artifacts that survived validation. */
+const usableIds = (v: ResponseValidation) => (v.ok ? v.usableArtifacts.map((a) => a.id) : undefined);
+/** The status the validation assigned an item, or undefined when it has none. */
+const statusOf = (v: ResponseValidation, id: string) => (v.ok ? v.items.find((i) => i.id === id)?.status : "rejected");
 import type { SmartCheckinRequest, SmartCheckinResponse } from "./types.js";
 
 const REQUEST: SmartCheckinRequest = {
@@ -69,24 +76,24 @@ describe("request validation", () => {
     ).toBe(false);
   });
 
-  test("rejects legacy form selector members and empty form selectors", () => {
-    expect(
-      validateSmartCheckinRequest({
-        ...REQUEST,
-        items: [
-          {
-            ...REQUEST.items[1]!,
-            content: { kind: "form.fhir", canonical: "https://example.org/q" },
-          },
-        ],
-      }).ok,
-    ).toBe(false);
-    expect(
-      validateSmartCheckinRequest({
-        ...REQUEST,
-        items: [{ ...REQUEST.items[1]!, content: { kind: "form.fhir" } }],
-      }).ok,
-    ).toBe(false);
+  test("ignores legacy form selector members; an empty form selector makes only that item unsupported", () => {
+    const legacy = validateSmartCheckinRequest({
+      ...REQUEST,
+      items: [{ ...REQUEST.items[1]!, content: { kind: "form.fhir", questionnaireCanonical: "https://example.org/q", canonical: "x" } }],
+    });
+    expect(legacy.ok && legacy.unsupportedItems).toEqual([]);
+    const empty = validateSmartCheckinRequest({
+      ...REQUEST,
+      items: [REQUEST.items[0]!, { ...REQUEST.items[1]!, content: { kind: "form.fhir" } }],
+    });
+    expect(empty.ok && empty.unsupportedItems.map((u) => [u.id, u.rule])).toEqual([["intake", "FORM-1"]]);
+  });
+
+  test("rejects duplicate member names in the JSON text ([JSON-2])", () => {
+    expect(parseSmartCheckinRequest(JSON.stringify(REQUEST)).ok).toBe(true);
+    const doubled = JSON.stringify(REQUEST).replace('"id":"req-1"', '"id":"req-1","id":"req-2"');
+    const v = parseSmartCheckinRequest(doubled);
+    expect(!v.ok && v.rule).toBe("JSON-2");
   });
 });
 
@@ -95,114 +102,77 @@ describe("response validation", () => {
     expect(validateSmartCheckinResponse(RESPONSE).ok).toBe(true);
   });
 
-  test("rejects SHC artifacts with outer fhirVersion and fhir+json without one", () => {
-    expect(
-      validateSmartCheckinResponse({
-        ...RESPONSE,
-        artifacts: [
-          {
-            id: "shc",
-            mediaType: "application/smart-health-card",
-            fhirVersion: "4.0.1",
-            fulfills: ["summary"],
-            value: { verifiableCredential: ["x.y.z"] },
-          },
-        ],
-      }).ok,
-    ).toBe(false);
-    expect(
-      validateSmartCheckinResponse({
-        ...RESPONSE,
-        artifacts: [
-          {
-            id: "raw",
-            mediaType: "application/fhir+json",
-            fulfills: ["summary"],
-            value: { resourceType: "Patient" },
-          },
-        ],
-      }).ok,
-    ).toBe(false);
+  test("sets aside a health card with an outer fhirVersion, and FHIR JSON without one ([XV-8], [XV-9])", () => {
+    const v = validateSmartCheckinResponse({
+      ...RESPONSE,
+      artifacts: [
+        RESPONSE.artifacts[0]!,
+        { id: "shc", mediaType: "application/smart-health-card", fhirVersion: "4.0.1", fulfills: ["summary"], value: { verifiableCredential: ["x.y.z"] } },
+        { id: "raw", mediaType: "application/fhir+json", fulfills: ["summary"], value: { resourceType: "Patient" } },
+      ],
+    } as never);
+    expect(usableIds(v)).toEqual(["a1"]);
   });
 
-  test("rejects unknown media types and duplicated statuses", () => {
-    expect(
-      validateSmartCheckinResponse({
-        ...RESPONSE,
-        artifacts: [
-          { id: "pdf", mediaType: "application/pdf", fulfills: ["summary"], value: "…" },
-        ],
-      }).ok,
-    ).toBe(false);
-    expect(
-      validateSmartCheckinResponse({
-        ...RESPONSE,
-        requestStatus: [
-          { item: "summary", status: "fulfilled" },
-          { item: "summary", status: "declined" },
-          { item: "intake", status: "fulfilled" },
-        ],
-      }).ok,
-    ).toBe(false);
+  test("sets aside unknown media types; a repeated status leaves that item with none ([XV-3], [XV-6])", () => {
+    const pdf = validateSmartCheckinResponse({
+      ...RESPONSE,
+      artifacts: [{ id: "pdf", mediaType: "application/pdf", fulfills: ["summary"], value: "…" }],
+    } as never);
+    expect(usableIds(pdf)).toEqual([]);
+    const repeated = validateSmartCheckinResponse({
+      ...RESPONSE,
+      requestStatus: [
+        { item: "summary", status: "fulfilled" },
+        { item: "summary", status: "declined" },
+        { item: "intake", status: "fulfilled" },
+      ],
+    });
+    expect(statusOf(repeated, "summary")).toBeUndefined();
+    expect(statusOf(repeated, "intake")).toBe("fulfilled");
   });
 });
 
-describe("cross-validation (§6.6)", () => {
+describe("cross-validation (§6.4)", () => {
   test("accepts the matching pair", () => {
     expect(validateResponseAgainstRequest(REQUEST, RESPONSE).ok).toBe(true);
   });
 
-  test("rejects requestId mismatch", () => {
-    expect(
-      validateResponseAgainstRequest(REQUEST, { ...RESPONSE, requestId: "other" }).ok,
-    ).toBe(false);
+  test("rejects a requestId mismatch ([XV-2])", () => {
+    const v = validateResponseAgainstRequest(REQUEST, { ...RESPONSE, requestId: "other" });
+    expect(!v.ok && v.rule).toBe("XV-2");
   });
 
-  test("rejects dangling fulfills references", () => {
-    expect(
-      validateResponseAgainstRequest(REQUEST, {
-        ...RESPONSE,
-        artifacts: [{ ...RESPONSE.artifacts[0]!, fulfills: ["ghost"] }],
-      }).ok,
-    ).toBe(false);
+  test("sets aside an Artifact naming an item not in the request ([XV-5])", () => {
+    const v = validateResponseAgainstRequest(REQUEST, { ...RESPONSE, artifacts: [{ ...RESPONSE.artifacts[0]!, fulfills: ["ghost"] }] });
+    expect(usableIds(v)).toEqual([]);
   });
 
-  test("rejects mediaType not accepted by the fulfilled item", () => {
-    expect(
-      validateResponseAgainstRequest(REQUEST, {
-        ...RESPONSE,
-        artifacts: [
-          {
-            id: "shc",
-            mediaType: "application/smart-health-card",
-            fulfills: ["summary"],
-            value: { verifiableCredential: ["x.y.z"] },
-          },
-        ],
-      }).ok,
-    ).toBe(false);
+  test("sets aside an Artifact whose mediaType an item doesn't accept ([XV-7])", () => {
+    const v = validateResponseAgainstRequest(REQUEST, {
+      ...RESPONSE,
+      artifacts: [
+        RESPONSE.artifacts[0]!,
+        { id: "shc", mediaType: "application/smart-health-card", fulfills: ["summary"], value: { verifiableCredential: ["x.y.z"] } },
+      ],
+    });
+    expect(usableIds(v)).toEqual(["a1"]);
   });
 
-  test("rejects fhirVersion outside request.fhirVersions", () => {
-    expect(
-      validateResponseAgainstRequest(REQUEST, {
-        ...RESPONSE,
-        artifacts: [{ ...RESPONSE.artifacts[0]!, fhirVersion: "5.0.0" }],
-      }).ok,
-    ).toBe(false);
+  test("sets aside an Artifact whose fhirVersion the request didn't list ([XV-8])", () => {
+    const v = validateResponseAgainstRequest(REQUEST, { ...RESPONSE, artifacts: [{ ...RESPONSE.artifacts[0]!, fhirVersion: "5.0.0" }] });
+    expect(usableIds(v)).toEqual([]);
   });
 
-  test("rejects incomplete per-item status coverage", () => {
-    expect(
-      validateResponseAgainstRequest(REQUEST, {
-        ...RESPONSE,
-        requestStatus: [{ item: "summary", status: "fulfilled" }],
-      }).ok,
-    ).toBe(false);
+  test("an item with no status row has no status; the rest of the response stands ([XV-3])", () => {
+    const v = validateResponseAgainstRequest(REQUEST, { ...RESPONSE, requestStatus: [{ item: "summary", status: "fulfilled" }] });
+    expect(statusOf(v, "summary")).toBe("fulfilled");
+    expect(statusOf(v, "intake")).toBeUndefined();
+    expect(v.ok && v.items.find((i) => i.id === "intake")?.problems[0]?.rule).toBe("XV-3");
   });
 });
 
-test("accepts an extension selector kind as a valid request item (spec §5.4.3)", () => {
+test("an extension selector kind makes only that item unsupported (spec §5.4.3)", () => {
   const request = {
     type: "smart-health-checkin-request",
     version: "1",
@@ -212,9 +182,10 @@ test("accepts an extension selector kind as a valid request item (spec §5.4.3)"
       { id: "ext", title: "Something new", content: { kind: "example.ktc-test", anything: true }, accept: ["application/fhir+json"] },
     ],
   };
-  expect(validateSmartCheckinRequest(request).ok).toBe(true);
-  const blank = { ...request, items: [{ ...request.items[1], content: { kind: "" } }] };
-  expect(validateSmartCheckinRequest(blank).ok).toBe(false);
+  const v = validateSmartCheckinRequest(request);
+  expect(v.ok && v.unsupportedItems.map((u) => [u.id, u.rule])).toEqual([["ext", "SEL-9"]]);
+  const noKind = { ...request, items: [{ ...request.items[1], content: { anything: true } }] };
+  expect(validateSmartCheckinRequest(noKind).ok).toBe(false);
 });
 
 test("the mock wallet answers an extension selector item unsupported and the rest normally", async () => {
@@ -234,7 +205,7 @@ test("the mock wallet answers an extension selector item unsupported and the res
   expect(status.get("known")).toBe("fulfilled");
 });
 
-test("a QuestionnaireResponse must echo the requested canonical exactly (spec §5.5)", () => {
+test("a QuestionnaireResponse that doesn't echo the requested canonical is set aside ([XV-10])", () => {
   const request = {
     type: "smart-health-checkin-request",
     version: "1",
@@ -248,8 +219,10 @@ test("a QuestionnaireResponse must echo the requested canonical exactly (spec §
     artifacts: [{ id: "a", mediaType: "application/fhir+json", fhirVersion: "4.0.1", fulfills: ["form"], value: { resourceType: "QuestionnaireResponse", status: "completed", questionnaire } }],
     requestStatus: [{ item: "form", status: "fulfilled" }],
   });
-  expect(validateResponseAgainstRequest(request, response("https://example.org/Q/intake|2")).ok).toBe(true);
-  expect(validateResponseAgainstRequest(request, response("https://example.org/Q/intake")).ok).toBe(false);
+  expect(usableIds(validateResponseAgainstRequest(request, response("https://example.org/Q/intake|2")))).toEqual(["a"]);
+  const stripped = validateResponseAgainstRequest(request, response("https://example.org/Q/intake"));
+  expect(usableIds(stripped)).toEqual([]);
+  expect(stripped.ok && stripped.items[0]?.problems.map((p) => p.rule)).toEqual(["XV-12"]);
 });
 
 test("the mock answers a Patient item with a Patient, claims requested profiles, and answers inline forms", async () => {

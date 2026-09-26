@@ -15,6 +15,7 @@ import {
   type KeyCustody,
 } from "../browser/index.js";
 import { validateResponseAgainstRequest, type SmartCheckinRequest } from "../model/index.js";
+import type { CheckinWarning } from "../wire/warnings.js";
 import { CheckinError, isDecline, type CheckinErrorCode } from "./errors.js";
 import { checkHealthCard, healthCardTrust, type HealthCard, type HealthCardTrust } from "./health-cards.js";
 import { toRequest, type CheckinRequestInput } from "./request.js";
@@ -47,9 +48,21 @@ export type CheckinResult =
       status: "completed";
       request: SmartCheckinRequest;
       wallet: Wallet;
-      /** The validated response. Absent only when server key custody kept it (see `serverReference`). */
-      response?: CheckinResponse;
-      /** Set when a server holding the keys kept the data and returned a handle instead. */
+      /** The validated response. */
+      response: CheckinResponse;
+      /**
+       * Transport and signature problems that didn't stop the check-in: a
+       * receiver continues past them and reports them (spec §2, [RCV-1]).
+       * Empty when everything checked out.
+       */
+      warnings: CheckinWarning[];
+    }
+  | {
+      /** Server key custody kept the data; the page gets only a handle. */
+      status: "kept-on-server";
+      request: SmartCheckinRequest;
+      wallet: Wallet;
+      /** The server's handle for what it stored (an encounter id, a queue entry), if it returned one. */
       serverReference?: string;
     }
   | { status: "declined"; request: SmartCheckinRequest; wallet: Wallet }
@@ -109,22 +122,29 @@ export async function runCheckin(input: CheckinRequestInput, options: CheckinOpt
     return serverHeld ? failed("server", messageOf(e)) : failed("invalid-response", messageOf(e), "open");
   }
   if (completion.handledByServer) {
-    return { status: "completed", request, wallet, ...(completion.reference ? { serverReference: completion.reference } : {}) };
+    return { status: "kept-on-server", request, wallet, ...(completion.reference ? { serverReference: completion.reference } : {}) };
   }
 
   // Never trust a custom custody implementation's validation: cross-check here.
+  // Only [XV-1] and [XV-2] fail; other problems set aside one Artifact or item.
   const crossCheck = validateResponseAgainstRequest(request, completion.smartResponse);
-  if (!crossCheck.ok) return failed("invalid-response", crossCheck.error, "cross");
+  if (!crossCheck.ok) return failed("invalid-response", crossCheck.error, crossCheck.rule);
 
   const trust = { ...healthCardTrust(), ...options.healthCards };
   const cards: HealthCard[] = [];
-  for (const artifact of crossCheck.value.artifacts) {
+  for (const artifact of crossCheck.usableArtifacts) {
     if (artifact.mediaType !== "application/smart-health-card") continue;
     for (const jws of artifact.value.verifiableCredential) {
       cards.push(await checkHealthCard(jws, artifact.fulfills, trust, options.fetch ?? fetch));
     }
   }
-  return { status: "completed", request, wallet, response: new CheckinResponse(crossCheck.value, request, cards) };
+  return {
+    status: "completed",
+    request,
+    wallet,
+    response: new CheckinResponse(crossCheck, request, cards),
+    warnings: completion.warnings ?? [],
+  };
 }
 
 function resolveCustody(keys: CheckinOptions["keys"]): KeyCustody {

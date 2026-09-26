@@ -4,9 +4,22 @@
  * `json` is the contract: the SMART Health Check-in response exactly as
  * received, plain JSON, safe to store or forward. Everything else here is a
  * view over it (plus the health-card checks done before the page got it).
+ *
+ * The lookups use only usable Artifacts: one that fails a check in spec §6.4
+ * is set aside ([XV-4]) and listed by `disregarded()`. An item whose status
+ * row is missing, repeated, or unknown has no status ([XV-3]).
  */
 
-import type { SmartArtifact, SmartCheckinItemStatus, SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
+import type {
+  ArtifactCheck,
+  ItemOutcome,
+  ResponseValidation,
+  SmartArtifact,
+  SmartCheckinItemStatus,
+  SmartCheckinRequest,
+  SmartCheckinResponse,
+  ValidationIssue,
+} from "../model/index.js";
 import type { HealthCard } from "./health-cards.js";
 
 export type FhirResource = { resourceType: string; [key: string]: unknown };
@@ -31,34 +44,54 @@ export class CheckinResponse {
   readonly request: SmartCheckinRequest;
   private readonly cards: ReadonlyArray<HealthCard>;
 
-  constructor(json: SmartCheckinResponse, request: SmartCheckinRequest, cards: ReadonlyArray<HealthCard> = []) {
-    this.json = json;
+  private readonly usable: ReadonlyArray<SmartArtifact>;
+  private readonly checks: ReadonlyArray<ArtifactCheck>;
+  private readonly outcomes: ReadonlyArray<ItemOutcome>;
+
+  /** From a successful `validateResponseAgainstRequest`; `runCheckin` builds it for you. */
+  constructor(validation: Extract<ResponseValidation, { ok: true }>, request: SmartCheckinRequest, cards: ReadonlyArray<HealthCard> = []) {
+    this.json = validation.value;
     this.request = request;
     this.cards = cards;
+    this.usable = validation.usableArtifacts;
+    this.checks = validation.artifacts;
+    this.outcomes = validation.items;
   }
 
-  /** The item's status: "fulfilled", "partial", "declined", "unavailable", "unsupported", or "error". */
+  /**
+   * The item's status: "fulfilled", "partial", "declined", "unavailable",
+   * "unsupported", or "error"; undefined when the response has no valid
+   * status for it ([XV-3]).
+   */
   status(itemId: string): ItemStatus | undefined {
-    return this.json.requestStatus.find((s) => s.item === itemId)?.status;
+    return this.outcomes.find((o) => o.id === itemId)?.status;
   }
 
-  /** Every requested item with its status and artifacts, in request order. */
-  items(): Array<{ id: string; title: string; status?: ItemStatus; message?: string; artifacts: SmartArtifact[] }> {
+  /** Every requested item with its status, usable artifacts, and any problems, in request order. */
+  items(): Array<{ id: string; title: string; status?: ItemStatus; message?: string; artifacts: SmartArtifact[]; problems: ValidationIssue[] }> {
     return this.request.items.map((item) => {
-      const s = this.json.requestStatus.find((x) => x.item === item.id);
+      const o = this.outcomes.find((x) => x.id === item.id);
       return {
         id: item.id,
         title: item.title,
-        ...(s ? { status: s.status } : {}),
-        ...(s?.message ? { message: s.message } : {}),
+        ...(o?.status ? { status: o.status } : {}),
+        ...(o?.message ? { message: o.message } : {}),
         artifacts: this.artifacts(item.id),
+        problems: o?.problems ?? [],
       };
     });
   }
 
-  /** The raw artifacts that fulfill the item. An artifact fulfilling several items is returned for each. */
+  /** The usable artifacts that fulfill the item. An artifact fulfilling several items is returned for each. */
   artifacts(itemId: string): SmartArtifact[] {
-    return this.json.artifacts.filter((a) => a.fulfills.includes(itemId));
+    return this.usable.filter((a) => a.fulfills.includes(itemId));
+  }
+
+  /** Artifacts set aside because they failed a check ([XV-4]), with the reasons. */
+  disregarded(): Array<{ index: number; id?: string; artifact: unknown; problems: ValidationIssue[] }> {
+    return this.checks
+      .filter((c) => !c.usable)
+      .map((c) => ({ index: c.index, ...(c.id ? { id: c.id } : {}), artifact: this.json.artifacts[c.index], problems: c.problems }));
   }
 
   /** Every SMART Health Card for the item, with its trust result, accepted or not. */
@@ -72,12 +105,12 @@ export class CheckinResponse {
   }
 
   private fulfillsOf(artifactId: string): ReadonlyArray<string> {
-    return this.json.artifacts.find((a) => a.id === artifactId)?.fulfills ?? [];
+    return this.usable.find((a) => a.id === artifactId)?.fulfills ?? [];
   }
 
   private allEntries(): ResourceEntry[] {
     const out: ResourceEntry[] = [];
-    for (const a of this.json.artifacts) {
+    for (const a of this.usable) {
       if (a.mediaType !== "application/fhir+json") continue;
       for (const { resource, fullUrl } of unwrap(a.value)) {
         out.push({ resource, source: "bundle", artifactId: a.id, ...(fullUrl ? { fullUrl } : {}) });
@@ -85,7 +118,7 @@ export class CheckinResponse {
     }
     for (const card of this.cards) {
       const artifactId =
-        this.json.artifacts.find((a) => a.mediaType === "application/smart-health-card" && a.value.verifiableCredential.includes(card.jws))?.id ?? "";
+        this.usable.find((a) => a.mediaType === "application/smart-health-card" && a.value.verifiableCredential.includes(card.jws))?.id ?? "";
       for (const { resource, fullUrl } of unwrap(card.bundle)) {
         out.push({ resource, source: "health-card", artifactId, card, ...(fullUrl ? { fullUrl } : {}) });
       }

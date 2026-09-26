@@ -44,17 +44,17 @@ async function main(): Promise<void> {
   const choices = el("choices");
   offered.forEach((wallet, index) => render(wallet, index === 0));
 
-  function render(responder: Wallet, primary: boolean): void {
+  function render(wallet: Wallet, primary: boolean): void {
     const button = document.createElement("button");
     button.type = "button";
     button.className = primary ? "smart-btn primary" : "smart-btn";
-    button.textContent = responder.kind === "platform" ? "Share from my health app" : responder.name;
-    button.title = responder.description ?? "";
+    button.textContent = wallet.kind === "platform" ? "Share from my health app" : wallet.name;
+    button.title = wallet.description ?? "";
     button.onclick = async () => {
       for (const b of choices.querySelectorAll("button")) (b as HTMLButtonElement).disabled = true;
-      el("note").textContent = responder.kind === "web" ? "Choose what to share in the wallet tab…" : "Asking your wallet…";
+      el("note").textContent = wallet.kind === "web" ? "Choose what to share in the wallet tab…" : "Asking your wallet…";
       try {
-        const answer = await answerHandoff(instantMailbox, sessionId!, envelope, responder);
+        const answer = await answerHandoff(instantMailbox, sessionId!, envelope, wallet);
         el("ask").hidden = true;
         el("note").textContent = "";
         el("done").hidden = false;

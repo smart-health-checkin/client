@@ -6,11 +6,17 @@ import type {
   SmartCheckinRequest,
   SmartCheckinResponse,
 } from "../model/index.js";
-import { validateSmartCheckinRequest } from "../model/index.js";
+import {
+  parseSmartCheckinRequest,
+  validateResponseAgainstRequest,
+  type UnsupportedItem,
+  type ValidationIssue,
+} from "../model/index.js";
 import {
   CborTag,
   MDOC_DOC_TYPE,
   MDOC_NAMESPACE,
+  PROTOCOL_ID,
   SMART_REQUEST_INFO_KEY,
   SMART_RESPONSE_ELEMENT_ID,
   arrayBufferCopy,
@@ -24,25 +30,122 @@ import {
   mapGet,
   publicJwkToCoseKey,
   sha256,
+  WarningList,
+  decodeBase64UrlLenient,
+  type CheckinWarning,
 } from "../wire/index.js";
 
 export type ParsedWalletRequest = {
   smartRequest: SmartCheckinRequest;
+  /** Request items this library can't process; answer each `unsupported` ([SEL-9], [SEL-10], [FORM-1]). */
+  unsupportedItems: UnsupportedItem[];
+  /** Problems a Wallet continues past and reports (spec §8.4, [RCV-1]). */
+  warnings: CheckinWarning[];
+  /** The DocRequest's `readerAuth`, if present, for Wallets that verify it ([WRQ-9]). */
+  readerAuth?: unknown;
   deviceRequestBytes: Uint8Array;
   encryptionInfoBytes: Uint8Array;
 };
 
-/** Wallet side: recover the SMART request from a navigator.credentials.get argument. */
+/** Thrown by `parseWalletRequest` where spec §8.4 says to fail: the Wallet doesn't respond. */
+export class WalletRequestError extends Error {
+  constructor(
+    message: string,
+    /** The spec requirement, such as "WRQ-4". */
+    readonly rule: string,
+  ) {
+    super(message);
+    this.name = "WalletRequestError";
+  }
+}
+
+/**
+ * Wallet side: read a request from a navigator.credentials.get argument,
+ * following spec §8.4 steps [WRQ-2]..[WRQ-7]. Throws `WalletRequestError`
+ * only where the spec says to fail (it can't be decoded, there's no SMART
+ * DocRequest or request text, the SMART request is invalid, or there's no
+ * usable recipient key); everything else is returned in `warnings`.
+ */
 export function parseWalletRequest(navigatorArgument: unknown): ParsedWalletRequest {
-  const data = extractRequestData(navigatorArgument);
-  const deviceRequestBytes = base64UrlDecodeBytes(data.deviceRequest);
-  const encryptionInfoBytes = base64UrlDecodeBytes(data.encryptionInfo);
+  const w = new WarningList();
+  const fail = (message: string, rule: string): never => {
+    throw new WalletRequestError(message, rule);
+  };
+  const requests = (navigatorArgument as { digital?: { requests?: unknown } })?.digital?.requests;
+  const entry = (Array.isArray(requests) ? requests : []).find(
+    (r) => typeof (r as { data?: { deviceRequest?: unknown } })?.data?.deviceRequest === "string",
+  ) as { protocol?: unknown; data: { deviceRequest: string; encryptionInfo?: unknown } } | undefined;
+  if (!entry) return fail("the argument has no digital request with a deviceRequest", "WRQ-2");
+  if (entry.protocol !== PROTOCOL_ID) w.add("protocol", "WRQ-2", `protocol is ${JSON.stringify(entry.protocol)}, not ${PROTOCOL_ID}`);
+
+  // [WRQ-2]..[WRQ-4]
+  let deviceRequestBytes: Uint8Array;
+  let deviceRequest: unknown;
+  try {
+    deviceRequestBytes = decodeBase64UrlLenient(entry.data.deviceRequest, w, "WRQ-2", "deviceRequest");
+    deviceRequest = cborDecode(deviceRequestBytes, w.duplicateKeys);
+  } catch (e) {
+    return fail(`deviceRequest can't be decoded: ${messageOf(e)}`, "WRQ-2");
+  }
+  const version = mapGet(deviceRequest, "version");
+  if (version !== "1.0") w.add("device-request-version", "WRQ-3", `DeviceRequest version is ${JSON.stringify(version)}, not "1.0"`);
+  const docRequests = mapGet(deviceRequest, "docRequests");
+  const smart: Array<{ docRequest: unknown; itemsRequest: unknown }> = [];
+  for (const docRequest of Array.isArray(docRequests) ? docRequests : []) {
+    const tag = mapGet(docRequest, "itemsRequest");
+    if (!(tag instanceof CborTag) || !(tag.value instanceof Uint8Array)) continue;
+    let itemsRequest: unknown;
+    try {
+      itemsRequest = cborDecode(tag.value, w.duplicateKeys);
+    } catch {
+      continue;
+    }
+    if (mapGet(itemsRequest, "docType") === MDOC_DOC_TYPE) smart.push({ docRequest, itemsRequest });
+  }
+  if (smart.length === 0) return fail(`no DocRequest asks for docType ${MDOC_DOC_TYPE}`, "WRQ-4");
+  if (smart.length > 1) w.add("doc-requests", "WRQ-4", `${smart.length} DocRequests ask for ${MDOC_DOC_TYPE}; using the first`);
+  const { docRequest, itemsRequest } = smart[0]!;
+
+  // [WRQ-5], [WRQ-6]
+  const text = mapGet(mapGet(itemsRequest, "requestInfo"), SMART_REQUEST_INFO_KEY);
+  if (typeof text !== "string") return fail(`requestInfo has no ${SMART_REQUEST_INFO_KEY} text`, "WRQ-5");
+  const intent = mapGet(mapGet(mapGet(itemsRequest, "nameSpaces"), MDOC_NAMESPACE), SMART_RESPONSE_ELEMENT_ID);
+  if (intent === undefined) w.add("items-request", "WRQ-5", `the ItemsRequest doesn't request ${SMART_RESPONSE_ELEMENT_ID} in ${MDOC_NAMESPACE}`);
+  else if (typeof intent !== "boolean") w.add("intent-to-retain", "WRQ-5", `intentToRetain is ${JSON.stringify(intent)}, not a boolean`);
+  const validated = parseSmartCheckinRequest(text);
+  if (!validated.ok) return fail(`the SMART request is invalid: ${validated.error}`, validated.rule);
+
+  // [WRQ-7]
+  if (typeof entry.data.encryptionInfo !== "string") return fail("the request has no encryptionInfo", "WRQ-7");
+  let encryptionInfoBytes: Uint8Array;
+  let encryptionInfo: unknown;
+  try {
+    encryptionInfoBytes = decodeBase64UrlLenient(entry.data.encryptionInfo, w, "WRQ-2", "encryptionInfo");
+    encryptionInfo = cborDecode(encryptionInfoBytes, w.duplicateKeys);
+  } catch (e) {
+    return fail(`encryptionInfo can't be decoded: ${messageOf(e)}`, "WRQ-7");
+  }
+  const fields = Array.isArray(encryptionInfo) ? encryptionInfo[1] : undefined;
+  if (!Array.isArray(encryptionInfo) || encryptionInfo[0] !== "dcapi") w.add("encryption-info", "WRQ-7", 'encryptionInfo is not ["dcapi", {...}]');
+  if (!(mapGet(fields, "nonce") instanceof Uint8Array)) w.add("encryption-info", "WRQ-7", "encryptionInfo has no nonce byte string");
+  const key = mapGet(fields, "recipientPublicKey");
+  const coord = (label: number) => { const v = mapGet(key, label); return v instanceof Uint8Array && v.length === 32; };
+  if (!(key instanceof Map) || key.get(1) !== 2 || key.get(-1) !== 1 || !coord(-2) || !coord(-3)) {
+    return fail("encryptionInfo has no usable P-256 recipientPublicKey", "WRQ-7");
+  }
+
+  const readerAuth = mapGet(docRequest, "readerAuth");
   return {
-    smartRequest: extractSmartRequest(deviceRequestBytes),
+    smartRequest: validated.value,
+    unsupportedItems: validated.unsupportedItems,
+    warnings: w.items,
+    ...(readerAuth !== undefined ? { readerAuth } : {}),
     deviceRequestBytes,
     encryptionInfoBytes,
   };
 }
+
+const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 /**
  * Wallet side: sign and HPKE-seal a SMART response for the verifier.
@@ -53,7 +156,17 @@ export async function sealWalletResponse(input: {
   smartResponse: SmartCheckinResponse;
   encryptionInfoBytes: Uint8Array;
   verifierOrigin: string;
+  /**
+   * The request being answered. When given, the response is checked against
+   * it first ([ACC-2], [RSP-2], [ART-1], …) and sealing throws on any
+   * problem, so a Wallet never sends a response a Verifier would set aside.
+   */
+  request?: SmartCheckinRequest;
 }): Promise<{ protocol: string; data: { response: string } }> {
+  if (input.request) {
+    const problems = checkWalletResponse(input.request, input.smartResponse);
+    if (problems.length) throw new Error(`the response doesn't match the request: ${problems.map((p) => `${p.message} [${p.rule}]`).join("; ")}`);
+  }
   const sessionTranscript = await buildDcapiSessionTranscript({
     origin: input.verifierOrigin,
     encryptionInfo: input.encryptionInfoBytes,
@@ -71,37 +184,39 @@ export async function sealWalletResponse(input: {
   return sealed.response;
 }
 
-function extractRequestData(arg: unknown): { deviceRequest: string; encryptionInfo: string } {
-  const requests = (arg as { digital?: { requests?: unknown } })?.digital?.requests;
-  if (!Array.isArray(requests) || requests.length === 0) {
-    throw new Error("navigator argument has no digital.requests");
+/**
+ * What a Verifier would object to in this response (spec §6.4), as a Wallet
+ * checks before sending: an empty list means it's clean. A Wallet produces
+ * exactly one status per item, only accepted media types, and so on.
+ */
+export function checkWalletResponse(request: SmartCheckinRequest, response: SmartCheckinResponse): ValidationIssue[] {
+  const v = validateResponseAgainstRequest(request, response);
+  if (!v.ok) return [{ rule: v.rule, message: v.error }];
+  const problems: ValidationIssue[] = v.artifacts.flatMap((a) => a.problems.map((p) => ({ ...p, message: `Artifact ${a.id ?? `#${a.index}`}: ${p.message}` })));
+  // [XV-12] (a fulfilled item with no Artifact) is only a SHOULD-level flag for Verifiers; not blocking here.
+  for (const item of v.items) {
+    problems.push(...item.problems.filter((p) => p.rule !== "XV-12").map((p) => ({ ...p, message: `item ${item.id}: ${p.message}` })));
   }
-  const data = (requests[0] as { data?: { deviceRequest?: unknown; encryptionInfo?: unknown } }).data;
-  if (typeof data?.deviceRequest !== "string" || typeof data?.encryptionInfo !== "string") {
-    throw new Error("request data missing deviceRequest/encryptionInfo");
+  const ids = new Set(request.items.map((i) => i.id));
+  for (const row of response.requestStatus) {
+    if (!ids.has(row.item)) problems.push({ rule: "RSP-2", message: `a status row names ${row.item}, which isn't in the request` });
   }
-  return { deviceRequest: data.deviceRequest, encryptionInfo: data.encryptionInfo };
+  return problems;
 }
 
-function extractSmartRequest(deviceRequestBytes: Uint8Array): SmartCheckinRequest {
-  const docRequests = mapGet(cborDecode(deviceRequestBytes), "docRequests");
-  if (!Array.isArray(docRequests) || docRequests.length === 0) {
-    throw new Error("DeviceRequest has no docRequests");
-  }
-  const itemsRequestTag = mapGet(docRequests[0], "itemsRequest");
-  if (!(itemsRequestTag instanceof CborTag) || !(itemsRequestTag.value instanceof Uint8Array)) {
-    throw new Error("itemsRequest is not tag24");
-  }
-  const requestJson = mapGet(
-    mapGet(cborDecode(itemsRequestTag.value), "requestInfo"),
-    SMART_REQUEST_INFO_KEY,
-  );
-  if (typeof requestJson !== "string") {
-    throw new Error("requestInfo carrier missing");
-  }
-  const validated = validateSmartCheckinRequest(JSON.parse(requestJson));
-  if (!validated.ok) throw new Error(`invalid request: ${validated.error}`);
-  return validated.value;
+/**
+ * The response for a Holder who reviewed the request and declined every
+ * item ([HOLD-4]): every item `declined`, no Artifacts. (If the Holder
+ * dismisses the Wallet without reviewing, the Wallet returns nothing.)
+ */
+export function declineAll(request: SmartCheckinRequest, message?: string): SmartCheckinResponse {
+  return {
+    type: "smart-health-checkin-response",
+    version: "1",
+    requestId: request.id,
+    artifacts: [],
+    requestStatus: request.items.map((item) => ({ item: item.id, status: "declined" as const, ...(message ? { message } : {}) })),
+  };
 }
 
 export function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array): JsonWebKey {

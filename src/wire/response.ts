@@ -1,9 +1,8 @@
 /**
- * Verifier-side response processing (draft spec §8.6–8.7): decode the
+ * Verifier-side response processing (spec §8.5): decode the
  * `["dcapi", {enc, cipherText}]` envelope, HPKE-open it, and walk the
  * DeviceResponse into an inspection structure with MSO digest checks and the
- * extracted SMART response. Ported from smart-health-checkin-mdoc
- * rp-web/src/protocol/index.ts.
+ * extracted SMART response.
  */
 
 import {
@@ -31,6 +30,7 @@ import {
   type JsonValue,
 } from "./cbor.js";
 import { hpkeAesGcm, hpkeContext, hpkeNonce } from "./hpke.js";
+import { WarningList, decodeBase64UrlLenient, type CheckinWarning } from "./warnings.js";
 import {
   PROTOCOL_ID,
   SMART_REQUEST_INFO_KEY,
@@ -217,31 +217,13 @@ export async function openWalletResponse(input: {
   }
   const enc = base64UrlDecodeBytes(dcapiResponse.enc.base64url);
   const cipherText = base64UrlDecodeBytes(dcapiResponse.cipherText.base64url);
-  const ephemeralPublicKey = await crypto.subtle.importKey(
-    "raw",
-    arrayBufferCopy(enc),
-    { name: "ECDH", namedCurve: "P-256" },
-    true,
-    [],
-  );
-  const dh = new Uint8Array(
-    await crypto.subtle.deriveBits(
-      { name: "ECDH", public: ephemeralPublicKey },
-      input.recipientPrivateKey,
-      256,
-    ),
-  );
-  const context = await hpkeContext({
-    dh,
+  const deviceResponseBytes = await hpkeOpen({
     enc,
-    recipientPublicBytes: publicJwkToRawP256(input.recipientPublicJwk),
+    cipherText,
+    recipientPrivateKey: input.recipientPrivateKey,
+    recipientPublicJwk: input.recipientPublicJwk,
     info: input.sessionTranscript,
-  });
-  const deviceResponseBytes = await hpkeAesGcm(false, {
-    key: context.key,
-    nonce: hpkeNonce(context.baseNonce),
-    aad: input.aad ?? new Uint8Array(),
-    data: cipherText,
+    aad: input.aad,
   });
   const deviceResponse = await inspectDeviceResponseBytes(deviceResponseBytes);
   const smartResponseValidation =
@@ -254,6 +236,92 @@ export async function openWalletResponse(input: {
     deviceResponse,
     smartResponseValidation,
   };
+}
+
+async function hpkeOpen(input: {
+  enc: Uint8Array;
+  cipherText: Uint8Array;
+  recipientPrivateKey: CryptoKey;
+  recipientPublicJwk: JsonWebKey;
+  info: Uint8Array;
+  aad?: Uint8Array;
+}): Promise<Uint8Array> {
+  const ephemeralPublicKey = await crypto.subtle.importKey(
+    "raw",
+    arrayBufferCopy(input.enc),
+    { name: "ECDH", namedCurve: "P-256" },
+    true,
+    [],
+  );
+  const dh = new Uint8Array(
+    await crypto.subtle.deriveBits({ name: "ECDH", public: ephemeralPublicKey }, input.recipientPrivateKey, 256),
+  );
+  const context = await hpkeContext({
+    dh,
+    enc: input.enc,
+    recipientPublicBytes: publicJwkToRawP256(input.recipientPublicJwk),
+    info: input.info,
+  });
+  return hpkeAesGcm(false, {
+    key: context.key,
+    nonce: hpkeNonce(context.baseNonce),
+    aad: input.aad ?? new Uint8Array(),
+    data: input.cipherText,
+  });
+}
+
+export type OpenedCredential =
+  | { ok: true; deviceResponseBytes: Uint8Array; warnings: CheckinWarning[] }
+  | { ok: false; error: string; rule: string; warnings: CheckinWarning[] };
+
+/**
+ * The Verifier's first two steps (spec §8.5, [VRS-2] and [VRS-3]): decode the
+ * credential and decrypt it. Fails only if it can't be decoded, lacks `enc`
+ * or `cipherText`, or doesn't decrypt; a protocol other than `org-iso-mdoc`,
+ * padded base64url, and a first entry other than `"dcapi"` are warnings.
+ * Never throws.
+ *
+ * `credential` is `{protocol, data: {response}}` or the `data.response` string.
+ */
+export async function openWalletCredential(input: {
+  credential: unknown;
+  recipientPrivateKey: CryptoKey;
+  recipientPublicJwk: JsonWebKey;
+  sessionTranscript: Uint8Array;
+}): Promise<OpenedCredential> {
+  const w = new WarningList();
+  const fail = (error: string, rule: string): OpenedCredential => ({ ok: false, error, rule, warnings: w.items });
+  const c = input.credential as { protocol?: unknown; data?: { response?: unknown } } | string;
+  let response: unknown = c;
+  if (typeof c === "object" && c !== null) {
+    if (c.protocol !== PROTOCOL_ID) w.add("protocol", "VRS-2", `protocol is ${JSON.stringify(c.protocol)}, not ${PROTOCOL_ID}`);
+    response = c.data?.response;
+  }
+  if (typeof response !== "string") return fail("the credential has no data.response string", "VRS-2");
+  let fields: unknown;
+  try {
+    const decoded = cborDecode(decodeBase64UrlLenient(response, w, "VRS-2", "data.response"), w.duplicateKeys);
+    if (!Array.isArray(decoded)) return fail("data.response is not a CBOR array", "VRS-2");
+    if (decoded[0] !== "dcapi") w.add("dcapi-response", "VRS-2", `the response's first entry is ${JSON.stringify(decoded[0])}, not "dcapi"`);
+    fields = decoded[1];
+  } catch (e) {
+    return fail(`data.response can't be decoded: ${e instanceof Error ? e.message : String(e)}`, "VRS-2");
+  }
+  const enc = mapGet(fields, "enc");
+  const cipherText = mapGet(fields, "cipherText");
+  if (!(enc instanceof Uint8Array) || !(cipherText instanceof Uint8Array)) return fail("the response lacks enc or cipherText", "VRS-2");
+  try {
+    const deviceResponseBytes = await hpkeOpen({
+      enc,
+      cipherText,
+      recipientPrivateKey: input.recipientPrivateKey,
+      recipientPublicJwk: input.recipientPublicJwk,
+      info: input.sessionTranscript,
+    });
+    return { ok: true, deviceResponseBytes, warnings: w.items };
+  } catch {
+    return fail("the response does not decrypt with this session's key, origin, and encryptionInfo", "VRS-3");
+  }
 }
 
 function validateOpenedSmartResponseAgainstRequest(

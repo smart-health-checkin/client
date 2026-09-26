@@ -285,61 +285,61 @@ function render(): void {
       : `Caution: this page will post shared data to ${hostOf(s.fhirBase)}. Only proceed with test data and a server you recognize.`;
   }
 
-  const responder = walletFor(s.wallet);
+  const wallet = walletFor(s.wallet);
   const statusNote = el("status-note");
   const start = el("start") as HTMLButtonElement;
   const updateStart = (): void => {
-    start.disabled = running || (needsAck && !ack.checked) || !responder?.available;
+    start.disabled = running || (needsAck && !ack.checked) || !wallet?.available;
   };
 
-  if (!responder) {
-    statusNote.textContent = "No responder selected.";
-  } else if (!responder.available) {
-    statusNote.textContent = `${responder.name} isn't available here${responder.unavailableReason ? ` (${responder.unavailableReason})` : ""}. Pick another from the button's menu.`;
-  } else if (responder.kind === "platform") {
+  if (!wallet) {
+    statusNote.textContent = "No wallet selected.";
+  } else if (!wallet.available) {
+    statusNote.textContent = `${wallet.name} isn't available here${wallet.unavailableReason ? ` (${wallet.unavailableReason})` : ""}. Pick another from the button's menu.`;
+  } else if (wallet.kind === "platform") {
     statusNote.textContent =
       "Your own health app answers through the Digital Credentials API — on a desktop, the browser offers a QR code to scan with your phone.";
-  } else if (responder.kind === "mock") {
+  } else if (wallet.kind === "mock") {
     statusNote.textContent =
       "Simulated response: fabricated data, instantly, with no consent screen. Development only.";
   } else {
-    statusNote.textContent = `${responder.name} will open in a tab, where you choose what to share.`;
+    statusNote.textContent = `${wallet.name} will open in a tab, where you choose what to share.`;
   }
   updateStart();
   ack.onchange = updateStart;
-  start.textContent = responder && responder.kind !== "platform"
-    ? `Check in with ${responder.name}`
+  start.textContent = wallet && wallet.kind !== "platform"
+    ? `Check in with ${wallet.name}`
     : "Check in with your health app";
-  renderResponderMenu(s, responder);
+  renderWalletMenu(s, wallet);
 
   start.onclick = () => void checkIn(s);
   el("outcome-section").hidden = true;
 }
 
 /**
- * A split button: the primary action uses the current responder, the caret
+ * A split button: the primary action uses the current wallet, the caret
  * opens the rest. The list comes from the kit; the rendering is ours.
  */
-function renderResponderMenu(s: Settings, current: Wallet | undefined): void {
-  const menu = el("responder-menu");
+function renderWalletMenu(s: Settings, current: Wallet | undefined): void {
+  const menu = el("wallet-menu");
   menu.innerHTML = "";
-  for (const responder of WALLETS) {
+  for (const wallet of WALLETS) {
     const item = document.createElement("button");
     item.type = "button";
-    item.className = "responder-item";
-    item.disabled = !responder.available;
-    item.setAttribute("aria-current", String(responder.id === current?.id));
+    item.className = "wallet-item";
+    item.disabled = !wallet.available;
+    item.setAttribute("aria-current", String(wallet.id === current?.id));
     const name = document.createElement("strong");
-    name.textContent = responder.name;
+    name.textContent = wallet.name;
     const note = document.createElement("span");
-    note.textContent = responder.available
-      ? (responder.description ?? "")
-      : `Not available here${responder.unavailableReason ? ` — ${responder.unavailableReason}` : ""}`;
+    note.textContent = wallet.available
+      ? (wallet.description ?? "")
+      : `Not available here${wallet.unavailableReason ? ` — ${wallet.unavailableReason}` : ""}`;
     item.append(name, note);
     item.onclick = () => {
-      el("responder-menu").hidden = true;
-      (el("responder-toggle") as HTMLButtonElement).setAttribute("aria-expanded", "false");
-      setParam("wallet", responder.id, "platform");
+      el("wallet-menu").hidden = true;
+      (el("wallet-toggle") as HTMLButtonElement).setAttribute("aria-expanded", "false");
+      setParam("wallet", wallet.id, "platform");
     };
     menu.append(item);
   }
@@ -463,16 +463,16 @@ toggle.onclick = () => {
   toggle.setAttribute("aria-expanded", String(open));
 };
 
-const toggleMenu = el("responder-toggle") as HTMLButtonElement;
+const toggleMenu = el("wallet-toggle") as HTMLButtonElement;
 toggleMenu.onclick = () => {
-  const menu = el("responder-menu");
+  const menu = el("wallet-menu");
   const open = menu.hidden;
   menu.hidden = !open;
   toggleMenu.setAttribute("aria-expanded", String(open));
 };
 document.addEventListener("click", (event) => {
   if (!(event.target as HTMLElement).closest(".start-group")) {
-    el("responder-menu").hidden = true;
+    el("wallet-menu").hidden = true;
     toggleMenu.setAttribute("aria-expanded", "false");
   }
 });

@@ -3,6 +3,7 @@
  *
  * - `serveWebWallet`: the web wallet's side of the hand-off.
  * - `parseWalletRequest`, `sealWalletResponse`: read a request, seal a response (native or web).
+ * - `checkWalletResponse`, `declineAll`: check a response before sending; the all-declined response.
  * - `selects`, `selectEntries`: which records answer a `selection.fhir` item.
  * - `buildSignedDeviceResponse`, `recipientJwkFromEncryptionInfo`: lower-level
  *   pieces for wallets that seal their own responses.
@@ -11,9 +12,12 @@ export { serveWebWallet, type ServeWebWalletOptions, type WebWalletAnswer, type 
 export { selectEntries, selects, type MatchableEntry, type MatchableResource, type SelectionContent } from "./match.js";
 export {
   buildSignedDeviceResponse,
+  checkWalletResponse,
+  declineAll,
   parseWalletRequest,
   recipientJwkFromEncryptionInfo,
   sealWalletResponse,
+  WalletRequestError,
   type ParsedWalletRequest,
 } from "./seal.js";
 export {

@@ -15,6 +15,7 @@ import type {
   SmartCheckinResponse,
 } from "../model/index.js";
 import { parseWalletRequest, sealWalletResponse } from "../wallet/seal.js";
+import { validateSmartCheckinRequest } from "../model/index.js";
 
 /**
  * What the mock wallet should return for one requested item.
@@ -81,8 +82,12 @@ export function buildMockResponse(
 
   // Items left to the fabricator are fabricated together, not one at a time,
   // so it can answer several with one bundle the way a wallet would.
+  // Items the library can't process (an unknown kind, a malformed selector) are
+  // answered "unsupported" unless the caller configured something explicit.
+  const validated = validateSmartCheckinRequest(request);
+  const unsupported = new Map((validated.ok ? validated.unsupportedItems : []).map((u) => [u.id, u.message]));
   const unspecified = request.items.filter(
-    (item) => options.items?.[item.id] === undefined && (item.content.kind === "selection.fhir" || item.content.kind === "form.fhir"),
+    (item) => options.items?.[item.id] === undefined && !unsupported.has(item.id),
   );
   const fabricated = fallback === "fabricate" && unspecified.length
     ? fabricateResponse({ ...request, items: unspecified })
@@ -95,10 +100,8 @@ export function buildMockResponse(
       continue;
     }
     const configured = options.items?.[item.id];
-    // An extension selector the mock doesn't know: answer it "unsupported"
-    // unless the caller configured something explicit (spec §5.4.3).
-    if (configured === undefined && item.content.kind !== "selection.fhir" && item.content.kind !== "form.fhir") {
-      requestStatus.push({ item: item.id, status: "unsupported", message: `selector kind "${(item.content as { kind: string }).kind}" is not supported` });
+    if (configured === undefined && unsupported.has(item.id)) {
+      requestStatus.push({ item: item.id, status: "unsupported", message: unsupported.get(item.id) });
       continue;
     }
     const specs: readonly MockItemSpec[] | undefined =
@@ -179,6 +182,8 @@ export function createMockWalletCredentialGetter(options: MockWalletOptions) {
       smartResponse,
       encryptionInfoBytes: parsed.encryptionInfoBytes,
       verifierOrigin: options.origin,
+      // Check the mock's own answers; a custom `respond` may be deliberately wrong.
+      ...(options.respond ? {} : { request: parsed.smartRequest }),
     });
   };
 }

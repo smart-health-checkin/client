@@ -31,11 +31,11 @@
   .wallet-brand svg { color: var(--accent); flex: none; }
   .wallet-name { font-weight: 600; }
   .wallet-tag { color: var(--muted); font-size: 0.8rem; }
-  .requester {
+  .verifier {
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.85rem 1rem;
   }
-  .requester .origin { font-family: var(--font-mono); font-size: 0.85rem; word-break: break-all; }
-  .requester .label { color: var(--muted); font-size: 0.8rem; }
+  .verifier .origin { font-family: var(--font-mono); font-size: 0.85rem; word-break: break-all; }
+  .verifier .label { color: var(--muted); font-size: 0.8rem; }
   h1 { font-size: 1.1rem; margin: 0.5rem 0 0; }
   .purpose { color: var(--muted); font-size: 0.92rem; margin: 0.15rem 0 0; }
   ul.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
@@ -78,9 +78,9 @@
   <div id="waiting" class="note">Waiting for a request…</div>
 
   <div id="consent" hidden>
-    <div class="requester">
+    <div class="verifier">
       <div class="label">Requested by</div>
-      <div class="origin" id="requester-origin"></div>
+      <div class="origin" id="verifier-origin"></div>
     </div>
 
     <h1>Share health information?</h1>

@@ -1,7 +1,6 @@
 /**
  * Minimal CBOR encoder/decoder for the mdoc binding: definite lengths only,
  * canonical map-key ordering on encode, tags preserved as CborTag.
- * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
 import { base64UrlEncodeBytes, compareBytes, concatBytes, hex, utf8 } from "./bytes.js";
@@ -80,8 +79,17 @@ function cborHead(majorType: number, value: number): Uint8Array {
   throw new Error("CBOR value too large");
 }
 
-export function cborDecode(bytes: Uint8Array): unknown {
-  const decoder = new CborDecoder(bytes);
+export type CborDecodeOptions = {
+  /**
+   * Called for each map key that repeats an earlier key in the same map. The
+   * later value wins. Without a callback, duplicates are kept silently; spec
+   * [ENC-5] asks a receiver to warn about them.
+   */
+  onDuplicateKey?: (key: unknown) => void;
+};
+
+export function cborDecode(bytes: Uint8Array, options: CborDecodeOptions = {}): unknown {
+  const decoder = new CborDecoder(bytes, options.onDuplicateKey);
   const value = decoder.read();
   decoder.assertDone();
   return value;
@@ -90,7 +98,10 @@ export function cborDecode(bytes: Uint8Array): unknown {
 class CborDecoder {
   private offset = 0;
 
-  constructor(private readonly bytes: Uint8Array) {}
+  constructor(
+    private readonly bytes: Uint8Array,
+    private readonly onDuplicateKey?: (key: unknown) => void,
+  ) {}
 
   read(): unknown {
     const initial = this.readByte();
@@ -118,7 +129,11 @@ class CborDecoder {
       case 5: {
         const length = this.readArgument(additional);
         const out = new Map<unknown, unknown>();
-        for (let i = 0; i < length; i++) out.set(this.read(), this.read());
+        for (let i = 0; i < length; i++) {
+          const key = this.read();
+          if (out.has(key)) this.onDuplicateKey?.(key);
+          out.set(key, this.read());
+        }
         return out;
       }
       case 6:

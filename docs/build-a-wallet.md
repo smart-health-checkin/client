@@ -33,14 +33,15 @@ A web wallet is a page the EHR opens in a tab. `serveWebWallet` handles the hand
 - seals your answer to that origin and replies.
 
 ```ts
-import { serveWebWallet } from "@smart-health-checkin/client/wallet";
+import { declineAll, serveWebWallet } from "@smart-health-checkin/client/wallet";
 
 const served = serveWebWallet({
-  async onRequest({ request, origin }) {
-    const choice = await showConsentScreen(request, origin); // your UI
-    if (choice.kind === "declined") return { declined: true };
+  async onRequest({ request, origin, unsupportedItems }) {
+    const choice = await showConsentScreen(request, origin, unsupportedItems); // your UI
+    if (choice.kind === "closed") return { declined: true };              // closed without reviewing
+    if (choice.kind === "declined-all") return { response: declineAll(request) }; // reviewed, shared nothing
     if (choice.kind === "failed") return { error: "Couldn't read your records" };
-    return { response: choice.response }; // the library signs, encrypts, and replies
+    return { response: choice.response }; // checked against the request, then signed, encrypted, and sent
   },
   onInvalidRequest(message, origin) {
     showError(`${origin} sent a request this wallet can't read: ${message}`);
@@ -63,8 +64,8 @@ What happens under it, the [web wallet hand-off](web-wallet-handoff.md):
 
 | Answer | What the EHR gets |
 | --- | --- |
-| `{ response }` | Your SMART response, signed and encrypted for the EHR's origin |
-| `{ declined: true }` | A decline |
+| `{ response }` | Your SMART response, signed and encrypted for the EHR's origin. It's checked against the request first; a response a Verifier would set aside (a status missing, a record in a type the item doesn't accept) becomes an error reply instead. |
+| `{ declined: true }` | The patient closed the wallet without reviewing. If they reviewed and declined everything, send `{ response: declineAll(request) }` instead ([HOLD-4]). |
 | `{ error: "…" }` | An error with your message |
 | `{ credential }` | A credential you sealed yourself, sent as is. For test wallets that inject faults. |
 
@@ -141,8 +142,10 @@ For wallets that seal their own responses, or run somewhere `serveWebWallet` doe
 
 | Function | What it does |
 | --- | --- |
-| `parseWalletRequest(navigatorArgument)` | The SMART request and the wire pieces needed to answer it |
-| `sealWalletResponse({ smartResponse, encryptionInfoBytes, verifierOrigin })` | Sign and encrypt a response; returns the credential to send |
+| `parseWalletRequest(navigatorArgument)` | The SMART request, the items to answer `unsupported`, `warnings` about the request's wire format, and the pieces needed to answer. Throws `WalletRequestError` only where spec §8.4 says not to respond. |
+| `checkWalletResponse(request, response)` | What a Verifier would object to in your response; empty when it's clean |
+| `declineAll(request)` | The response for a patient who reviewed and declined everything |
+| `sealWalletResponse({ smartResponse, encryptionInfoBytes, verifierOrigin, request? })` | Sign and encrypt a response; returns the credential to send. With `request`, checks the response first. |
 | `buildSignedDeviceResponse({ smartResponseJson, sessionTranscript })` | The signed mdoc DeviceResponse, before encryption |
 | `recipientJwkFromEncryptionInfo(encryptionInfoBytes)` | The EHR's public key |
 

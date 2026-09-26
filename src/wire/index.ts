@@ -12,5 +12,7 @@ export * from "./reader-auth.js";
 export * from "./hpke.js";
 export * from "./response.js";
 export * from "./verify.js";
+export * from "./warnings.js";
+export { parseJsonStrict, JsonSyntaxError } from "./json.js";
 export { extractDcapiResponse } from "../browser/index.js";
 export * from "./inspect-request.js";

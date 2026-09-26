@@ -6,7 +6,7 @@
 
 ### SmartCheckinPicker
 
-Defined in: [src/ui/picker-element.ts:75](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L75)
+Defined in: [src/ui/picker-element.ts:84](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L84)
 
 #### Extends
 
@@ -20,7 +20,7 @@ Defined in: [src/ui/picker-element.ts:75](https://github.com/smart-health-checki
 new SmartCheckinPicker(): SmartCheckinPicker;
 ```
 
-Defined in: [src/ui/picker-element.ts:94](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L94)
+Defined in: [src/ui/picker-element.ts:103](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L103)
 
 ###### Returns
 
@@ -4054,7 +4054,7 @@ HTMLElementBase.writingSuggestions
 static observedAttributes: string[];
 ```
 
-Defined in: [src/ui/picker-element.ts:76](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L76)
+Defined in: [src/ui/picker-element.ts:85](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L85)
 
 #### Accessors
 
@@ -4066,7 +4066,7 @@ Defined in: [src/ui/picker-element.ts:76](https://github.com/smart-health-checki
 get checkinOptions(): Omit<CheckinOptions, "wallet" | "signal" | "session">;
 ```
 
-Defined in: [src/ui/picker-element.ts:117](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L117)
+Defined in: [src/ui/picker-element.ts:126](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L126)
 
 Passed to `runCheckin`: `keys`, `healthCards`, `fetch`.
 
@@ -4080,7 +4080,7 @@ Passed to `runCheckin`: `keys`, `healthCards`, `fetch`.
 set checkinOptions(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:120](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L120)
+Defined in: [src/ui/picker-element.ts:129](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L129)
 
 ###### Parameters
 
@@ -4184,7 +4184,7 @@ HTMLElementBase.part
 get request(): CheckinRequestInput | undefined;
 ```
 
-Defined in: [src/ui/picker-element.ts:109](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L109)
+Defined in: [src/ui/picker-element.ts:118](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L118)
 
 What to ask the patient for. Required unless `mode="pick"`.
 
@@ -4198,7 +4198,7 @@ What to ask the patient for. Required unless `mode="pick"`.
 set request(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:112](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L112)
+Defined in: [src/ui/picker-element.ts:121](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L121)
 
 ###### Parameters
 
@@ -4257,7 +4257,7 @@ get strings(): {
 };
 ```
 
-Defined in: [src/ui/picker-element.ts:125](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L125)
+Defined in: [src/ui/picker-element.ts:134](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L134)
 
 Replace any of the picker's text. Missing keys keep their defaults.
 
@@ -4540,7 +4540,7 @@ webDivider: string = "or a health app on the web";
 set strings(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:128](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L128)
+Defined in: [src/ui/picker-element.ts:137](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L137)
 
 ###### Parameters
 
@@ -4644,7 +4644,7 @@ HTMLElementBase.textContent
 get wallets(): Wallet[] | undefined;
 ```
 
-Defined in: [src/ui/picker-element.ts:134](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L134)
+Defined in: [src/ui/picker-element.ts:143](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L143)
 
 The wallets to offer (from `wallets()`), instead of the `registry` / `platform` / `mock` attributes.
 
@@ -4658,7 +4658,7 @@ The wallets to offer (from `wallets()`), instead of the `registry` / `platform` 
 set wallets(value): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:137](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L137)
+Defined in: [src/ui/picker-element.ts:146](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L146)
 
 ###### Parameters
 
@@ -4683,20 +4683,20 @@ addEventListener<K>(
    options?): void;
 ```
 
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:13839
+Defined in: [src/ui/picker-element.ts:465](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L465)
 
 ###### Type Parameters
 
 | Type Parameter |
 | ------ |
-| `K` *extends* keyof `HTMLElementEventMap` |
+| `K` *extends* keyof [`SmartCheckinPickerEventMap`](#smartcheckinpickereventmap) |
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `type` | `K` |
-| `listener` | (`this`, `ev`) => `any` |
+| `listener` | (`this`, `event`) => `unknown` |
 | `options?` | `boolean` \| `AddEventListenerOptions` |
 
 ###### Returns
@@ -4718,7 +4718,7 @@ addEventListener(
    options?): void;
 ```
 
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:13840
+Defined in: [src/ui/picker-element.ts:470](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L470)
 
 ###### Parameters
 
@@ -4918,7 +4918,7 @@ attributeChangedCallback(
    newValue): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:157](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L157)
+Defined in: [src/ui/picker-element.ts:166](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L166)
 
 ###### Parameters
 
@@ -5242,7 +5242,7 @@ HTMLElementBase.computedStyleMap
 connectedCallback(): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:142](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L142)
+Defined in: [src/ui/picker-element.ts:151](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L151)
 
 ###### Returns
 
@@ -6895,20 +6895,20 @@ removeEventListener<K>(
    options?): void;
 ```
 
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:13841
+Defined in: [src/ui/picker-element.ts:471](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L471)
 
 ###### Type Parameters
 
 | Type Parameter |
 | ------ |
-| `K` *extends* keyof `HTMLElementEventMap` |
+| `K` *extends* keyof [`SmartCheckinPickerEventMap`](#smartcheckinpickereventmap) |
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `type` | `K` |
-| `listener` | (`this`, `ev`) => `any` |
+| `listener` | (`this`, `event`) => `unknown` |
 | `options?` | `boolean` \| `EventListenerOptions` |
 
 ###### Returns
@@ -6930,7 +6930,7 @@ removeEventListener(
    options?): void;
 ```
 
-Defined in: node\_modules/typescript/lib/lib.dom.d.ts:13842
+Defined in: [src/ui/picker-element.ts:476](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L476)
 
 ###### Parameters
 
@@ -7107,7 +7107,7 @@ HTMLElementBase.requestPointerLock
 reset(): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:176](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L176)
+Defined in: [src/ui/picker-element.ts:185](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L185)
 
 Back to the list of wallets, cancelling anything in progress.
 
@@ -7460,7 +7460,7 @@ HTMLElementBase.setHTMLUnsafe
 setOutcome(outcome): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:164](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L164)
+Defined in: [src/ui/picker-element.ts:173](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L173)
 
 In `mode="pick"`, tell the picker how the check-in ended so it can say so.
 
@@ -7630,7 +7630,7 @@ type PickerOutcome =
 };
 ```
 
-Defined in: [src/ui/picker-element.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L56)
+Defined in: [src/ui/picker-element.ts:57](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L57)
 
 In pick mode, how the page's check-in ended.
 
@@ -7643,6 +7643,87 @@ type PickerStrings = typeof DEFAULT_STRINGS;
 ```
 
 Defined in: [src/ui/strings.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/ui/strings.ts#L53)
+
+***
+
+### SmartCheckinPickerEventMap
+
+```ts
+type SmartCheckinPickerEventMap = {
+  smart-checkin-choose: CustomEvent<{
+     session?: WalletSession;
+     wallet: Wallet;
+  }>;
+  smart-checkin-declined: CustomEvent<{
+     result?: CheckinResult;
+     wallet: Wallet;
+  }>;
+  smart-checkin-error: CustomEvent<{
+     code?: CheckinErrorCode;
+     message: string;
+     result?: CheckinResult;
+     wallet?: Wallet;
+  }>;
+  smart-checkin-response: CustomEvent<{
+     response?: CheckinResponse;
+     result: CheckinResult;
+     wallet: Wallet;
+  }>;
+};
+```
+
+Defined in: [src/ui/picker-element.ts:74](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L74)
+
+The element's events and what each carries in `detail`.
+
+#### Properties
+
+##### smart-checkin-choose
+
+```ts
+smart-checkin-choose: CustomEvent<{
+  session?: WalletSession;
+  wallet: Wallet;
+}>;
+```
+
+Defined in: [src/ui/picker-element.ts:75](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L75)
+
+##### smart-checkin-declined
+
+```ts
+smart-checkin-declined: CustomEvent<{
+  result?: CheckinResult;
+  wallet: Wallet;
+}>;
+```
+
+Defined in: [src/ui/picker-element.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L77)
+
+##### smart-checkin-error
+
+```ts
+smart-checkin-error: CustomEvent<{
+  code?: CheckinErrorCode;
+  message: string;
+  result?: CheckinResult;
+  wallet?: Wallet;
+}>;
+```
+
+Defined in: [src/ui/picker-element.ts:78](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L78)
+
+##### smart-checkin-response
+
+```ts
+smart-checkin-response: CustomEvent<{
+  response?: CheckinResponse;
+  result: CheckinResult;
+  wallet: Wallet;
+}>;
+```
+
+Defined in: [src/ui/picker-element.ts:76](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L76)
 
 ## Variables
 
@@ -7981,7 +8062,7 @@ The SMART starburst, square viewBox, for inline use.
 function defineCheckinPicker(tagName?): void;
 ```
 
-Defined in: [src/ui/picker-element.ts:454](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L454)
+Defined in: [src/ui/picker-element.ts:486](https://github.com/smart-health-checkin/client/blob/main/src/ui/picker-element.ts#L486)
 
 Register `<smart-checkin-picker>` (safe to call more than once).
 

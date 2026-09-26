@@ -4,7 +4,7 @@ A completed check-in gives you a `CheckinResponse`: the full response as receive
 
 ```ts
 const result = await wallet.start(myRequest);
-if (result.status === "completed" && result.response) {
+if (result.status === "completed") {
   const response = result.response;
   response.status("allergies");     // "fulfilled"
   response.resources("allergies");  // that item's FHIR resources
@@ -17,8 +17,8 @@ From the picker, it's `event.detail.response`.
 Before you get it, the library has:
 
 - **decrypted it** with a key your page made for this one request, bound to your page's origin;
-- **checked the signatures** on the response and the data it carries;
-- **matched it to your request:** the same request id, one status per item, only formats each item accepts;
+- **checked the signatures and digests** on the response. A problem here doesn't stop the check-in; it's reported in `result.warnings` (see [Warnings](#warnings));
+- **matched it to your request:** the same request id, then each record and each status on its own. A record that fails a check is set aside, and the rest is used;
 - **checked every SMART Health Card** against the trust you configured.
 
 It hasn't judged the content. A medication list can pass every check and be a year old.
@@ -36,7 +36,7 @@ Every item in your request comes back with exactly one status.
 | `unsupported` | The health app can't handle this kind of item |
 | `error` | Something went wrong in the health app |
 
-Declined and partial items are normal. Show what came through, and ask for the rest.
+Declined and partial items are normal. Show what came through, and ask for the rest. `status()` is `undefined` when the response had no valid status row for the item (none, two, or an unknown code); treat it like a missing answer.
 
 ```ts
 for (const item of response.items()) {
@@ -51,10 +51,11 @@ for (const item of response.items()) {
 | `status(itemId)` | That item's status |
 | `resources(itemId, { type? })` | The item's FHIR resources, from Bundles and accepted health cards, optionally one type |
 | `form(itemId)` | A form item's QuestionnaireResponse |
-| `items()` | Every item in your request, with its status and artifacts |
+| `items()` | Every item in your request, with its status, artifacts, and any `problems` |
 | `entries(itemId)` | The item's resources with where each came from: a Bundle or a card, and the card's trust result |
 | `healthCards(itemId)` | Every health card for the item, accepted or not |
 | `artifacts(itemId)` | The raw artifacts that fulfill the item |
+| `disregarded()` | Artifacts set aside because they failed a check, each with its `problems` |
 | `resolve(entry, reference)` | Follow a reference within the entry's own Bundle or card |
 | `json` | The full response as received. Plain JSON, safe to store or send. |
 
@@ -65,6 +66,18 @@ How they handle the awkward cases:
 - **References are left as sent.** Bundles use `urn:uuid:` references and health cards use `resource:0`; `resolve` follows either.
 
 `JSON.stringify(response)` gives the same JSON as `response.json`.
+
+Every lookup uses only the records that passed the checks. `json` is the response as received, set-aside records included.
+
+## Warnings
+
+Problems with the transport or the signatures don't stop a check-in: the response still decrypted for your page, so the data is usable. They come back in `result.warnings`, each `{ code, message, rule }`, where `rule` is the spec requirement:
+
+```ts
+if (result.status === "completed" && result.warnings.length) console.warn(result.warnings);
+```
+
+A signature failure can mean a wallet bug; log warnings and follow up with the wallet's developer. The codes match the [spec's conformance cases](https://github.com/smart-health-checkin/spec/tree/main/conformance).
 
 ## SMART Health Cards
 

@@ -1,7 +1,6 @@
 /**
  * model — transport-neutral SMART Health Check-in request/response types and
- * validators (draft spec §§5–6 as code). Ported from the spec prototype and
- * verified against the spec's fixtures.
+ * validators (spec §§5–6), checked against the spec's conformance cases.
  */
 
 export type {
@@ -21,9 +20,18 @@ export type {
 } from "./types.js";
 
 export {
+  parseSmartCheckinRequest,
+  parseSmartCheckinResponse,
+  STATUS_CODES,
   validateResponseAgainstRequest,
   validateSmartCheckinRequest,
   validateSmartCheckinResponse,
+  type ArtifactCheck,
+  type ItemOutcome,
+  type RequestValidation,
+  type ResponseValidation,
+  type UnsupportedItem,
+  type ValidationIssue,
 } from "./validate.js";
 
 export {

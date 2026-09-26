@@ -39,10 +39,8 @@ The page and your server make two JSON calls. Nothing between the page and the h
 ```ts
 const result = await runCheckin(myRequest, { wallet, keys: { server: "/checkin-api" } });
 
-if (result.status === "completed") {
-  if (result.response) prefillMyForm(result.response); // the server returned the data
-  else showMyReceipt(result.serverReference);           // the server kept it
-}
+if (result.status === "completed") prefillMyForm(result.response);          // the server returned the data
+else if (result.status === "kept-on-server") showMyReceipt(result.serverReference); // the server kept it
 ```
 
 **Call 1, prepare:** `POST /credential-requests` with `{ request }`. The server:
@@ -55,10 +53,10 @@ if (result.status === "completed") {
 **Call 2, complete:** `POST /credential-requests/{handle}/complete` with `{ credential }`. The server:
 
 - rejects an unknown, expired, reused, or other-session handle;
-- decrypts and verifies (`openWalletResponse`, then `verifyDeviceResponseSignatures`);
+- decrypts and checks it (`openWalletCredential`, then `checkDeviceResponse`, both from `/wire`), keeping their `warnings`;
 - checks the data against the stored request (`validateResponseAgainstRequest` from `/model`), never against anything the page sent;
 - deletes the key;
-- returns `{ smartResponse, presentation }`, or `{ handledByServer: true, reference }` to keep the data from the page.
+- returns `{ smartResponse, presentation, warnings }`, or `{ handledByServer: true, reference }` to keep the data from the page.
 
 Rules for the server:
 
@@ -116,9 +114,9 @@ Log each failed result's `error.code`, and watch the counts.
 | `blocked` | A code change put an `await` before `wallet.start` |
 | `timeout` | A web wallet is down or not replying |
 | `wallet-error` | A wallet is failing; its message says why |
-| `invalid-response` | A wallet or network problem worth investigating; `error.check` says which check |
+| `invalid-response` | A wallet or network problem worth investigating; `error.check` is the spec requirement that failed |
 | `server` | Your key server |
 
-`unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
+Log `result.warnings` from completed check-ins too: a steady stream from one wallet usually means a bug there. `unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
 
 Next: [Building a wallet](build-a-wallet.md)

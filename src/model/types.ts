@@ -1,6 +1,5 @@
 /**
- * Transport-neutral SMART Health Check-in clinical model (draft spec §§5–6).
- * Ported from smart-health-checkin-mdoc rp-web/src/sdk/core.ts.
+ * Transport-neutral SMART Health Check-in clinical model (spec §§5–6).
  */
 
 export type FhirCanonical = string;

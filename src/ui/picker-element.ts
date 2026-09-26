@@ -29,7 +29,7 @@
  *
  * Events (all bubble and cross shadow roots):
  * - `smart-checkin-choose`: `{ wallet, session }`, fired inside the click. In pick mode, run the check-in with `session`.
- * - `smart-checkin-response`: `{ wallet, response, result }`.
+ * - `smart-checkin-response`: `{ wallet, response, result }`. `response` is absent when a server holding the keys kept the data (`result.status` is "kept-on-server").
  * - `smart-checkin-declined`: `{ wallet, result }`.
  * - `smart-checkin-error`: `{ wallet?, code?, message, result? }`.
  */
@@ -37,6 +37,7 @@
 import { runCheckin, type CheckinOptions, type CheckinResult } from "../core/run.js";
 import type { CheckinRequestInput } from "../core/request.js";
 import type { CheckinErrorCode } from "../core/errors.js";
+import type { CheckinResponse } from "../core/response.js";
 import { wallets as listWallets, type Wallet, type WalletSession } from "../core/wallets.js";
 import { mockWallet } from "../testing/index.js";
 import { arrangeWallets, monogram, recallChoice, rememberChoice } from "../picker/index.js";
@@ -68,6 +69,14 @@ const isMobile = (): boolean => {
 
 const HTMLElementBase: typeof HTMLElement =
   typeof HTMLElement === "undefined" ? (class {} as unknown as typeof HTMLElement) : HTMLElement;
+
+/** The element's events and what each carries in `detail`. */
+export type SmartCheckinPickerEventMap = {
+  "smart-checkin-choose": CustomEvent<{ wallet: Wallet; session?: WalletSession }>;
+  "smart-checkin-response": CustomEvent<{ wallet: Wallet; response?: CheckinResponse; result: CheckinResult }>;
+  "smart-checkin-declined": CustomEvent<{ wallet: Wallet; result?: CheckinResult }>;
+  "smart-checkin-error": CustomEvent<{ wallet?: Wallet; code?: CheckinErrorCode; message: string; result?: CheckinResult }>;
+};
 
 /** Public properties a page may set before the element is defined. */
 const PROPERTIES = ["request", "checkinOptions", "wallets", "strings"] as const;
@@ -283,10 +292,11 @@ export class SmartCheckinPicker extends HTMLElementBase {
 
   private finish(runId: number, wallet: Wallet, result: CheckinResult): void {
     if (runId !== this.runId) return; // cancelled or superseded
-    if (result.status === "completed") {
+    if (result.status === "completed" || result.status === "kept-on-server") {
       this.view = { kind: "done", wallet };
       if (this.hasAttribute("remember")) rememberChoice(wallet.id);
-      this.emit("smart-checkin-response", { wallet, response: result.response, result });
+      // A server holding the keys may keep the data; then there's no response here.
+      this.emit("smart-checkin-response", { wallet, ...(result.status === "completed" ? { response: result.response } : {}), result });
     } else if (result.status === "declined") {
       this.view = { kind: "declined", wallet };
       this.emit("smart-checkin-declined", { wallet, result });
@@ -447,6 +457,28 @@ export class SmartCheckinPicker extends HTMLElementBase {
         else img.replaceWith(tile);
       }, { once: true });
     });
+  }
+}
+
+// Typed listeners for the element's own events; other events keep the DOM's types.
+export interface SmartCheckinPicker {
+  addEventListener<K extends keyof SmartCheckinPickerEventMap>(
+    type: K,
+    listener: (this: SmartCheckinPicker, event: SmartCheckinPickerEventMap[K]) => unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof SmartCheckinPickerEventMap>(
+    type: K,
+    listener: (this: SmartCheckinPicker, event: SmartCheckinPickerEventMap[K]) => unknown,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "smart-checkin-picker": SmartCheckinPicker;
   }
 }
 

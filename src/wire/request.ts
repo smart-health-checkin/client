@@ -1,16 +1,13 @@
 /**
  * Verifier-side request construction for the direct `org-iso-mdoc` binding
- * (draft spec §8.2–8.3): ItemsRequest/DeviceRequest bytes, encryptionInfo,
+ * (spec §8.2–8.3): ItemsRequest/DeviceRequest bytes, encryptionInfo,
  * SessionTranscript, and the navigator.credentials.get argument.
- * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
 import type { SmartCheckinRequest } from "../model/index.js";
 import {
   base64UrlDecodeBytes,
-  base64UrlDecodeUtf8,
   base64UrlEncodeBytes,
-  base64UrlEncodeUtf8,
   concatBytes,
   sha256,
 } from "./bytes.js";
@@ -26,7 +23,6 @@ export const MDOC_DOC_TYPE = "org.smarthealthit.checkin.1" as const;
 export const MDOC_NAMESPACE = "org.smarthealthit.checkin" as const;
 export const SMART_REQUEST_INFO_KEY = "org.smarthealthit.checkin.request" as const;
 export const SMART_RESPONSE_ELEMENT_ID = "smart_health_checkin_response" as const;
-export const SMART_REQUEST_COMPANION_ELEMENT_PREFIX = "smart_request_b64u." as const;
 
 export type OrgIsoMdocNavigatorArgument = {
   mediation: "required";
@@ -67,7 +63,6 @@ export async function buildOrgIsoMdocRequest(
     verifierKeyPair?: CryptoKeyPair;
     deviceRequestVersion?: "1.0" | "1.1";
     responseElementIdentifier?: string;
-    includeCompanionElement?: boolean;
     origin?: string;
     readerAuth?: boolean;
     readerIdentity?: ReaderIdentity;
@@ -94,7 +89,6 @@ export async function buildOrgIsoMdocRequest(
   const itemsRequestTag24Bytes = buildItemsRequestTag24Bytes({
     smartRequestJson,
     responseElementIdentifier: requestedElementIdentifier,
-    includeCompanionElement: options.includeCompanionElement,
   });
   const shouldSignReaderAuth = options.readerAuth ?? options.origin !== undefined;
   const sessionTranscriptBytes = options.origin
@@ -167,22 +161,12 @@ export function buildDeviceRequestBytes(input: {
 export function buildItemsRequestTag24Bytes(input: {
   smartRequestJson: string;
   responseElementIdentifier?: string;
-  /**
-   * Also carry the request JSON as a `smart_request_b64u.<b64u>` requested
-   * element, for wallets that cannot read `requestInfo`. Off by default: the
-   * spec's primary carrier is requestInfo, the real platform captures omit
-   * the companion, and it roughly doubles the request size.
-   */
-  includeCompanionElement?: boolean;
 }): Uint8Array {
   const responseElementIdentifier =
     input.responseElementIdentifier ?? SMART_RESPONSE_ELEMENT_ID;
   const elements: Record<string, boolean> = {
     [responseElementIdentifier]: true,
   };
-  if (input.includeCompanionElement) {
-    elements[buildSmartRequestCompanionElementIdentifier(input.smartRequestJson)] = false;
-  }
   const itemsRequest: Record<string, unknown> = {
     docType: MDOC_DOC_TYPE,
     nameSpaces: {
@@ -266,23 +250,4 @@ export async function buildDcapiSessionTranscript(input: {
   const dcapiInfo = cborEncode([encryptionInfo, input.origin]);
   const handover = ["dcapi", await sha256(dcapiInfo)];
   return cborEncode([null, null, handover]);
-}
-
-export function buildSmartRequestCompanionElementIdentifier(
-  smartRequestJson: string,
-): string {
-  return `${SMART_REQUEST_COMPANION_ELEMENT_PREFIX}${base64UrlEncodeUtf8(smartRequestJson)}`;
-}
-
-export function decodeSmartRequestCompanionElementIdentifier(
-  elementIdentifier: string,
-): string | undefined {
-  if (!elementIdentifier.startsWith(SMART_REQUEST_COMPANION_ELEMENT_PREFIX)) {
-    return undefined;
-  }
-  const encoded = elementIdentifier.slice(SMART_REQUEST_COMPANION_ELEMENT_PREFIX.length);
-  if (!encoded) {
-    throw new Error("SMART request companion element has an empty payload");
-  }
-  return base64UrlDecodeUtf8(encoded);
 }

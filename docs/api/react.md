@@ -32,7 +32,7 @@ type CheckinPickerProps = {
 };
 ```
 
-Defined in: [src/react/index.ts:22](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L22)
+Defined in: [src/react/index.ts:24](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L24)
 
 #### Properties
 
@@ -42,7 +42,7 @@ Defined in: [src/react/index.ts:22](https://github.com/smart-health-checkin/clie
 optional appearance?: "card" | "flat";
 ```
 
-Defined in: [src/react/index.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L36)
+Defined in: [src/react/index.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L38)
 
 ##### checkinOptions?
 
@@ -50,7 +50,7 @@ Defined in: [src/react/index.ts:36](https://github.com/smart-health-checkin/clie
 optional checkinOptions?: Omit<CheckinOptions, "wallet" | "signal" | "session">;
 ```
 
-Defined in: [src/react/index.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L44)
+Defined in: [src/react/index.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L46)
 
 ##### className?
 
@@ -58,7 +58,7 @@ Defined in: [src/react/index.ts:44](https://github.com/smart-health-checkin/clie
 optional className?: string;
 ```
 
-Defined in: [src/react/index.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L45)
+Defined in: [src/react/index.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L47)
 
 ##### description?
 
@@ -66,7 +66,7 @@ Defined in: [src/react/index.ts:45](https://github.com/smart-health-checkin/clie
 optional description?: string;
 ```
 
-Defined in: [src/react/index.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L40)
+Defined in: [src/react/index.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L42)
 
 ##### elementRef?
 
@@ -74,7 +74,7 @@ Defined in: [src/react/index.ts:40](https://github.com/smart-health-checkin/clie
 optional elementRef?: (element) => void;
 ```
 
-Defined in: [src/react/index.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L52)
+Defined in: [src/react/index.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L55)
 
 Receives the element, e.g. to call `setOutcome` in pick mode.
 
@@ -94,7 +94,7 @@ Receives the element, e.g. to call `setOutcome` in pick mode.
 optional footer?: boolean;
 ```
 
-Defined in: [src/react/index.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L38)
+Defined in: [src/react/index.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L40)
 
 Show the SMART Health Check-in mark (default true).
 
@@ -104,7 +104,7 @@ Show the SMART Health Check-in mark (default true).
 optional heading?: string;
 ```
 
-Defined in: [src/react/index.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L39)
+Defined in: [src/react/index.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L41)
 
 ##### mock?
 
@@ -112,9 +112,9 @@ Defined in: [src/react/index.ts:39](https://github.com/smart-health-checkin/clie
 optional mock?: boolean;
 ```
 
-Defined in: [src/react/index.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L32)
+Defined in: [src/react/index.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L34)
 
-Offer the simulated responder. Development only.
+Offer the simulated wallet. Development only.
 
 ##### mode?
 
@@ -122,7 +122,7 @@ Offer the simulated responder. Development only.
 optional mode?: "checkin" | "pick";
 ```
 
-Defined in: [src/react/index.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L34)
+Defined in: [src/react/index.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L36)
 
 "checkin" (default) runs the flow; "pick" only chooses.
 
@@ -132,7 +132,7 @@ Defined in: [src/react/index.ts:34](https://github.com/smart-health-checkin/clie
 optional onChoose?: (detail) => void;
 ```
 
-Defined in: [src/react/index.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L47)
+Defined in: [src/react/index.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L49)
 
 ###### Parameters
 
@@ -152,7 +152,7 @@ Defined in: [src/react/index.ts:47](https://github.com/smart-health-checkin/clie
 optional onDeclined?: (detail) => void;
 ```
 
-Defined in: [src/react/index.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L49)
+Defined in: [src/react/index.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L52)
 
 ###### Parameters
 
@@ -172,7 +172,7 @@ Defined in: [src/react/index.ts:49](https://github.com/smart-health-checkin/clie
 optional onError?: (detail) => void;
 ```
 
-Defined in: [src/react/index.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L50)
+Defined in: [src/react/index.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L53)
 
 ###### Parameters
 
@@ -193,14 +193,16 @@ Defined in: [src/react/index.ts:50](https://github.com/smart-health-checkin/clie
 optional onResponse?: (detail) => void;
 ```
 
-Defined in: [src/react/index.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L48)
+Defined in: [src/react/index.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L51)
+
+`response` is absent when a server holding the keys kept the data (`result.status` is "kept-on-server").
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `detail` | \{ `response`: [`CheckinResponse`](checkin.md#checkinresponse); `result`: [`CheckinResult`](checkin.md#checkinresult); `wallet`: [`Wallet`](checkin.md#wallet-1); \} |
-| `detail.response` | [`CheckinResponse`](checkin.md#checkinresponse) |
+| `detail` | \{ `response?`: [`CheckinResponse`](checkin.md#checkinresponse); `result`: [`CheckinResult`](checkin.md#checkinresult); `wallet`: [`Wallet`](checkin.md#wallet-1); \} |
+| `detail.response?` | [`CheckinResponse`](checkin.md#checkinresponse) |
 | `detail.result` | [`CheckinResult`](checkin.md#checkinresult) |
 | `detail.wallet` | [`Wallet`](checkin.md#wallet-1) |
 
@@ -214,7 +216,7 @@ Defined in: [src/react/index.ts:48](https://github.com/smart-health-checkin/clie
 optional platform?: boolean;
 ```
 
-Defined in: [src/react/index.ts:28](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L28)
+Defined in: [src/react/index.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L30)
 
 Offer the device's own wallet (default true).
 
@@ -224,7 +226,7 @@ Offer the device's own wallet (default true).
 optional registry?: string;
 ```
 
-Defined in: [src/react/index.ts:26](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L26)
+Defined in: [src/react/index.ts:28](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L28)
 
 Wallet registry URL. Omit for no web wallets.
 
@@ -234,7 +236,7 @@ Wallet registry URL. Omit for no web wallets.
 optional remember?: boolean;
 ```
 
-Defined in: [src/react/index.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L30)
+Defined in: [src/react/index.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L32)
 
 Remember the last app used on this site (default false).
 
@@ -244,7 +246,7 @@ Remember the last app used on this site (default false).
 optional request?: CheckinRequestInput;
 ```
 
-Defined in: [src/react/index.ts:24](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L24)
+Defined in: [src/react/index.ts:26](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L26)
 
 What to ask for. Required unless `mode="pick"`.
 
@@ -254,7 +256,7 @@ What to ask for. Required unless `mode="pick"`.
 optional strings?: Partial<PickerStrings>;
 ```
 
-Defined in: [src/react/index.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L41)
+Defined in: [src/react/index.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L43)
 
 ##### style?
 
@@ -262,7 +264,7 @@ Defined in: [src/react/index.ts:41](https://github.com/smart-health-checkin/clie
 optional style?: CSSProperties;
 ```
 
-Defined in: [src/react/index.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L46)
+Defined in: [src/react/index.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L48)
 
 ##### theme?
 
@@ -270,7 +272,7 @@ Defined in: [src/react/index.ts:46](https://github.com/smart-health-checkin/clie
 optional theme?: "light" | "dark" | "auto";
 ```
 
-Defined in: [src/react/index.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L35)
+Defined in: [src/react/index.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L37)
 
 ##### wallets?
 
@@ -278,9 +280,114 @@ Defined in: [src/react/index.ts:35](https://github.com/smart-health-checkin/clie
 optional wallets?: Wallet[];
 ```
 
-Defined in: [src/react/index.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L43)
+Defined in: [src/react/index.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L45)
 
 The wallets to offer (from `wallets()`), instead of `registry` / `platform` / `mock`.
+
+***
+
+### SmartCheckinPickerAttributes
+
+```ts
+type SmartCheckinPickerAttributes = {
+  appearance?: "flat";
+  description?: string;
+  footer?: "off";
+  heading?: string;
+  mock?: boolean | "";
+  mode?: "checkin" | "pick";
+  platform?: "off";
+  registry?: string;
+  remember?: boolean | "";
+  theme?: "light" | "dark" | "auto";
+};
+```
+
+Defined in: [src/react/index.ts:160](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L160)
+
+Attributes of `<smart-checkin-picker>` when written directly in JSX. Set `request` and the other properties through a ref.
+
+#### Properties
+
+##### appearance?
+
+```ts
+optional appearance?: "flat";
+```
+
+Defined in: [src/react/index.ts:167](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L167)
+
+##### description?
+
+```ts
+optional description?: string;
+```
+
+Defined in: [src/react/index.ts:170](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L170)
+
+##### footer?
+
+```ts
+optional footer?: "off";
+```
+
+Defined in: [src/react/index.ts:168](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L168)
+
+##### heading?
+
+```ts
+optional heading?: string;
+```
+
+Defined in: [src/react/index.ts:169](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L169)
+
+##### mock?
+
+```ts
+optional mock?: boolean | "";
+```
+
+Defined in: [src/react/index.ts:164](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L164)
+
+##### mode?
+
+```ts
+optional mode?: "checkin" | "pick";
+```
+
+Defined in: [src/react/index.ts:165](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L165)
+
+##### platform?
+
+```ts
+optional platform?: "off";
+```
+
+Defined in: [src/react/index.ts:162](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L162)
+
+##### registry?
+
+```ts
+optional registry?: string;
+```
+
+Defined in: [src/react/index.ts:161](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L161)
+
+##### remember?
+
+```ts
+optional remember?: boolean | "";
+```
+
+Defined in: [src/react/index.ts:163](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L163)
+
+##### theme?
+
+```ts
+optional theme?: "light" | "dark" | "auto";
+```
+
+Defined in: [src/react/index.ts:166](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L166)
 
 ## Functions
 
@@ -290,7 +397,7 @@ The wallets to offer (from `wallets()`), instead of `registry` / `platform` / `m
 function CheckinPicker(props): DOMElement<DOMAttributes<SmartCheckinPicker & HTMLElement>, SmartCheckinPicker & HTMLElement>;
 ```
 
-Defined in: [src/react/index.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L56)
+Defined in: [src/react/index.ts:59](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L59)
 
 The `<smart-checkin-picker>` element as a React component.
 
@@ -317,9 +424,15 @@ function useCheckin(request, options?): {
      | Promise<
      | {
      request: SmartCheckinRequest;
-     response?: CheckinResponse;
-     serverReference?: string;
+     response: CheckinResponse;
      status: "completed";
+     wallet: Wallet;
+     warnings: CheckinWarning[];
+   }
+     | {
+     request: SmartCheckinRequest;
+     serverReference?: string;
+     status: "kept-on-server";
      wallet: Wallet;
    }
      | {
@@ -337,12 +450,17 @@ function useCheckin(request, options?): {
      status: "failed";
      wallet: Wallet;
   }>;
-  status: "declined" | "waiting" | "completed" | "failed" | "idle";
+  status:   | "declined"
+     | "waiting"
+     | "completed"
+     | "kept-on-server"
+     | "failed"
+     | "idle";
   wallets: Wallet[];
 };
 ```
 
-Defined in: [src/react/index.ts:116](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L116)
+Defined in: [src/react/index.ts:119](https://github.com/smart-health-checkin/client/blob/main/src/react/index.ts#L119)
 
 For pages drawing their own buttons: the wallets to offer, and `start`,
 which runs a check-in with one of them. Call `start(wallet)` from a click
@@ -366,9 +484,15 @@ handler; it opens a web wallet's tab inside the click.
      | Promise<
      | {
      request: SmartCheckinRequest;
-     response?: CheckinResponse;
-     serverReference?: string;
+     response: CheckinResponse;
      status: "completed";
+     wallet: Wallet;
+     warnings: CheckinWarning[];
+   }
+     | {
+     request: SmartCheckinRequest;
+     serverReference?: string;
+     status: "kept-on-server";
      wallet: Wallet;
    }
      | {
@@ -386,7 +510,12 @@ handler; it opens a web wallet's tab inside the click.
      status: "failed";
      wallet: Wallet;
   }>;
-  status: "declined" | "waiting" | "completed" | "failed" | "idle";
+  status:   | "declined"
+     | "waiting"
+     | "completed"
+     | "kept-on-server"
+     | "failed"
+     | "idle";
   wallets: Wallet[];
 }
 ```
@@ -411,9 +540,15 @@ start: (wallet) =>
   | Promise<
   | {
   request: SmartCheckinRequest;
-  response?: CheckinResponse;
-  serverReference?: string;
+  response: CheckinResponse;
   status: "completed";
+  wallet: Wallet;
+  warnings: CheckinWarning[];
+}
+  | {
+  request: SmartCheckinRequest;
+  serverReference?: string;
+  status: "kept-on-server";
   wallet: Wallet;
 }
   | {
@@ -445,9 +580,15 @@ start: (wallet) =>
   \| `Promise`\<
   \| \{
   `request`: [`SmartCheckinRequest`](checkin.md#smartcheckinrequest);
-  `response?`: [`CheckinResponse`](checkin.md#checkinresponse);
-  `serverReference?`: `string`;
+  `response`: [`CheckinResponse`](checkin.md#checkinresponse);
   `status`: `"completed"`;
+  `wallet`: [`Wallet`](checkin.md#wallet-1);
+  `warnings`: [`CheckinWarning`](wire.md#checkinwarning)[];
+\}
+  \| \{
+  `request`: [`SmartCheckinRequest`](checkin.md#smartcheckinrequest);
+  `serverReference?`: `string`;
+  `status`: `"kept-on-server"`;
   `wallet`: [`Wallet`](checkin.md#wallet-1);
 \}
   \| \{
@@ -469,7 +610,13 @@ start: (wallet) =>
 ##### status
 
 ```ts
-status: "declined" | "waiting" | "completed" | "failed" | "idle";
+status: 
+  | "declined"
+  | "waiting"
+  | "completed"
+  | "kept-on-server"
+  | "failed"
+  | "idle";
 ```
 
 ##### wallets

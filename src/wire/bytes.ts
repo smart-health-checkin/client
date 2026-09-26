@@ -1,6 +1,5 @@
 /**
  * Byte and encoding primitives shared across the wire layer.
- * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
 export function base64UrlEncodeBytes(bytes: Uint8Array): string {

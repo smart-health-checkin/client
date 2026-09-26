@@ -74,7 +74,7 @@ import { wallets } from "@smart-health-checkin/client";
 const [wallet] = await wallets({ registry: "/wallets.json" });
 button.onclick = async () => {
   const result = await wallet.start(myRequest); // inside the click
-  if (result.status === "completed" && result.response) prefillMyForm(result.response);
+  if (result.status === "completed") prefillMyForm(result.response);
   else showMyOrdinaryForm();
 };
 ```

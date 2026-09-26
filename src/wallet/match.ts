@@ -4,7 +4,7 @@
  * - `profiles`: a resource matches when its `meta.profile` has the requested
  *   canonical. Unversioned requests match any version; versioned ones need
  *   that exact version.
- * - `profilesFrom`: matches any profile under the family's URL.
+ * - `profilesFrom`: matches any profile whose URL starts with the family's URL and "/" ([SEL-5]).
  * - `profiles` and `profilesFrom` together are additive; `resourceTypes`
  *   narrows either, or selects by type on its own.
  * - No selector at all: everything.
@@ -35,9 +35,10 @@ function profileMatches(declared: string, requested: string): boolean {
   return want.version === undefined || want.version === have.version;
 }
 
+/** [SEL-5]: a profile is in a family when its URL, without |version, starts with the family URL and "/". */
 function inFamily(declared: string, family: string): boolean {
-  const base = family.replace(/\/+$/, "");
-  return splitCanonical(declared).url.startsWith(base + "/StructureDefinition/");
+  const base = splitCanonical(family).url.replace(/\/+$/, "");
+  return splitCanonical(declared).url.startsWith(base + "/");
 }
 
 /** Does this resource answer the selector? */

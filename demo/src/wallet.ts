@@ -425,7 +425,7 @@ type Pending = { smartRequest: SmartCheckinRequest; verifierOrigin: string };
 function renderConsent(request: Pending, answer: (a: WebWalletAnswer) => void): void {
   el("waiting").hidden = true;
   el("consent").hidden = false;
-  el("requester-origin").textContent = request.verifierOrigin;
+  el("verifier-origin").textContent = request.verifierOrigin;
   el("purpose").textContent =
     request.smartRequest.purpose ?? "This site is asking for health information.";
 

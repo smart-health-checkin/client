@@ -20,7 +20,7 @@ import {
 } from "../../../src/index.js";
 import { mockWallet } from "../../../src/testing/index.js";
 
-type Status = "idle" | "waiting" | "completed" | "declined" | "failed";
+type Status = "idle" | "waiting" | "completed" | "kept-on-server" | "declined" | "failed";
 
 @Injectable({ providedIn: "root" })
 export class CheckinService {

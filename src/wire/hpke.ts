@@ -1,8 +1,7 @@
 /**
  * HPKE (RFC 9180) base mode over WebCrypto for the direct mdoc response:
  * DHKEM(P-256, HKDF-SHA256) + HKDF-SHA256 + AES-128-GCM.
- * `info` is the SessionTranscript bytes; `aad` is empty (spec §8.6).
- * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
+ * `info` is CBOR(SessionTranscript); `aad` is empty (spec [HPKE-1]).
  */
 
 import { arrayBufferCopy, concatBytes, i2osp, utf8 } from "./bytes.js";

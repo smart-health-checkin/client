@@ -11,7 +11,7 @@ import { createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, CHECKED_MODULES, anchorFor } from "./api-index.ts";
-import { GUIDES, LEVELS, MOVED } from "./site-nav.ts";
+import { GUIDES, LEVELS } from "./site-nav.ts";
 import { CHROME_ASSETS, footer, header } from "./site-chrome.ts";
 import { BASE, OUT_ROOT } from "./site-base.ts";
 
@@ -361,21 +361,6 @@ ${groupsHtml}
 </div>`,
   ),
 );
-
-const ORIGIN_FOR_REDIRECTS = process.env.SITE_ORIGIN ?? "https://smart-health-checkin.org";
-
-// --- the old doors: /docs/ and /docs/getting-started.html lead to the front page
-const redirect = (to: string): string => `<!doctype html>
-<meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${to}">
-<link rel="canonical" href="${to}"><title>Moved</title>
-<p>Moved to <a href="${to}">${to}</a>.</p>
-`;
-for (const stale of ["index.html", "getting-started.html"]) writeFileSync(join(OUT, stale), redirect(`${BASE}/`));
-// Pages merged into others keep working.
-for (const [slug, to] of Object.entries(MOVED)) {
-  writeFileSync(join(OUT, `${slug}.html`), redirect(`${BASE}/docs/${to}`));
-  writeFileSync(join(OUT, `${slug}.md`), `Moved to ${ORIGIN_FOR_REDIRECTS}${BASE}/docs/${to}\n`);
-}
 
 // nav.json: the "Developers" menu, read by the site chrome at runtime.
 writeFileSync(

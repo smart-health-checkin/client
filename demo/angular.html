@@ -55,8 +55,8 @@
     <h1>Same core, Angular bindings</h1>
     <p class="muted">
       The library is a plain async function with no framework dependency. A
-      binding owns three things: the responder list the component renders
-      (resolved from a policy), the one call, and its state. This page's
+      binding owns three things: the wallets the component renders (from
+      <code>wallets()</code>), the one call, and its state. This page's
       injectable service is all of it; the <a href="./react.html">React
       example</a> is the same as a hook.
     </p>
@@ -68,36 +68,30 @@
     <h2>The whole binding</h2>
 <pre><code>@Injectable({ providedIn: "root" })
 export class CheckinService {
-  readonly responders = signal&lt;Responder[]&gt;([]);
+  readonly wallets = signal&lt;Wallet[]&gt;([]);
   readonly status = signal&lt;Status&gt;("idle");
-  readonly response = signal&lt;SmartCheckinResponse | undefined&gt;(undefined);
+  readonly response = signal&lt;CheckinResponse | undefined&gt;(undefined);
+  readonly error = signal&lt;string | undefined&gt;(undefined);
 
-  // who may answer in this browser — availability and the default come back in the list
-  async configure(policy) {
-    this.policy = policy;
-    this.responders.set(await resolveResponders(policy));
+  // the wallets to offer in this browser
+  async configure(options: WalletsOptions) {
+    this.wallets.set(await wallets(options));
   }
 
-  async request(input, responder = this.responders().find((r) =&gt; r.isDefault)) {
+  // call from the click handler: a web wallet's tab opens inside the click
+  async request(input: CheckinRequestInput, wallet: Wallet) {
+    const running = wallet.start(input);
     this.status.set("waiting");
-    try {
-      this.response.set(await requestCheckin(input, {
-        getCredential: credentialGetterFor(responder, { origin: this.policy.origin }),
-      }));
-      this.status.set("done");
-    } catch (e) {
-      this.status.set(e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
-        ? "declined" : "error");
-    }
+    const result = await running;
+    this.status.set(result.status);
+    if (result.status === "completed") this.response.set(result.response);
+    if (result.status === "failed") this.error.set(result.error.message);
   }
 }
 
-// …and the component renders the list: one button per responder, the default leading
-@for (r of checkin.responders(); track r.id) {
-  &lt;button [class]="r.isDefault ? 'smart-btn primary' : 'smart-btn'"
-          [disabled]="!r.available" [title]="r.reason" (click)="start(r)"&gt;
-    {{ r.name }}
-  &lt;/button&gt;
+// …and the component renders one button per wallet
+@for (w of checkin.wallets(); track w.id) {
+  &lt;button class="smart-btn" (click)="start(w)"&gt;{{ w.name }}&lt;/button&gt;
 }</code></pre>
     <p class="muted" style="font-size:0.88rem">
       Compiled in the browser (JIT) so this page needs no Angular build step —

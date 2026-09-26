@@ -7,7 +7,7 @@
  */
 import { defineCheckinPicker } from "./picker-element.js";
 
-export { SmartCheckinPicker, defineCheckinPicker, type PickerOutcome } from "./picker-element.js";
+export { SmartCheckinPicker, defineCheckinPicker, type PickerOutcome, type SmartCheckinPickerEventMap } from "./picker-element.js";
 export { DEFAULT_STRINGS, type PickerStrings } from "./strings.js";
 export { STARBURST_ICON_URL, STARBURST_SVG } from "./icons.js";
 export { PICKER_CSS } from "./styles.js";

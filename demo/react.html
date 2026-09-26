@@ -70,18 +70,18 @@
 
 &lt;CheckinPicker
   request={REQUEST}
-  wallets="/wallets.json"
+  registry="/wallets.json"
   onResponse={({ response }) =&gt; setResponse(response)}
   onDeclined={() =&gt; setNote("Nothing was shared.")}
 /&gt;</code></pre>
     <h2>Or draw your own buttons</h2>
 <pre><code>import { useCheckin } from "@smart-health-checkin/client/react";
 
-const { responders, start, status, response } = useCheckin(REQUEST, { webWallets: "/wallets.json" });
+const { wallets, start, status, response } = useCheckin(REQUEST, { registry: "/wallets.json" });
 
-// start(r) opens a web wallet's tab inside the click, so call it from onClick
-{responders.filter((r) =&gt; r.available).map((r) =&gt; (
-  &lt;button key={r.id} onClick={() =&gt; start(r)}&gt;{r.name}&lt;/button&gt;
+// start(wallet) opens a web wallet's tab inside the click, so call it from onClick
+{wallets.filter((w) =&gt; w.available).map((w) =&gt; (
+  &lt;button key={w.id} onClick={() =&gt; start(w)}&gt;{w.name}&lt;/button&gt;
 ))}</code></pre>
   </section>
 </main>

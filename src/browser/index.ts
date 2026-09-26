@@ -5,9 +5,14 @@
  */
 
 import type { SmartCheckinRequest, SmartCheckinResponse } from "../model/index.js";
+import { CheckinError } from "../core/errors.js";
 import {
   buildOrgIsoMdocRequest,
-  openWalletResponse,
+  checkDeviceResponse,
+  JsonSyntaxError,
+  openWalletCredential,
+  parseJsonStrict,
+  type CheckinWarning,
   type DcapiMdocResponse,
   type OrgIsoMdocNavigatorArgument,
   type OrgIsoMdocRequestBundle,
@@ -64,9 +69,11 @@ export type PresentationContext = {
  */
 export type CredentialCompletion =
   | {
-      /** Opened and wire-verified; the caller still cross-checks it against the request. */
+      /** Opened and wire-checked; the caller still cross-checks it against the request. */
       smartResponse: SmartCheckinResponse;
       presentation: PresentationContext;
+      /** Transport and signature findings that didn't stop the check-in (spec §2, [RCV-1]). */
+      warnings?: CheckinWarning[];
       handledByServer?: false;
     }
   | {
@@ -125,22 +132,30 @@ export function createBrowserKeyCustody(options: { origin?: string } = {}): KeyC
       if (!session.bundle.sessionTranscriptBytes) {
         throw new Error("missing session transcript (origin was not set at prepare time)");
       }
-      const opened = await openWalletResponse({
-        response: extractDcapiResponse(credential),
+      // Spec §8.5: fail only where a step says so; everything else is a warning.
+      const opened = await openWalletCredential({
+        credential: extractDcapiResponse(credential),
         recipientPrivateKey: session.bundle.verifierKeyPair.privateKey,
         recipientPublicJwk: session.bundle.verifierPublicJwk,
         sessionTranscript: session.bundle.sessionTranscriptBytes,
-        smartRequest: session.request,
       });
-      if (!opened.smartResponseValidation) {
-        throw new Error("wallet response did not contain a validated SMART response");
+      if (!opened.ok) throw new CheckinError("invalid-response", opened.error, { check: opened.rule });
+      const checked = await checkDeviceResponse({
+        deviceResponseBytes: opened.deviceResponseBytes,
+        sessionTranscript: session.bundle.sessionTranscriptBytes,
+      });
+      if (!checked.ok) throw new CheckinError("invalid-response", checked.error, { check: checked.rule });
+      let smartResponse: SmartCheckinResponse;
+      try {
+        smartResponse = parseJsonStrict(checked.smartResponseText) as SmartCheckinResponse;
+      } catch (e) {
+        if (e instanceof JsonSyntaxError) throw new CheckinError("invalid-response", `the SMART response is not valid JSON: ${e.message}`, { check: "JSON-2" });
+        throw e;
       }
       return {
-        smartResponse: opened.smartResponseValidation.value,
-        presentation: {
-          origin: session.origin,
-          deviceResponseHex: opened.deviceResponse.deviceResponseHex,
-        },
+        smartResponse,
+        presentation: { origin: session.origin },
+        warnings: [...opened.warnings, ...checked.warnings],
       };
     },
   };
@@ -202,25 +217,19 @@ export function extractDcapiResponse(credential: unknown): string | DcapiMdocRes
   if (typeof credential === "string") return credential;
   if (credential && typeof credential === "object") {
     const c = credential as { data?: unknown; protocol?: unknown };
+    // Keep the protocol as the wallet reported it; the Verifier warns if it differs ([VRS-2]).
+    const protocol = (typeof c.protocol === "string" ? c.protocol : "org-iso-mdoc") as DcapiMdocResponse["protocol"];
     if (typeof c.data === "string") {
       try {
         const parsed = JSON.parse(c.data) as { response?: unknown };
-        if (typeof parsed.response === "string") {
-          return { protocol: "org-iso-mdoc", data: { response: parsed.response } };
-        }
+        if (typeof parsed.response === "string") return { protocol, data: { response: parsed.response } };
       } catch {
         return c.data; // raw base64url string
       }
     }
     if (c.data && typeof c.data === "object") {
       const data = c.data as { response?: unknown };
-      if (typeof data.response === "string") {
-        return { protocol: "org-iso-mdoc", data: { response: data.response } };
-      }
-    }
-    const direct = credential as { data?: { response?: unknown } };
-    if (typeof direct.data?.response === "string") {
-      return { protocol: "org-iso-mdoc", data: { response: direct.data.response } };
+      if (typeof data.response === "string") return { protocol, data: { response: data.response } };
     }
   }
   throw new Error("could not extract an org-iso-mdoc response from the credential object");

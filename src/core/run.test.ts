@@ -31,7 +31,7 @@ describe("runCheckin outcomes", () => {
       wallet: mockWallet({ items: { allergies: { fhir: allergyBundle }, coverage: { status: "declined" } } }),
     });
     expect(result.status).toBe("completed");
-    if (result.status !== "completed" || !result.response) throw new Error("no response");
+    if (result.status !== "completed") throw new Error("no response");
     const r = result.response;
     expect(r.status("allergies")).toBe("fulfilled");
     expect(r.status("coverage")).toBe("declined");
@@ -42,6 +42,64 @@ describe("runCheckin outcomes", () => {
     // The full payload is plain JSON, and JSON.stringify gives it back unchanged.
     expect(JSON.parse(JSON.stringify(r))).toEqual(r.json);
     expect(r.json.artifacts[0]?.fulfills).toContain("allergies");
+  });
+
+  test("completed with no warnings from a well-formed wallet", async () => {
+    const result = await runCheckin(request, { wallet: mockWallet() });
+    expect(result.status === "completed" && result.warnings).toEqual([]);
+  });
+
+  test("transport problems are warnings, not failures (spec §2, [RCV-1])", async () => {
+    const mock = mockWallet();
+    const wallet = customWallet({
+      id: "odd",
+      name: "Odd protocol",
+      open: () => {
+        const session = mock.open();
+        return {
+          getCredential: async (arg: unknown) => ({ ...((await session.getCredential(arg)) as object), protocol: "org.iso.mdoc" }),
+          cancel: () => session.cancel(),
+        };
+      },
+    });
+    const result = await runCheckin(request, { wallet });
+    expect(result.status).toBe("completed");
+    expect(result.status === "completed" && result.warnings.map((w) => w.code)).toEqual(["protocol"]);
+  });
+
+  test("an Artifact failing a check is set aside; the rest of the response is used ([XV-4])", async () => {
+    const wallet = mockWallet({
+      respond: (req) => ({
+        type: "smart-health-checkin-response",
+        version: "1",
+        requestId: req.id,
+        artifacts: [
+          { id: "ok", mediaType: "application/fhir+json", fhirVersion: "4.0.1", fulfills: ["allergies"], value: allergyBundle },
+          // allergies doesn't accept health cards
+          { id: "card", mediaType: "application/smart-health-card", fulfills: ["allergies"], value: { verifiableCredential: ["x.y.z"] } },
+        ],
+        requestStatus: [
+          { item: "allergies", status: "fulfilled" },
+          { item: "coverage", status: "declined" },
+        ],
+      }),
+    });
+    const result = await runCheckin(request, { wallet });
+    if (result.status !== "completed") throw new Error(result.status);
+    expect(result.response.artifacts("allergies").map((a) => a.id)).toEqual(["ok"]);
+    expect(result.response.disregarded().map((d) => [d.id, d.problems[0]?.rule])).toEqual([["card", "XV-7"]]);
+  });
+
+  test("kept-on-server when server key custody keeps the data", async () => {
+    const keys = {
+      kind: "test-server",
+      prepareCredentialRequest: async () => ({ handle: "h", navigatorArgument: { digital: { requests: [] } } as never }),
+      completeCredentialRequest: async () => ({ handledByServer: true as const, reference: "enc-42" }),
+    };
+    const wallet = customWallet({ id: "s", name: "S", open: () => ({ getCredential: async () => ({ protocol: "org-iso-mdoc", data: { response: "x" } }), cancel() {} }) });
+    const result = await runCheckin(request, { wallet, keys });
+    expect(result.status).toBe("kept-on-server");
+    expect(result.status === "kept-on-server" && result.serverReference).toBe("enc-42");
   });
 
   test("declined when the wallet says no", async () => {

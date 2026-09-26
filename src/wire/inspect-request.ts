@@ -30,14 +30,6 @@ export type ItemsRequestInspection = {
   };
 };
 
-export type SmartRequestCarrierResolution = {
-  json?: string;
-  source: "requestInfo" | "companion" | "none";
-  requestInfoPresent: boolean;
-  companionPresent: boolean;
-  companionElementIdentifier?: string;
-};
-
 export type DeviceRequestInspection = {
   deviceRequestHex: string;
   deviceRequestDiagnostic: string;

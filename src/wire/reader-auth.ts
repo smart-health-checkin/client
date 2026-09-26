@@ -1,8 +1,7 @@
 /**
- * Optional readerAuth (draft spec §8.2.6): ephemeral reader identity with a
+ * Optional readerAuth (spec §8.6, [RA-1]): ephemeral reader identity with a
  * self-signed P-256 certificate, detached COSE_Sign1 over
  * ReaderAuthentication, and verification. Includes the minimal DER helpers.
- * Ported from smart-health-checkin-mdoc rp-web/src/protocol/index.ts.
  */
 
 import { arrayBufferCopy, concatBytes, utf8 } from "./bytes.js";
