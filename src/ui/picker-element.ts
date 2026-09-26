@@ -1,38 +1,8 @@
 /**
  * `<smart-checkin-picker>`: a drop-in control that lets a patient choose a
- * wallet for a SMART Health Check-in request, then runs the check-in.
- *
- * ```html
- * <script type="module" src="https://smart-health-checkin.org/client/lib/ui.js"></script>
- * <smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
- * <script type="module">
- *   const picker = document.querySelector("smart-checkin-picker");
- *   picker.request = { purpose: "Before your visit", items: [ ... ] };
- *   picker.addEventListener("smart-checkin-response", (e) => fill(e.detail.response));
- * </script>
- * ```
- *
- * Attributes:
- * - `registry`: URL of a wallet registry (wallets.json). Omit for no web wallets.
- * - `platform="off"`: don't offer the phone's own wallet.
- * - `remember`: remember the last wallet used on this site (stored in the browser). Off unless present.
- * - `mock`: offer the simulated wallet. Development only.
- * - `mode="pick"`: only choose; the page runs the check-in (see `smart-checkin-choose` and `setOutcome`).
- * - `theme`: "light" (default), "dark", or "auto" (follow the device).
- * - `appearance="flat"`: no card border or background.
- * - `footer="off"`: hide the SMART Health Check-in mark.
- * - `motion`: "subtle" (default) or "none". `prefers-reduced-motion: reduce` always means none.
- * - `heading`, `description`: replace the two lines at the top.
- *
- * Properties: `motion` (reflects the attribute), `request` (what to ask for), `wallets` (a list from `wallets()`,
- * instead of the attributes), `strings` (any text), `checkinOptions`
- * (passed to `runCheckin`, e.g. `keys` or `healthCards`).
- *
- * Events (all bubble and cross shadow roots):
- * - `smart-checkin-choose`: `{ wallet, session }`, fired inside the click. In pick mode, run the check-in with `session`.
- * - `smart-checkin-response`: `{ wallet, response, result }`. `response` is absent when a server holding the keys kept the data (`result.status` is "kept-on-server").
- * - `smart-checkin-declined`: `{ wallet, result }`.
- * - `smart-checkin-error`: `{ wallet?, code?, message, result? }`.
+ * wallet for a SMART Health Check-in request, then runs the check-in. The
+ * element's attributes, events, custom properties, and parts are documented
+ * on the `SmartCheckinPicker` class.
  */
 
 import { runCheckin, type CheckinOptions, type CheckinResult } from "../core/run.js";
@@ -85,7 +55,74 @@ export type PickerMotion = "subtle" | "none";
 /** Public properties a page may set before the element is defined. */
 const PROPERTIES = ["request", "checkinOptions", "wallets", "strings", "motion"] as const;
 
+/**
+ * The `<smart-checkin-picker>` element. Importing `@smart-health-checkin/client/ui`
+ * (or loading the hosted `ui.js`) registers it; the Wallet picker guide
+ * explains how to use it.
+ *
+ * ```html
+ * <script type="module" src="https://smart-health-checkin.org/client/lib/ui.js"></script>
+ * <smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
+ * <script type="module">
+ *   const picker = document.querySelector("smart-checkin-picker");
+ *   picker.request = { purpose: "Before your visit", items: [ ... ] };
+ *   picker.addEventListener("smart-checkin-response", (e) => fill(e.detail.response));
+ * </script>
+ * ```
+ *
+ * #### Attributes
+ *
+ * | Attribute | What it does |
+ * | --- | --- |
+ * | `registry` | URL of a wallet registry (`wallets.json`). Omit it for no web wallets. |
+ * | `platform="off"` | Don't offer the phone's own wallet. |
+ * | `remember` | Remember the last wallet used on this site, in this browser. Off unless present. |
+ * | `mock` | Offer the simulated wallet. Development only. |
+ * | `mode="pick"` | Only choose; the page runs the check-in (see `smart-checkin-choose` and `setOutcome`). |
+ * | `theme` | `light` (default), `dark`, or `auto` to follow the device. |
+ * | `appearance="flat"` | No card border or background. |
+ * | `footer="off"` | Hide the SMART Health Check-in mark. |
+ * | `motion` | `subtle` (default) or `none`. A reduced-motion preference on the device always means `none`. |
+ * | `heading`, `description` | Replace the two lines at the top. |
+ *
+ * The properties `request`, `wallets`, `checkinOptions`, `strings`, and
+ * `motion` are listed under Accessors below.
+ *
+ * #### Events
+ *
+ * All bubble and cross shadow roots. `SmartCheckinPickerEventMap` gives each
+ * one's `detail`: `smart-checkin-choose` (fired inside the click),
+ * `smart-checkin-response`, `smart-checkin-declined`, and `smart-checkin-error`.
+ *
+ * #### CSS custom properties
+ *
+ * Set them on the element or any ancestor. Dark values apply with `theme="dark"`.
+ *
+ * | Property | Default (light) |
+ * | --- | --- |
+ * | `--smart-checkin-font` | Inter, then the system font |
+ * | `--smart-checkin-accent`, `--smart-checkin-accent-hover`, `--smart-checkin-on-accent` | `#0E6FB8`, `#094D80`, white |
+ * | `--smart-checkin-text`, `--smart-checkin-text-muted`, `--smart-checkin-text-faint` | `#1F2933`, `#4B5563`, `#7B8794` |
+ * | `--smart-checkin-surface`, `--smart-checkin-row`, `--smart-checkin-border` | white, white, `#E4E7EB` |
+ * | `--smart-checkin-icon-background` | white, behind wallet icons |
+ * | `--smart-checkin-focus` | the accent, for focus rings |
+ * | `--smart-checkin-radius`, `--smart-checkin-radius-large`, `--smart-checkin-icon-radius` | `10px`, `14px`, `9px` |
+ * | `--smart-checkin-success`, `--smart-checkin-warning` | `#1A8C76`, `#B85C17` |
+ * | `--smart-checkin-mark-purple`, `--smart-checkin-mark-muted` | `#722772`, `#B9C2CC`: the starburst's purple petal, and its petals when declined or failed |
+ * | `--smart-checkin-motion-speed` | `1`; multiplies every duration |
+ * | `--smart-checkin-card-border`, `--smart-checkin-card-padding` | `1px solid` the border color, `16px` |
+ *
+ * #### Parts
+ *
+ * For anything the custom properties don't cover, style these with `::part()`:
+ * `container`, `card`, `title`, `description`, `primary`, `list`, `row`,
+ * `more`, `icon`, `status`, `mark` (the starburst beside a status), `check`
+ * (on the mark when shared), `footer`, and `dialog`.
+ *
+ * @hideconstructor
+ */
 export class SmartCheckinPicker extends HTMLElementBase {
+  /** @internal */
   static observedAttributes = ["registry", "platform", "remember", "mock", "mode", "heading", "description"];
 
   private _request?: CheckinRequestInput;
@@ -164,6 +201,7 @@ export class SmartCheckinPicker extends HTMLElementBase {
     void this.load();
   }
 
+  /** @internal */
   connectedCallback(): void {
     if (!this.root) {
       this.root = this.attachShadow({ mode: "open" });
@@ -179,6 +217,7 @@ export class SmartCheckinPicker extends HTMLElementBase {
     void this.load();
   }
 
+  /** @internal */
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (!this.root || oldValue === newValue) return;
     if (["registry", "platform", "mock"].includes(name)) void this.load();

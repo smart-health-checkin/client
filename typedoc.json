@@ -18,7 +18,8 @@
   "excludePrivate": true,
   "excludeInternal": true,
   "plugin": [
-    "typedoc-plugin-markdown"
+    "typedoc-plugin-markdown",
+    "./scripts/typedoc-own-members.mjs"
   ],
   "hidePageHeader": true,
   "hideBreadcrumbs": false,
