@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Angular example</title>
+<title>Angular example · Demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/assets/smart-design.css">
+<link rel="stylesheet" href="./demo.css">
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* This demo simulates a clinic's own page, drawn on the site's design
@@ -22,11 +25,8 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; }
-  .wrap { max-width: 42rem; margin: 0 auto; padding: 0 1.25rem; }
-  .demo-strip .what { flex: 1; min-width: 0; }
-  .strip-link { flex: none; text-decoration: none; }
-  .strip-link:hover { text-decoration: underline; opacity: 1; }
-  main.wrap { padding: 2rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  .content > * { max-width: 42rem; }
+  .content { padding-top: 2rem; padding-bottom: 4rem; display: flex; flex-direction: column; gap: 1.1rem; }
   h1 { font-size: 1.35rem; margin: 0; }
   h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.15rem 1.35rem; }
@@ -44,15 +44,17 @@
 </style>
 </head>
 <body>
+<div data-smart-topbar></div>
+<nav data-smart-breadcrumb></nav>
+<main id="main">
 <div class="demo-strip smart-banner"><div class="wrap smart-banner-inner">
   <span class="smart-chip warning">Demo</span>
   <span class="what grow">Angular bindings over the same vanilla core</span>
-  <a class="strip-link" href="./">Full check-in demo →</a>
 </div></div>
 
-<main class="wrap">
+<div class="wrap content">
   <header>
-    <h1>Same core, Angular bindings</h1>
+    <h1>Angular example</h1>
     <p class="muted">
       The library is a plain async function with no framework dependency. A
       binding owns three things: the wallets the component renders (from
@@ -99,7 +101,9 @@ export class CheckinService {
       ships only its own code plus this library.
     </p>
   </section>
+</div>
 </main>
+<div data-smart-footer></div>
 <script type="module" src="./angular.js"></script>
 </body>
 </html>

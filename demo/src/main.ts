@@ -481,5 +481,10 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("hashchange", render);
 
-WALLETS = await loadWallets(params().get("wallets"));
-render();
+try {
+  WALLETS = await loadWallets(params().get("wallets"));
+  render();
+} finally {
+  // index.html keeps the panels invisible until this first render (no layout shift).
+  document.querySelector("main")?.removeAttribute("data-pending");
+}

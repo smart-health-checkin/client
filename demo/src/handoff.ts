@@ -14,7 +14,8 @@ const el = (id: string): HTMLElement => document.getElementById(id)!;
 async function main(): Promise<void> {
   const sessionId = sessionIdFromHash(location.hash);
   if (!sessionId) {
-    el("note").textContent = "Scan the code on the kiosk screen to start.";
+    const kiosk = Object.assign(document.createElement("a"), { href: "./kiosk.html", textContent: "kiosk demo" });
+    el("note").replaceChildren("Scan the code on the kiosk screen to start. No kiosk? Open the ", kiosk, " on another screen.");
     return;
   }
 

@@ -15,6 +15,7 @@
       "title": "For developers",
       "items": [
         { "title": "Tutorial page", "href": "tutorial.html", "note": "The tutorial, finished" },
+        { "title": "Wallet picker", "href": "picker.html", "note": "The drop-in element, skinned" },
         { "title": "React example", "href": "react.html" },
         { "title": "Angular example", "href": "angular.html" }
       ]

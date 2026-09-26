@@ -1,28 +1,57 @@
 /**
- * Gives the demo pages the shared site chrome.
+ * The demo pages and the shared site chrome.
  *
- * The chrome lives at the apex (/assets/…), so this only makes sure each page
- * loads it and carries the mount points. Idempotent: a page that already has
- * them keeps what it has.
+ * The chrome lives at the apex (/assets/…); each demo page carries its own
+ * mount points (bar, breadcrumb, <main id="main">, footer), as MAINTAINING.md
+ * "The shared site" describes. This script checks that they do, and gives the
+ * one generated page, the tutorial's finished page, the tool bar.
+ *
+ * native-bridge.html is deliberately left bare: native apps open it in a
+ * Custom Tab mid-flow (docs/native-apps.md), where site navigation would
+ * only lead the person away from the app that is waiting for them.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { CHROME_ASSETS, header, shallowFooter } from "./site-chrome.ts";
+import { CHROME_ASSETS } from "./site-chrome.ts";
 import { OUT_ROOT } from "./site-base.ts";
 
-function mount(html: string, foot: string): string {
-  let out = html.includes("site-chrome.js") ? html : html.replace("</head>", `${CHROME_ASSETS}\n</head>`);
-  if (!out.includes("data-smart-topbar")) out = out.replace(/<body([^>]*)>\s*/i, (m) => `${m}\n${header()}\n`);
-  if (!out.includes("smart-footer")) out = out.replace(/<\/body>/i, `${foot}\n</body>`);
-  return out;
+const PRECONNECT = `<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`;
+
+// The tutorial's page is exactly what docs/tutorial.md says to save, so its
+// own body rules stay; they move to <main> so the bar and footer span the page.
+const tutorial = `${OUT_ROOT}/demo/tutorial.html`;
+if (existsSync(tutorial)) {
+  let html = readFileSync(tutorial, "utf8");
+  if (!html.includes("site-chrome.js")) {
+    html = html
+      .replace("</head>", `${PRECONNECT}\n${CHROME_ASSETS}\n<style>
+  /* Site chrome around the tutorial's page: its body layout applies to <main>. */
+  body { max-width: none; margin: 0; padding: 0; }
+  #main { max-width: 40rem; margin: 2rem auto; padding: 0 1rem; min-height: 100vh; }
+</style>\n</head>`)
+      .replace(/<body>\s*/, `<body>
+<div data-smart-topbar="tool" data-tool-title="Tutorial page" data-back-href="../docs/tutorial.html" data-back-label="Tutorial"></div>
+<main id="main">
+`)
+      .replace(/\s*<\/body>/, `\n</main>\n<div data-smart-footer></div>\n</body>`);
+    writeFileSync(tutorial, html);
+  }
+  console.log("chrome: demo/tutorial.html");
 }
 
-// Demo pages keep their in-character look and their DEMO strip, and get a
-// one-line footer — the site map belongs on docs pages, not under a form.
-// wallet.html is deliberately absent: it simulates a separate product and
-// carries no clinic-site chrome at all.
-for (const file of ["index.html", "autofill.html", "react.html", "angular.html", "kiosk.html", "handoff.html", "picker.html", "tutorial.html"]) {
+// Every demo page carries the chrome and one <h1>.
+const problems: string[] = [];
+for (const file of ["index.html", "autofill.html", "react.html", "angular.html", "kiosk.html", "handoff.html", "picker.html", "wallet.html", "tutorial.html"]) {
   const path = `${OUT_ROOT}/demo/${file}`;
   if (!existsSync(path)) continue;
-  writeFileSync(path, mount(readFileSync(path, "utf8"), shallowFooter()));
-  console.log("chrome:", `demo/${file}`);
+  const html = readFileSync(path, "utf8");
+  for (const needle of ["/assets/site-chrome.js", "data-smart-topbar", "data-smart-footer", '<main id="main"']) {
+    if (!html.includes(needle)) problems.push(`demo/${file}: missing ${needle}`);
+  }
+  const h1s = (html.match(/<h1[\s>]/g) ?? []).length;
+  if (h1s !== 1) problems.push(`demo/${file}: ${h1s} <h1> elements; a page has exactly one`);
+}
+if (problems.length) {
+  console.error(problems.join("\n"));
+  process.exit(1);
 }

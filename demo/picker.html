@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wallet picker</title>
+<title>Wallet picker · Demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/assets/smart-design.css">
+<link rel="stylesheet" href="./demo.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg-alt); color: var(--fg-1); font-family: var(--font-sans); line-height: 1.55; }
-  .wrap { max-width: 64rem; margin: 0 auto; padding: 0 1.25rem; }
-  main.wrap { padding-block: 2rem 4rem; display: grid; gap: 1.25rem; }
+  .content > * { max-width: 64rem; }
+  .content { padding-top: 2rem; padding-bottom: 4rem; display: grid; gap: 1.25rem; }
   h1 { font-size: 1.4rem; margin: 0; }
   .muted { color: var(--fg-2); margin: 0.3rem 0 0; max-width: 70ch; }
   .controls { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: end; }
@@ -20,7 +23,7 @@
   .stage { display: grid; grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
   @media (max-width: 760px) { .stage { grid-template-columns: 1fr; } }
   .clinic { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--clinic-bg); color: var(--clinic-ink); }
-  .clinic header { background: var(--clinic-head); color: var(--clinic-head-ink); padding: 0.75rem 1rem; font-weight: 700; font-family: var(--clinic-font); }
+  .clinic .clinic-head { background: var(--clinic-head); color: var(--clinic-head-ink); padding: 0.75rem 1rem; font-weight: 700; font-family: var(--clinic-font); }
   .clinic .body { padding: 1rem; display: grid; gap: 0.85rem; font-family: var(--clinic-font); }
   .clinic h2 { margin: 0; font-size: 1.15rem; }
   .log { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: var(--font-mono); font-size: var(--fs-xs); white-space: pre-wrap; min-height: 8rem; overflow-x: auto; }
@@ -46,13 +49,15 @@
 </style>
 </head>
 <body>
+<div data-smart-topbar></div>
+<nav data-smart-breadcrumb></nav>
+<main id="main">
 <div class="demo-strip smart-banner"><div class="wrap smart-banner-inner">
   <span class="smart-chip warning">Demo</span>
   <span class="what grow">The &lt;smart-checkin-picker&gt; element</span>
-  <a class="strip-link" href="./">Full check-in demo →</a>
 </div></div>
 
-<main class="wrap">
+<div class="wrap content">
   <header>
     <h1>Wallet picker</h1>
     <p class="muted">The drop-in element from <code>@smart-health-checkin/client/ui</code>, also served as one file at <code>/client/lib/ui.js</code>. Pick a situation to see how it adapts, or choose <b>Live</b> to run a real check-in against this site's demo wallets. The skins change only CSS custom properties.</p>
@@ -100,7 +105,7 @@
 
   <div class="stage">
     <div class="clinic skin-smart" id="clinic">
-      <header>Riverbend Family Medicine</header>
+      <div class="clinic-head">Riverbend Family Medicine</div>
       <div class="body">
         <h2>Before your visit</h2>
         <smart-checkin-picker id="picker"></smart-checkin-picker>
@@ -108,7 +113,9 @@
     </div>
     <div class="log" id="log" aria-live="polite">Events from the picker appear here.</div>
   </div>
+</div>
 </main>
+<div data-smart-footer></div>
 <script type="module" src="./picker.js"></script>
 </body>
 </html>

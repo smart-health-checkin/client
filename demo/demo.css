@@ -1,0 +1,15 @@
+/* Shared by the demo pages, on top of /assets/smart-design.css.
+   One left edge with the site bar and breadcrumb (24px, 16px on phones);
+   each page caps its own content width. */
+.wrap { max-width: var(--container-wide); margin: 0 auto; padding-left: 24px; padding-right: 24px; box-sizing: border-box; }
+@media (max-width: 46rem) { .wrap { padding-left: 16px; padding-right: 16px; } }
+
+/* The demo strip names the page (its H1, worded as in the Demos menu) and
+   says what's simulated. */
+.demo-strip .smart-banner-inner { flex-wrap: wrap; row-gap: 2px; padding-block: 6px; }
+.demo-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--fg-1); letter-spacing: 0; line-height: 1.4; white-space: nowrap; }
+.demo-strip .what { flex: 1 1 12rem; min-width: 0; }
+
+/* Demos fill in after their scripts run; keeping main at least a screen
+   tall keeps the footer below the fold, so it doesn't jump as they do. */
+main#main { min-height: 100vh; }

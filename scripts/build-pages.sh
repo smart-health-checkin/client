@@ -24,6 +24,8 @@ cp demo/angular.html $OUT/demo/angular.html
 cp demo/kiosk.html $OUT/demo/kiosk.html
 cp demo/handoff.html $OUT/demo/handoff.html
 cp demo/picker.html $OUT/demo/picker.html
+# Layout the demo pages share (the left edge, the demo strip's title).
+cp demo/demo.css $OUT/demo/demo.css
 # The bridge page native apps open in a Custom Tab (docs/native-apps.md).
 cp demo/native-bridge.html $OUT/demo/native-bridge.html
 # The Demos menu, read by the site chrome.

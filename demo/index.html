@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Online Check-in</title>
+<title>Clinic check-in · Demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/assets/smart-design.css">
+<link rel="stylesheet" href="./demo.css">
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* This demo simulates a clinic's own page, drawn on the site's design
@@ -29,7 +32,7 @@
     font-family: var(--font-sans);
     line-height: 1.55;
   }
-  .wrap { max-width: 54rem; margin: 0 auto; padding: 0 var(--space-5); }
+  .content > * { max-width: 54rem; }
 
   /* the demo strip, its panel and its controls are the shared components;
      only the caret's behaviour is local to this toggle */
@@ -54,7 +57,10 @@
   .clinic-name { font-weight: 600; font-size: var(--fs-md); letter-spacing: var(--tracking-snug); }
   .clinic-sub { color: var(--fg-3); font-size: var(--fs-sm); }
 
-  main { padding-top: var(--space-6); padding-bottom: var(--space-9); display: flex; flex-direction: column; gap: var(--space-5); }
+  .content { padding-top: var(--space-6); padding-bottom: var(--space-9); display: flex; flex-direction: column; gap: var(--space-5); }
+  /* Until main.js has drawn the scenario, the panels stay invisible and the
+     page keeps its height, so nothing jumps when they fill in. */
+  main[data-pending] .content { visibility: hidden; }
   h2 { font-size: var(--fs-md); font-weight: 600; margin: 0 0 var(--space-2); letter-spacing: var(--tracking-snug); }
   p { margin: var(--space-2) 0; }
   .small { font-size: var(--fs-sm); }
@@ -144,10 +150,14 @@
 </style>
 </head>
 <body>
+<div data-smart-topbar></div>
+<nav data-smart-breadcrumb hidden></nav>
+<main id="main" data-pending>
 
 <div class="demo-strip smart-banner">
   <div class="wrap smart-banner-inner">
     <span class="smart-chip warning">Demo</span>
+    <h1 class="demo-title">Clinic check-in</h1>
     <span class="what grow">Fictional clinic, test data only.</span>
     <button class="demo-toggle smart-btn sm" id="demo-toggle" aria-expanded="false" aria-controls="demo-panel">
       Demo controls <span class="caret" aria-hidden="true">&#9662;</span>
@@ -177,7 +187,7 @@
   </div>
 </div>
 
-<header class="clinic-header">
+<div class="clinic-header">
   <div class="wrap">
     <svg class="clinic-mark" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
       <rect x="1" y="1" width="32" height="32" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -188,9 +198,9 @@
       <div class="clinic-sub">Online check-in</div>
     </div>
   </div>
-</header>
+</div>
 
-<main class="wrap">
+<div class="wrap content">
   <section class="smart-panel">
     <div id="visit-context"></div>
   </section>
@@ -232,7 +242,9 @@
     <h2>DEVELOPER DETAIL</h2>
     <div id="artifacts"></div>
   </section>
+</div>
 </main>
+<div data-smart-footer></div>
 
 <script type="module" src="./main.js"></script>
 </body>

@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kiosk check-in</title>
+<title>Kiosk check-in · Demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/assets/smart-design.css">
+<link rel="stylesheet" href="./demo.css">
 <script src="/assets/site-chrome.js" defer></script>
 <style>
   /* A clinic's self check-in screen, on the site's design system. */
@@ -12,15 +15,15 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg-alt); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; }
-  .wrap { max-width: 56rem; margin: 0 auto; padding: 0 var(--space-5); }
+  .content > * { max-width: 56rem; }
   .demo-toggle .caret { font-size: 0.7rem; }
   .clinic-header { background: var(--surface); border-bottom: 1px solid var(--line); }
-  .clinic-header .wrap { padding: var(--space-4) var(--space-5); display: flex; align-items: center; gap: var(--space-4); }
+  .clinic-header .wrap { padding-top: var(--space-4); padding-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-4); }
   .clinic-mark { color: var(--accent); flex: none; }
   .clinic-name { font-weight: 600; font-size: var(--fs-md); letter-spacing: var(--tracking-snug); }
   .clinic-sub { color: var(--fg-3); font-size: var(--fs-sm); }
-  main.wrap { padding-top: var(--space-6); padding-bottom: var(--space-9); display: flex; flex-direction: column; gap: var(--space-5); }
-  h1 { margin: 0 0 var(--space-2); font-size: var(--fs-2xl); letter-spacing: var(--tracking-tight); }
+  .content { padding-top: var(--space-6); padding-bottom: var(--space-9); display: flex; flex-direction: column; gap: var(--space-5); }
+  .kiosk-title { margin: 0 0 var(--space-2); font-size: var(--fs-2xl); letter-spacing: var(--tracking-tight); }
   h2 { margin: 0 0 var(--space-2); font-size: var(--fs-md); letter-spacing: var(--tracking-snug); }
   p { margin: var(--space-2) 0; color: var(--muted); }
   .kiosk { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-7); align-items: start; }
@@ -38,10 +41,14 @@
 </style>
 </head>
 <body>
+<div data-smart-topbar></div>
+<nav data-smart-breadcrumb></nav>
+<main id="main">
 
 <div class="demo-strip smart-banner">
   <div class="wrap smart-banner-inner">
     <span class="smart-chip warning">Demo</span>
+    <h1 class="demo-title">Kiosk check-in</h1>
     <span class="what grow">A kiosk with no wallet of its own. Fictional clinic, test data only.</span>
     <label class="smart-field" style="flex-direction:row;align-items:center;gap:8px">
       <span class="lbl">Scenario</span><select class="smart-select" id="scenario-select" style="width:auto"></select>
@@ -54,10 +61,10 @@
   <div><div class="clinic-name">Evergreen Family Health</div><div class="clinic-sub">Self check-in</div></div>
 </div></div>
 
-<main class="wrap">
+<div class="wrap content">
   <section class="smart-panel kiosk" id="qr-panel">
     <div>
-      <h1 id="purpose">Check in for your visit</h1>
+      <h2 class="kiosk-title" id="purpose">Check in for your visit</h2>
       <p>We'll ask your health app for:</p>
       <ul class="ask" id="items"></ul>
       <p id="status"></p>
@@ -70,13 +77,15 @@
   </section>
 
   <section class="smart-panel" id="outcome" hidden>
-    <h1 id="outcome-headline"></h1>
+    <h2 class="kiosk-title" id="outcome-headline"></h2>
     <p class="small" id="error"></p>
     <div id="explore"></div>
     <p class="small"><a id="share-link" class="share-link" target="_blank" rel="noopener" hidden>Tell us how it went</a></p>
     <p><button class="smart-btn primary" id="restart" type="button">Next patient</button></p>
   </section>
+</div>
 </main>
+<div data-smart-footer></div>
 
 <script type="module" src="./kiosk.js"></script>
 </body>

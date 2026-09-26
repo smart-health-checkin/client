@@ -529,5 +529,6 @@ if (tagEl) tagEl.textContent = brand.tagline;
 document.documentElement.style.setProperty("--accent", brand.accent);
 
 if (!served.opened) {
-  el("waiting").textContent = "Open this wallet from a check-in page. It answers requests sent to it.";
+  const clinic = Object.assign(document.createElement("a"), { href: "./", textContent: "clinic check-in demo" });
+  el("waiting").replaceChildren("This wallet answers requests from a check-in page. Open it from one, such as the ", clinic, ".");
 }
