@@ -52,7 +52,7 @@ the same pages live in this repo, so they read here too.
 | --- | --- |
 | Start | [Overview](docs/getting-started.md) · [Tutorial: build a check-in page](docs/tutorial.md) |
 | Guides | [Asking for data](docs/requests.md) · [Offering wallets](docs/wallets.md) · [Using the answer](docs/responses.md) · [Going to production](docs/production.md) · [Building a wallet](docs/build-a-wallet.md) · [Testing](docs/testing.md) |
-| Reference | [API reference](docs/api/index.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) · [Registry format](docs/registry.md) · [Upgrading from 0.1](docs/upgrading.md) · [Demo options](demo/README.md) |
+| Reference | [API reference](docs/api/index.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) · [Registry format](docs/registry.md) · [Upgrading](docs/upgrading.md) · [Demo options](demo/README.md) |
 
 ## Install
 

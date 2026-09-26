@@ -105,7 +105,7 @@ The Digital Credentials API isn't in every browser. The patient may decline. The
 - Use versioned hosted files: `/client/lib/0.2.1/ui.js`, not `/client/lib/ui.js`.
 - Better still, build and host your own copy.
 
-The [upgrade guide](upgrading.md) lists what changed from 0.1.
+The [upgrade guide](upgrading.md) lists what changed in each version.
 
 ## Monitoring
 

@@ -1,4 +1,15 @@
-# Upgrading from 0.1
+# Upgrading
+
+## 0.2.0 to 0.2.1
+
+No API changes. Two fixes:
+
+- Health-card trust set with `configureHealthCardTrust` in `checkin.js` now applies to the picker in `ui.js` too. Before, each hosted bundle kept its own setting.
+- Properties set on `<smart-checkin-picker>` before its script loads (`request`, `checkinOptions`, `wallets`, `strings`) are no longer lost.
+
+Install 0.2.1 from its [release](https://github.com/smart-health-checkin/client/releases/tag/v0.2.1), or move hosted URLs from `/client/lib/0.2.0/` to `/client/lib/0.2.1/`. The 0.2.0 URLs keep working.
+
+## 0.1 to 0.2
 
 0.2 splits the library by audience and replaces the old responder model with `Wallet` objects. There are no compatibility aliases: every 0.1 name either moved, was renamed, or is gone.
 
@@ -11,11 +22,11 @@ The biggest changes:
 - **No named scenarios.** Requests are plain objects.
 - **Entry points.** Wallet-side, testing, kiosk, and wire code moved out of the root module.
 
-## Where each name went
+### Where each name went
 
 Imports are from `@smart-health-checkin/client` unless the table names a subpath.
 
-### Running a check-in
+#### Running a check-in
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -29,7 +40,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `outcome.response` | `result.response.json` for the raw response; `result.response` for lookups |
 | `outcome.serverReference` | `result.serverReference` |
 
-### Building requests
+#### Building requests
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -39,7 +50,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `CheckinRequestInput` | No longer accepts `{ scenario }` |
 | `registerScenario`, `resolveScenario`, `SCENARIOS`, `Scenario` | Removed. Keep your requests as plain objects. |
 
-### Choosing a wallet
+#### Choosing a wallet
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -55,7 +66,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `DEMO_WALLET_REGISTRY` | `/testing` |
 | `WalletDeclinedError` | Unchanged name. Its `name` is now `"WalletDeclinedError"`, not `"NotAllowedError"`. |
 
-### Key custody
+#### Key custody
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -65,7 +76,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `PreparedCredentialRequest`, `CredentialCompletion` | Unchanged |
 | `extractDcapiResponse` | `/wire`. `runCheckin` reads the credential for you, so most pages never need it. |
 
-### Testing
+#### Testing
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -73,7 +84,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `buildMockResponse`, `fabricateResponse`, `DEMO_HEALTH_CARD_JWS` | `/testing` |
 | `MockItemSpec`, `MockItemSpecs`, `MockWalletOptions` | `/testing`. `origin` is now optional. |
 
-### Building a wallet
+#### Building a wallet
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -83,7 +94,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `WebWalletResponseMessage`, `WebWalletCredential` | `/wallet` |
 | Handling the hand-off messages yourself | `serveWebWallet()` from `/wallet` |
 
-### Kiosk hand-off
+#### Kiosk hand-off
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -92,7 +103,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `fetchHandoff`, `handoffUrlFor`, `sessionIdFromHash` | `/handoff` |
 | `HandoffMailbox`, `HandoffEnvelope`, `HandoffAnswer`, `HandoffOptions` | `/handoff` |
 
-### Model and wire
+#### Model and wire
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -104,7 +115,7 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `buildOrgIsoMdocRequest`, `buildDcapiSessionTranscript`, `openWalletResponse`, `verifyDeviceResponseSignatures` | `/wire` |
 | `FetchLike` | `/fhir` |
 
-### The picker element and React
+#### The picker element and React
 
 | 0.1 | 0.2 |
 | --- | --- |
@@ -118,9 +129,9 @@ Imports are from `@smart-health-checkin/client` unless the table names a subpath
 | `<CheckinPicker responders={…}>` | `wallets={…}` |
 | `useCheckin` returning `responders`, `start(responder)` | `wallets`, `start(wallet)`, `status`, `result`, `response` |
 
-## Before and after
+### Before and after
 
-### Run a check-in and branch
+#### Run a check-in and branch
 
 Before:
 
@@ -143,7 +154,7 @@ else if (result.status === "declined") offerForm();
 else if (result.status === "failed") showError(`${result.error.code}: ${result.error.message}`);
 ```
 
-### Offer web wallets
+#### Offer web wallets
 
 Before:
 
@@ -163,7 +174,7 @@ button.onclick = () => void options[0]?.start(request).then(handle);
 
 Or skip the buttons and use `<smart-checkin-picker registry="/wallets.json">`.
 
-### Read what came back
+#### Read what came back
 
 Before:
 
@@ -181,7 +192,7 @@ if (result.status === "completed" && result.response) {
 }
 ```
 
-### Mock in tests
+#### Mock in tests
 
 Before:
 

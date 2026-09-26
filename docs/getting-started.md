@@ -111,4 +111,4 @@ All at `https://smart-health-checkin.org`. Drop the version for the latest.
 | [Building a wallet](build-a-wallet.md) | For health-app builders: native and web, matching, forms, cards |
 | [Testing](testing.md) | The mock, the connectathon's testing tools, reading failures, the demos |
 
-Reference: [API reference](api/index.md) · [Web wallet hand-off](web-wallet-handoff.md) · [Registry format](registry.md) · [Upgrading from 0.1](upgrading.md)
+Reference: [API reference](api/index.md) · [Web wallet hand-off](web-wallet-handoff.md) · [Registry format](registry.md) · [Upgrading](upgrading.md)

@@ -52,7 +52,7 @@ export const GUIDES: Guide[] = [
     blurb: "The protocol between an EHR page and a web wallet: three messages and the origin rules." },
   { level: "reference", file: "docs/registry.md", slug: "registry", title: "Registry format",
     blurb: "The wallets.json format and its validators." },
-  { level: "reference", file: "docs/upgrading.md", slug: "upgrading", title: "Upgrading from 0.1",
+  { level: "reference", file: "docs/upgrading.md", slug: "upgrading", title: "Upgrading",
     blurb: "Where every 0.1 name went, with before-and-after examples." },
   { level: "reference", file: "demo/README.md", slug: "demo", title: "Demo options",
     blurb: "The demo pages and the URL options of the clinic demo." },
