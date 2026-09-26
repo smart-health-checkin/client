@@ -25,3 +25,13 @@ Deploys to smart-health-checkin.org/client/.
   `demo/nav.json` is the Demos menu.
 - Docs are for developers using the library: keep install lines and pinned
   URLs on the current release.
+- Receivers are permissive, producers strict (spec §2, RCV-0..2): the verifier
+  side returns transport and crypto findings as `warnings` and fails only where
+  spec §8.5 says **fail**; the wallet side (`/wallet`) builds exactly what §8
+  describes. Names follow the spec: Verifier, Wallet, Holder.
+- Native apps: `demo/native-bridge.html` is the bridge page a native Android app
+  opens in a Custom Tab (guide: `docs/native-apps.md`). It depends on the apex's
+  `/.well-known/assetlinks.json` and android-wallet's `verifier-app`; see
+  MAINTAINING.md, "Native apps", before changing its message format.
+- The demos link to the connectathon share page after an outcome ("Tell us how
+  it went"); keep that link if a demo is reworked.
