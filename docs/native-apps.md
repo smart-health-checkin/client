@@ -152,7 +152,12 @@ Wallet (a web wallet) answering, twice in a row:
 | Response | Parts | Share to app |
 | --- | --- | --- |
 | 4,382 characters | 1 | 0.6 s |
-| 1,927,289 characters (a large patient record) | 10 | 2.8 s |
+| 1,927,289 characters (a large patient record) | 10 | 0.6–2.8 s |
+
+The direct path, on the same emulator, with the reference Android wallet v0.4.0 answering: the wallet
+binds the transcript to the app's `android:apk-key-hash:` origin, and the app decrypts a 4,595-character
+response with it. About 11 seconds from tap to result, including the platform's sheet and the wallet's
+consent screen.
 
 A web wallet opened from the bridge page inside the Custom Tab keeps `window.opener`, so the
 [web wallet protocol](web-wallet-handoff.md) works unchanged. The test is
