@@ -64,12 +64,12 @@ The library isn't on the npm registry. Each [GitHub release](https://github.com/
 has a built package; install it by URL (npm, pnpm, yarn, and Bun all accept this):
 
 ```sh
-npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.0/smart-health-checkin-client-0.4.0.tgz
+npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.1/smart-health-checkin-client-0.4.1.tgz
 ```
 
 The release notes for each version start with its install line. Watch the
 repository's releases to hear about new ones. Installing straight from git
-(`npm install github:smart-health-checkin/client#v0.4.0`) also works, but
+(`npm install github:smart-health-checkin/client#v0.4.1`) also works, but
 builds the package on your machine.
 
 Or with no build step, from the hosted ES modules at `/client/lib/`, each self-contained, with pinned copies at `/client/lib/<version>/`:
