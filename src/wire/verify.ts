@@ -10,7 +10,7 @@
  * - MSO value digests: recomputed per issuer-signed item.
  *
  * New in this kit (the prototype checked digests only); byte-verified against
- * the vendored real-capture fixtures.
+ * the spec's real-capture fixtures.
  */
 
 import { arrayBufferCopy, concatBytes, sha256, bytesEqual } from "./bytes.js";

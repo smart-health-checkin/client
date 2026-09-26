@@ -1,7 +1,7 @@
 /**
  * model — transport-neutral SMART Health Check-in request/response types and
  * validators (draft spec §§5–6 as code). Ported from the spec prototype and
- * verified against the vendored fixtures.
+ * verified against the spec's fixtures.
  */
 
 export type {

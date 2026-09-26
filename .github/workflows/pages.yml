@@ -25,9 +25,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install
       - run: bun run typecheck
+      - run: scripts/fetch-fixtures.sh
       - run: bun test
       - run: bun run build
       - run: SITE_BASE=/client scripts/build-pages.sh
+        env:
+          # scripts/fetch-releases.sh reads the releases.
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

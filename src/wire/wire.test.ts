@@ -1,12 +1,12 @@
 /**
- * Wire-layer conformance tests against the vendored fixture corpus
- * (fixtures/PROVENANCE.md). The real-capture fixtures are byte oracles: the
+ * Wire-layer conformance tests against the spec's fixture corpus, fetched by
+ * tag into fixtures/ (scripts/fetch-fixtures.sh). The real-capture fixtures are byte oracles: the
  * kit must reproduce the exact bytes a real Chrome/Android session produced,
  * open the real encrypted response, and verify its signatures.
  */
 
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   base64UrlDecodeBytes,
@@ -38,6 +38,11 @@ import {
 } from "./verify.js";
 
 const FIXTURES = join(import.meta.dir, "../../fixtures");
+// The fixtures come from the spec repo at a pinned tag; fetch them on first run.
+if (!existsSync(join(FIXTURES, ".ref"))) {
+  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-fixtures.sh")], { stdout: "inherit", stderr: "inherit" });
+  if (!fetched.success) throw new Error("could not fetch fixtures: run scripts/fetch-fixtures.sh");
+}
 const REQ = join(FIXTURES, "dcapi-requests/real-chrome-android-smart-checkin");
 const RESP = join(FIXTURES, "responses/real-chrome-android-smart-checkin");
 const TS_BASIC = join(FIXTURES, "dcapi-requests/ts-smart-checkin-basic");

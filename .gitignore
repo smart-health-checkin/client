@@ -6,3 +6,7 @@ dist/
 dist/
 docs-site/
 .env
+
+# The spec's fixtures, fetched by tag (scripts/fetch-fixtures.sh)
+fixtures/
+.cache/
