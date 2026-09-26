@@ -362,21 +362,32 @@ ${groupsHtml}
   ),
 );
 
-// nav.json: the "Developers" menu, read by the site chrome at runtime.
+// nav.json: the "Developers" menu, read by the site chrome at runtime. Guides
+// with a menuGroup are listed together under that group's label, in reading
+// order; the API reference leads the Reference group.
+type NavLink = { title: string; href: string; note?: string };
+type NavEntry = NavLink | { title: string; items: NavLink[] };
+const navEntries: NavEntry[] = [];
+const groups = new Map<string, NavLink[]>();
+const addLink = (group: string | undefined, link: NavLink) => {
+  if (!group) return navEntries.push(link);
+  if (!groups.has(group)) {
+    const items: NavLink[] = [];
+    groups.set(group, items);
+    navEntries.push({ title: group, items });
+  }
+  groups.get(group)!.push(link);
+};
+for (const g of GUIDES.filter((g) => g.menuNote && existsSync(g.file))) {
+  if (g.menuGroup === "Reference" && !groups.has("Reference")) {
+    addLink("Reference", { title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" });
+  }
+  addLink(g.menuGroup, { title: g.title, href: hrefFor(g.slug), note: g.menuNote });
+}
+if (!groups.has("Reference")) addLink("Reference", { title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" });
 writeFileSync(
   join(OUT_ROOT, "nav.json"),
-  JSON.stringify(
-    {
-      label: "Developers",
-      href: `${BASE}/`,
-      items: [
-        ...GUIDES.filter((g) => g.menuNote && existsSync(g.file)).map((g) => ({ title: g.title, href: hrefFor(g.slug), note: g.menuNote })),
-        { title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" },
-      ],
-    },
-    null,
-    2,
-  ) + "\n",
+  JSON.stringify({ label: "Developers", href: `${BASE}/`, items: navEntries }, null, 2) + "\n",
 );
 
 console.log(

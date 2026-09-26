@@ -5,6 +5,7 @@
  */
 
 export type Level = "start" | "guide" | "reference";
+export type MenuGroup = "Build a check-in page" | "Build a wallet" | "Reference";
 export type Guide = {
   file: string;
   slug: string;
@@ -13,6 +14,8 @@ export type Guide = {
   blurb: string;
   /** A few words for the Developers menu; guides without one stay out of it. */
   menuNote?: string;
+  /** The Developers menu group this guide is listed under (none = top level). */
+  menuGroup?: MenuGroup;
   level: Level;
 };
 
@@ -27,36 +30,36 @@ export const GUIDES: Guide[] = [
     blurb: "What it does, three ways in, install, and a map of the docs." },
   { level: "start", file: "docs/tutorial.md", slug: "tutorial", title: "Tutorial",
     blurb: "Build a check-in page end to end: picker, request, prefill, fallback, testing.",
-    menuNote: "Build a check-in page, end to end" },
+    menuNote: "Build a check-in page, end to end", menuGroup: "Build a check-in page" },
 
   { level: "guide", file: "docs/requests.md", slug: "requests", title: "Asking for data",
     blurb: "Items and titles, records by profile, family, or type, forms, formats, and what not to put in a request.",
-    menuNote: "Items, records, forms, formats" },
+    menuNote: "Items, records, forms, formats", menuGroup: "Build a check-in page" },
   { level: "guide", file: "docs/wallets.md", slug: "wallets", title: "Offering wallets",
     blurb: "The picker, kinds of wallet, registries and icons, starting inside the click, kiosk hand-off, custom transports.",
-    menuNote: "The picker, registries, kiosks" },
+    menuNote: "The picker, registries, kiosks", menuGroup: "Build a check-in page" },
   { level: "guide", file: "docs/responses.md", slug: "responses", title: "Using the answer",
     blurb: "Statuses, lookups, SMART Health Card trust, prefill, storing it, and writing FHIR.",
-    menuNote: "Lookups, health cards, prefill, FHIR" },
+    menuNote: "Lookups, health cards, prefill, FHIR", menuGroup: "Build a check-in page" },
   { level: "guide", file: "docs/production.md", slug: "production", title: "Going to production",
     blurb: "Key custody and server-held keys, trust, fallback, privacy, pinning versions, monitoring.",
-    menuNote: "Keys, trust, fallback, privacy" },
+    menuNote: "Keys, trust, fallback, privacy", menuGroup: "Build a check-in page" },
   { level: "guide", file: "docs/native-apps.md", slug: "native-apps", title: "Native apps",
     blurb: "An Android or iOS app as the Verifier: run the web flow in a Custom Tab and get the result back over a message channel.",
-    menuNote: "Check-in from an Android or iOS app" },
+    menuNote: "Check-in from an Android or iOS app", menuGroup: "Build a check-in page" },
   { level: "guide", file: "docs/build-a-wallet.md", slug: "build-a-wallet", title: "Building a wallet",
     blurb: "For health-app builders: native and web wallets, serveWebWallet, matching, forms, health cards, getting listed.",
-    menuNote: "For health-app builders" },
+    menuNote: "For health-app builders", menuGroup: "Build a wallet" },
   { level: "guide", file: "docs/testing.md", slug: "testing", title: "Testing",
     blurb: "The mock wallet, the connectathon's Testing EHR and Testing Wallet, faults, reading failures, the demos.",
     menuNote: "Mock wallet, testing tools, failures" },
 
   { level: "reference", file: "docs/web-wallet-handoff.md", slug: "web-wallet-handoff", title: "Web wallet hand-off",
-    blurb: "The protocol between an EHR page and a web wallet: three messages and the origin rules." },
+    blurb: "The protocol between an EHR page and a web wallet: three messages and the origin rules.", menuNote: "The web wallet protocol", menuGroup: "Build a wallet" },
   { level: "reference", file: "docs/registry.md", slug: "registry", title: "Registry format",
-    blurb: "The wallets.json format and its validators." },
+    blurb: "The wallets.json format and its validators.", menuNote: "The wallets.json format", menuGroup: "Reference" },
   { level: "reference", file: "docs/upgrading.md", slug: "upgrading", title: "Upgrading",
-    blurb: "What changed in each version, and how to move to 0.3." },
+    blurb: "What changed in each version, and how to move to 0.3.", menuNote: "What changed in each version", menuGroup: "Reference" },
   { level: "reference", file: "demo/README.md", slug: "demo", title: "Demo options",
     blurb: "The demo pages and the URL options of the clinic demo." },
 ];
