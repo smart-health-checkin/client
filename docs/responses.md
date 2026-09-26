@@ -31,10 +31,10 @@ Every item in your request comes back with exactly one status.
 | --- | --- |
 | `fulfilled` | Shared as asked |
 | `partial` | Some of it, for example two of five years of history |
-| `unavailable` | The health app doesn't have it |
+| `unavailable` | The wallet doesn't have it |
 | `declined` | The patient chose not to share this item |
-| `unsupported` | The health app can't handle this kind of item |
-| `error` | Something went wrong in the health app |
+| `unsupported` | The wallet can't handle this kind of item |
+| `error` | Something went wrong in the wallet |
 
 Declined and partial items are normal. Show what came through, and ask for the rest. `status()` is `undefined` when the response had no valid status row for the item (none, two, or an unknown code); treat it like a missing answer.
 

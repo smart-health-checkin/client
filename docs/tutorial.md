@@ -1,6 +1,6 @@
 # Tutorial: build a check-in page
 
-In this tutorial you add SMART Health Check-in to a clinic's intake form. The patient picks a health app, shares their allergies, insurance card, and a two-question mood screen, and the form fills itself in.
+In this tutorial you add SMART Health Check-in to a clinic's intake form. The patient picks a wallet, shares their allergies, insurance card, and a two-question mood screen, and the form fills itself in.
 
 What you'll build:
 
@@ -32,7 +32,7 @@ This is the form the clinic already has. Everything in this tutorial adds to it;
 </form>
 ```
 
-The form stays the fallback. A patient without a health app, or one who says no, fills it in by hand as before.
+The form stays the fallback. A patient without a wallet, or one who says no, fills it in by hand as before.
 
 ## Step 2: Add the picker
 
@@ -49,12 +49,12 @@ Load the picker and put it above the form.
 ```
 
 - `ui.js` is self-contained and pinned to version 0.3.0.
-- With no other attributes, the picker offers the phone's own health app, when the browser can reach one.
+- With no other attributes, the picker offers the phone's own wallet, when the browser can reach one.
 - `#note` is where the page will tell the patient what happened.
 
 ## Step 3: Ask for what the visit needs
 
-A request is a list of items. Each has a title the patient reads and a description the health app acts on. Put this in a module script after the picker.
+A request is a list of items. Each has a title the patient reads and a description the wallet acts on. Put this in a module script after the picker.
 
 ```html
 <script type="module">
@@ -223,7 +223,7 @@ Take out the mock and the test registry, then work through [Going to production]
 - Decide which health cards to trust, for example issuers in the VCI directory.
 - Offer the web wallets your clinic recognizes, in your own `wallets.json`.
 - Tie the page to a signed-in patient.
-- Keep the form working for everyone who doesn't use a health app.
+- Keep the form working for everyone who doesn't use a wallet.
 
 ## The whole page
 

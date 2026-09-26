@@ -1,6 +1,6 @@
 # SMART Health Check-in for JavaScript
 
-Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link you text before a visit. The patient's health app fills in what the visit needs, and the patient never leaves your page.
+Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link you text before a visit. The patient's wallet fills in what the visit needs, and the patient never leaves your page.
 
 <figure class="flow">
       <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the response arrives in your own code, where you prefill forms, write FHIR, or ask follow-up questions.">
@@ -36,7 +36,7 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
         </g>
       </svg>
       <figcaption>
-        Your page asks, the patient's health app answers, and the verified
+        Your page asks, the patient's wallet answers, and the verified
         response lands in your own code. On a desktop the browser offers a QR
         code, so the phone answers and the data still arrives in the desktop page.
       </figcaption>

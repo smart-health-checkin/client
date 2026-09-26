@@ -1,6 +1,6 @@
 # Going to production
 
-The demos accept any health app, match no patients, and keep nothing. This page lists what changes with real patients and real charts. Most of it is deployment policy, so it's yours to decide.
+The demos accept any wallet, match no patients, and keep nothing. This page lists what changes with real patients and real charts. Most of it is deployment policy, so it's yours to decide.
 
 ## Before you go live
 
@@ -34,7 +34,7 @@ Server-held keys cost you prefill in the page and a service to build. Most deplo
 
 ### Server-held keys
 
-The page and your server make two JSON calls. Nothing between the page and the health app changes.
+The page and your server make two JSON calls. Nothing between the page and the wallet changes.
 
 ```ts
 const result = await runCheckin(myRequest, { wallet, keys: { server: "/checkin-api" } });
@@ -69,7 +69,7 @@ The built-in client sends your session cookie (`credentials: "include"`). For a 
 
 ## Trust settings
 
-The library checks that a response is internally sound. Which health apps and issuers you believe is policy. Write it down.
+The library checks that a response is internally sound. Which wallets and issuers you believe is policy. Write it down.
 
 - **Health cards:** trust a directory or named issuers, and leave `accept` at `"trusted"`. See [SMART Health Cards](responses.md#smart-health-cards).
 - **Web wallets:** offer only wallets you recognize, in your own `wallets.json`. See [Registries](wallets.md#registries-and-icons).
@@ -80,7 +80,7 @@ The library checks that a response is internally sound. Which health apps and is
 The Digital Credentials API isn't in every browser. The patient may decline. The app may have nothing useful.
 
 - Every path ends at the form you already have.
-- A missing health app must never block a visit.
+- A missing wallet must never block a visit.
 - Items that come back `declined`, `unavailable`, or `partial` go to the form, not to an error.
 
 ## Identity and review

@@ -1,13 +1,13 @@
 # Offering wallets
 
-A wallet is anything that can answer a check-in request: the phone's own health app, a health app on the web, a kiosk hand-off, or a mock. Your page decides which to offer; the patient picks one.
+A wallet is anything that can answer a check-in request: the phone's own wallet, a wallet on the web, a kiosk hand-off, or a mock. Your page decides which to offer; the patient picks one.
 
 - **Most pages:** drop in [the picker](#the-picker). It lists the wallets, runs the check-in, and hands you the result.
 - **Your own UI:** call [`wallets()`](#kinds-of-wallet) and start the one the patient picks.
 
 ## The picker
 
-`<smart-checkin-picker>` shows the patient the health apps they can use, runs the check-in with the one they pick, and tells your page what came back.
+`<smart-checkin-picker>` shows the patient the wallets they can use, runs the check-in with the one they pick, and tells your page what came back.
 
 ```html
 <script type="module" src="https://smart-health-checkin.org/client/lib/0.3.0/ui.js"></script>
@@ -23,7 +23,7 @@ A wallet is anything that can answer a check-in request: the phone's own health 
 
 What it does:
 
-- The phone's own health app leads when the browser can reach it. When it can't, that option is hidden.
+- The phone's own wallet leads when the browser can reach it. When it can't, that option is hidden.
 - Web wallets from your registry follow, in registry order. With more than five, the first four show and the rest open in a searchable list.
 - It opens a web wallet's tab inside the patient's click, so browsers don't block it.
 
@@ -100,7 +100,7 @@ In React, `<CheckinPicker>` is fully typed; writing `<smart-checkin-picker>` in 
 | Attribute | What it does |
 | --- | --- |
 | `registry` | URL of a [wallet registry](#registries-and-icons). Omit it for no web wallets. |
-| `platform="off"` | Don't offer the phone's own health app. |
+| `platform="off"` | Don't offer the phone's own wallet. |
 | `remember` | Remember the last app used on this site, in this browser. Off unless present. |
 | `mock` | Offer a simulated response. Development only. |
 | `mode="pick"` | Only choose; your page runs the check-in. See [Pick only](#pick-only). |
@@ -177,8 +177,8 @@ In React, `useCheckin(myRequest, { registry })` from `/react` gives you the wall
 
 | Kind | What it is | How you get one |
 | --- | --- | --- |
-| `platform` | A health app on the patient's device, reached through the browser's Digital Credentials API. On a desktop, the browser shows a QR code and the phone answers. | `platformWallet()`, or included by `wallets()` |
-| `web` | A health app that's a website. It opens in a tab; the patient chooses there. | `webWallet(entry)`, or from a [registry](#registries-and-icons) |
+| `platform` | A wallet on the patient's device, reached through the browser's Digital Credentials API. On a desktop, the browser shows a QR code and the phone answers. | `platformWallet()`, or included by `wallets()` |
+| `web` | A wallet that's a website. It opens in a tab; the patient chooses there. | `webWallet(entry)`, or from a [registry](#registries-and-icons) |
 | `handoff` | A kiosk's "use your phone" option. | `handoffWallet(...)`; see [Kiosk hand-off](#kiosk-hand-off) |
 | `mock` | Answers at once with made-up data. Development only. | `mockWallet()` from `/testing` |
 | `custom` | Any transport you write. | `customWallet(...)`; see [Custom transports](#custom-transports) |
@@ -240,10 +240,10 @@ button.onclick = () => wallet.start(myRequest).then(handleResult);
 
 ## Kiosk hand-off
 
-A kiosk or front-desk screen has no health app. The patient's phone does. The screen shows a QR code; the phone opens a small page, asks its health app, and sends the sealed answer back. Only the screen can read it.
+A kiosk or front-desk screen has no wallet. The patient's phone does. The screen shows a QR code; the phone opens a small page, asks its wallet, and sends the sealed answer back. Only the screen can read it.
 
 ```
-  kiosk (this page)          mailbox           phone (hand-off page)        health app
+  kiosk (this page)          mailbox           phone (hand-off page)        wallet
   1 request, key, QR code ─► envelope ───────► 2 fetchHandoff: show items
                                                3 answerHandoff ───────────► patient chooses;
   5 open, verify, check   ◄─ answer ◄───────── 4 sealed answer              sealed to the kiosk
@@ -265,7 +265,7 @@ const phone = handoffWallet({
 const result = await phone.start(myRequest);
 ```
 
-- The key stays on the kiosk, bound to the hand-off page's origin: the health app answers the page that asked, and that page is on the phone.
+- The key stays on the kiosk, bound to the hand-off page's origin: the wallet answers the page that asked, and that page is on the phone.
 - The result is the usual one, after the same checks as any check-in.
 - Offer it next to other wallets with `wallets({ extra: [phone] })`, or the picker's `wallets` property.
 
@@ -281,7 +281,7 @@ showMyConsentScreen(request);
 myShareButton.onclick = () => answerHandoff(myMailbox, sessionId, envelope);
 ```
 
-`answerHandoff` asks the phone's own health app unless you pass another wallet. Call it inside the click.
+`answerHandoff` asks the phone's own wallet unless you pass another wallet. Call it inside the click.
 
 ### The mailbox
 

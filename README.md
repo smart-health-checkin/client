@@ -1,6 +1,6 @@
 # @smart-health-checkin/client
 
-Ask the patient's health app for what your visit needs, and get a verified
+Ask the patient's wallet for what your visit needs, and get a verified
 answer back in your own page.
 
 Drop in the picker:

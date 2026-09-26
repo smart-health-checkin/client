@@ -1,6 +1,6 @@
 # Asking for data
 
-A request is a list of items. Each item tells the patient what you're asking for, tells their health app which data that means, and says which formats you can accept.
+A request is a list of items. Each item tells the patient what you're asking for, tells their wallet which data that means, and says which formats you can accept.
 
 ```ts
 const request = {
@@ -105,6 +105,6 @@ const full = checkinRequest({ purpose, items }); // throws if it's malformed
 - **No callback URLs.** The answer comes back to the page that asked.
 - **No patient identifiers.** The app knows its patient; your page ties the answer to a chart.
 
-`purpose`, `title`, and `summary` are text for the patient. A health app must not treat them as evidence of anything.
+`purpose`, `title`, and `summary` are text for the patient. A wallet must not treat them as evidence of anything.
 
 Next: [Offering wallets](wallets.md)
