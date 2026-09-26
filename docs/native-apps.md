@@ -11,6 +11,18 @@ channel. The [example app](https://github.com/smart-health-checkin/android-walle
 and the [bridge page](https://smart-health-checkin.org/client/demo/native-bridge.html) below are the whole
 pattern.
 
+## Try the example app
+
+Install the [example app's APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-verifier-app.apk)
+on an Android phone or emulator (open the link on the phone, or `adb install -r` the download). It's
+released with the [reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest)
+and signed with the key this site's `assetlinks.json` lists, so both buttons work as installed:
+
+- **Check in through the browser** opens the [bridge page](#the-bridge-page) in a Custom Tab and reaches
+  the phone's wallets and web wallets, such as the SMART Testing Wallet.
+- **Check in with a wallet on this phone** [calls Credential Manager directly](#calling-the-phones-wallets-directly)
+  and reaches only the phone's wallets, such as the reference Android wallet.
+
 ## How it works on Android
 
 1. The app opens the [bridge page](#the-bridge-page) in a Custom Tab.
