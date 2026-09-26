@@ -15,6 +15,7 @@ import { mockWallet } from "../../src/testing/index.js";
 import { DEMO_REQUESTS } from "./requests.js";
 import { explainResponse, renderExplorer } from "./explore.js";
 import { buildCheckinBundle, postCheckinBundle, type PostMode } from "../../src/fhir/index.js";
+import { showShareLink } from "./share-link.js";
 
 // The demo never posts anywhere unless you set a base in Demo controls.
 const DEFAULT_FHIR_BASE = "";
@@ -410,6 +411,7 @@ function renderOutcome(
   el("outcome-headline").textContent = HEADLINES[status] ?? status;
   el("outcome-status").textContent = status;
   el("outcome-status").dataset.status = status;
+  showShareLink(document.getElementById("share-link"), "clinic-demo", status);
 
   el("outcome-summary").textContent =
     status === "declined"

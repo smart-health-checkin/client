@@ -9,6 +9,7 @@
 
 import { detectDcApiSupport, platformWallet, webWallet, type Wallet } from "../../src/index.js";
 import { mockWallet } from "../../src/testing/index.js";
+import { showShareLink } from "./share-link.js";
 
 const ALLERGY_REVIEW = {
   purpose: "Review your allergy list before your visit",
@@ -126,6 +127,7 @@ async function prefill(): Promise<void> {
         result.status === "declined"
           ? "Nothing was shared. You can fill the form at the front desk instead."
           : `Could not prefill: ${result.status === "failed" ? result.error.message : "the response stayed on the server"}`;
+      showShareLink(document.getElementById("share-link"), "autofill-demo", result.status);
       return;
     }
     for (const resource of result.response.resources("allergies", { type: "AllergyIntolerance" })) {
@@ -429,6 +431,7 @@ function renderOutput(): void {
 
 function finalize(): void {
   el("sent-card").hidden = false;
+  showShareLink(document.getElementById("share-link"), "autofill-demo", "sent");
   renderOutput();
   el("sent-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }

@@ -9,6 +9,7 @@ import { handoffWallet } from "../../src/handoff/index.js";
 import { DEMO_REQUESTS } from "./requests.js";
 import { instantMailbox } from "./mailbox-instant.js";
 import { explainResponse, renderExplorer } from "./explore.js";
+import { showShareLink } from "./share-link.js";
 
 const el = (id: string): HTMLElement => document.getElementById(id)!;
 const params = (): URLSearchParams => new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -46,6 +47,7 @@ function renderOutcome(outcome: CheckinResult): void {
     : outcome.status === "declined" ? "Check-in cancelled"
     : "Check-in didn't finish";
   el("outcome-headline").textContent = headline;
+  showShareLink(document.getElementById("share-link"), "kiosk-demo", outcome.status);
   el("error").textContent = outcome.status === "failed" ? `${outcome.error.code}: ${outcome.error.message}` : "";
   const explore = el("explore");
   explore.innerHTML = "";
