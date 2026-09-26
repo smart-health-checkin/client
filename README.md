@@ -56,7 +56,7 @@ the site's Developers menu:
 | Build a check-in page | [Tutorial](docs/tutorial.md) · [Asking for data](docs/requests.md) · [Offering wallets](docs/wallets.md) · [Using the answer](docs/responses.md) · [Native apps](docs/native-apps.md) |
 | Build a wallet | [Building a wallet](docs/build-a-wallet.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) |
 | Testing and production | [Going to production](docs/production.md) · [Testing](docs/testing.md) · [Demo options](demo/README.md) |
-| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) · [Upgrading](docs/upgrading.md) |
+| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) |
 
 ## Install
 

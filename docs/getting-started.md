@@ -116,4 +116,4 @@ Grouped as in the Developers menu:
 | Build a check-in page | [Tutorial](tutorial.md) · [Asking for data](requests.md) · [Offering wallets](wallets.md) · [Using the answer](responses.md) · [Native apps](native-apps.md) |
 | Build a wallet | [Building a wallet](build-a-wallet.md) · [Web wallet hand-off](web-wallet-handoff.md) |
 | Testing and production | [Going to production](production.md) · [Testing](testing.md) · [Demo options](../demo/README.md) |
-| Reference | [API reference](api/index.md) · [Registry format](registry.md) · [Upgrading](upgrading.md) |
+| Reference | [API reference](api/index.md) · [Registry format](registry.md) |
