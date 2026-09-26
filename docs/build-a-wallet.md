@@ -20,6 +20,11 @@ A native wallet registers with Android's Credential Manager and answers requests
 - **Install it:** [smart-health-checkin-wallet-debug.apk](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk).
 - **Registration:** the app registers a credential entry and a small matcher (WebAssembly) that decides whether a request is a SMART Health Check-in request.
 - **Parsing and sealing:** done in Kotlin in that app. This library is JavaScript, for web wallets and for tests.
+- **The origin to bind:** for a browser, the origin Credential Manager reports for an allowlisted browser (`getOrigin`). For a native app calling directly, Android reports no origin, so use `android:apk-key-hash:` plus the base64url SHA-256 of the app's signing certificate ([TR-2](https://smart-health-checkin.org/spec/#TR-2)).
+
+## Native wallets on iOS
+
+On iOS 26, a wallet answers Safari through an Identity Document Provider extension. Apple has to approve the `org.smarthealthit.checkin.1` document type for the app's entitlement. The extension can read the SMART request (`requestInfo`) only once the patient interacts, inside `sendResponse`; it can hold that callback open while it shows its own item-by-item screens, then answer. The [Swift package](https://github.com/smart-health-checkin/swift) implements both sides, and the [platform notes](https://smart-health-checkin.org/spec/platform-notes.html#ios) have the details, including stripping the trailing slash from the origin Safari reports.
 
 The rest of this page applies to both kinds: the matching rules, forms, statuses, and health cards are the same.
 
