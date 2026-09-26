@@ -48,11 +48,15 @@ has to audit and configure.
 The docs site is at [smart-health-checkin.org/client/docs](https://smart-health-checkin.org/client/docs/);
 the same pages live in this repo, so they read here too.
 
-| Level | Pages |
+Start with the [Overview](docs/getting-started.md). The rest is grouped as in
+the site's Developers menu:
+
+| Group | Pages |
 | --- | --- |
-| Start | [Overview](docs/getting-started.md) · [Tutorial: build a check-in page](docs/tutorial.md) |
-| Guides | [Asking for data](docs/requests.md) · [Offering wallets](docs/wallets.md) · [Using the answer](docs/responses.md) · [Going to production](docs/production.md) · [Building a wallet](docs/build-a-wallet.md) · [Testing](docs/testing.md) |
-| Reference | [API reference](docs/api/index.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) · [Registry format](docs/registry.md) · [Upgrading](docs/upgrading.md) · [Demo options](demo/README.md) |
+| Build a check-in page | [Tutorial](docs/tutorial.md) · [Asking for data](docs/requests.md) · [Offering wallets](docs/wallets.md) · [Using the answer](docs/responses.md) · [Native apps](docs/native-apps.md) |
+| Build a wallet | [Building a wallet](docs/build-a-wallet.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) |
+| Testing and production | [Going to production](docs/production.md) · [Testing](docs/testing.md) · [Demo options](demo/README.md) |
+| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) · [Upgrading](docs/upgrading.md) |
 
 ## Install
 

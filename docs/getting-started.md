@@ -109,13 +109,11 @@ All at `https://smart-health-checkin.org`. Drop the version for the latest.
 
 ## The guides
 
-| Guide | Covers |
-| --- | --- |
-| [Asking for data](requests.md) | Items and titles, records by profile, forms, formats |
-| [Offering wallets](wallets.md) | The picker, kinds of wallet, registries, kiosks, custom transports |
-| [Using the answer](responses.md) | Statuses, lookups, health-card trust, prefill, writing FHIR |
-| [Going to production](production.md) | Key custody, trust, fallback, privacy, pinning, monitoring |
-| [Building a wallet](build-a-wallet.md) | For health-app builders: native and web, matching, forms, cards |
-| [Testing](testing.md) | The mock, the connectathon's testing tools, reading failures, the demos |
+Grouped as in the Developers menu:
 
-Reference: [API reference](api/index.md) · [Web wallet hand-off](web-wallet-handoff.md) · [Registry format](registry.md) · [Upgrading](upgrading.md)
+| Group | Guides |
+| --- | --- |
+| Build a check-in page | [Tutorial](tutorial.md) · [Asking for data](requests.md) · [Offering wallets](wallets.md) · [Using the answer](responses.md) · [Native apps](native-apps.md) |
+| Build a wallet | [Building a wallet](build-a-wallet.md) · [Web wallet hand-off](web-wallet-handoff.md) |
+| Testing and production | [Going to production](production.md) · [Testing](testing.md) · [Demo options](../demo/README.md) |
+| Reference | [API reference](api/index.md) · [Registry format](registry.md) · [Upgrading](upgrading.md) |

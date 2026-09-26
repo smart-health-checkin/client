@@ -1,4 +1,4 @@
-# Tutorial: build a check-in page
+# Tutorial
 
 In this tutorial you add SMART Health Check-in to a clinic's intake form. The patient picks a wallet, shares their allergies, insurance card, and a two-question mood screen, and the form fills itself in.
 

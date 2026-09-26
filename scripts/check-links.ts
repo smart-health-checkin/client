@@ -1,6 +1,7 @@
 /**
  * Every same-site link in the built site must reach a page that exists and,
- * when it names a fragment, an element with that id.
+ * when it names a fragment, an element with that id. And no page may show a
+ * leftover template marker ("{{") outside code, scripts, and styles.
  *   bun scripts/check-links.ts [siteDir] [basePath]
  * basePath is the path the site is served under (SITE_BASE, e.g. /client).
  */
@@ -42,9 +43,14 @@ for (const [page, text] of html) {
     }
   }
 }
+for (const [page, text] of html) {
+  const shown = text.replace(/<(pre|code|script|style)\b[\s\S]*?<\/\1>/gi, "");
+  const at = shown.indexOf("{{");
+  if (at >= 0) broken.push(`${page}: template marker in the page: ${shown.slice(at, at + 40).replace(/\s+/g, " ")}`);
+}
 if (broken.length) {
   console.error(broken.join("\n"));
-  console.error(`${broken.length} broken link(s) across ${pages.length} pages`);
+  console.error(`${broken.length} broken link(s) or template marker(s) across ${pages.length} pages`);
   process.exit(1);
 }
 console.log(`links OK across ${pages.length} pages`);

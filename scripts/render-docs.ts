@@ -2,8 +2,10 @@
  * Renders the repo's markdown docs into the site at /docs/.
  *
  * The markdown in docs/ is the single source: it reads on GitHub and renders
- * here. Every page carries the shared site chrome plus a rail of the guides in
- * reading order, so you always know where you are in the sequence.
+ * here. Every page carries the shared site chrome (bar, breadcrumb, footer)
+ * and a rail listing the Developers menu, group by group, with you marked.
+ * The rail and nav.json come from one list (menuTree), so they always match.
+ * On phones the rail becomes an "In this section" disclosure under the H1.
  */
 
 import { marked } from "marked";
@@ -11,7 +13,7 @@ import { createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, CHECKED_MODULES, anchorFor } from "./api-index.ts";
-import { MENU_GROUPS, GUIDES, LEVELS } from "./site-nav.ts";
+import { MENU_GROUPS, GUIDES, type MenuGroup } from "./site-nav.ts";
 import { CHROME_ASSETS, footer, header } from "./site-chrome.ts";
 import { BASE, OUT_ROOT } from "./site-base.ts";
 
@@ -33,42 +35,54 @@ const DOCS_STYLE = `
     font-family:var(--font-sans); font-size:var(--fs-base); line-height:var(--lh-normal);
     -webkit-font-smoothing:antialiased;
   }
+  /* One left edge with the bar and breadcrumb: 24px, 16px on phones. */
   .layout {
-    max-width:var(--container-wide); margin:0 auto; padding:var(--space-7) 24px var(--space-5);
+    max-width:var(--container-wide); margin:0 auto; padding:var(--space-5) 24px var(--space-5);
     display:grid; grid-template-columns:14rem minmax(0,1fr); gap:var(--space-8); align-items:start;
   }
-  article { min-width:0; max-width:46rem; }
-  .rail { position:sticky; top:calc(var(--space-7) + 44px); font-size:var(--fs-sm); }
-  .rail h4 {
-    margin:0 0 var(--space-3); font-size:var(--fs-xs); font-weight:700;
+  /* Code, tables and diagrams may use the column; prose stops near 72ch. */
+  main { min-width:0; max-width:52rem; overflow-wrap:break-word; }
+  main > :is(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5), main .lede { max-width:42rem; }
+  .rail { position:sticky; top:calc(var(--smart-bar-h, 56px) + var(--space-5)); font-size:var(--fs-sm); max-height:calc(100vh - var(--smart-bar-h, 56px) - var(--space-7)); overflow-y:auto; }
+  .rail-list ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .rail-list li { margin:0; }
+  .rail-list .rail-h {
+    display:block; margin:var(--space-5) 0 var(--space-1); font-size:var(--fs-xs); font-weight:700;
     letter-spacing:var(--tracking-caps); text-transform:uppercase; color:var(--fg-3);
   }
-  .rail ul + h4 { margin-top:var(--space-6); }
-  .rail ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .rail li { margin:0; }
-  .rail li.track > span { display:block; margin:var(--space-3) 0 var(--space-1); font-size:var(--fs-xs); font-weight:600; color:var(--fg-3); }
-  .rail li.track:first-child > span { margin-top:0; }
-  .rail h4 a { color:inherit; text-decoration:none; }
-  .rail h4 a:hover { color:var(--brand); }
-  .rail h4 a[aria-current="page"] { color:var(--brand); }
-  .rail a {
+  .rail-list a {
     display:block; padding:5px 10px; margin-left:-10px; border-radius:var(--radius-sm);
     color:var(--fg-2); text-decoration:none; line-height:1.35;
   }
-  .rail a:hover { color:var(--brand); background:var(--gray-50); }
-  .rail a[aria-current="page"] { color:var(--brand); font-weight:600; background:var(--brand-wash); }
+  .rail-list a:hover { color:var(--brand); background:var(--gray-50); }
+  .rail-list a[aria-current="page"] { color:var(--brand); font-weight:600; background:var(--brand-wash); }
+  .rail-list ul.rail-sub { margin:2px 0 var(--space-2) var(--space-3); padding-left:var(--space-2); border-left:1px solid var(--border); }
+  .rail-list ul.rail-sub a { font-family:var(--font-mono); font-size:var(--fs-xs); padding:3px 8px; margin-left:0; }
+  details.rail-phone { display:none; }
   @media (max-width: 68rem) {
-    .layout { grid-template-columns:minmax(0,1fr); gap:var(--space-6); max-width:52rem; }
-    .rail { position:static; padding-bottom:var(--space-5); border-bottom:1px solid var(--border); }
-    .rail ul { flex-direction:row; flex-wrap:wrap; gap:var(--space-1); }
-    .rail a { margin-left:0; }
+    .layout { grid-template-columns:minmax(0,1fr); gap:0; }
+    .rail { display:none; }
+    details.rail-phone {
+      display:block; margin:0 0 var(--space-5); border:1px solid var(--border); border-radius:var(--radius-md);
+      background:var(--surface); font-size:var(--fs-sm); max-width:42rem;
+    }
+    details.rail-phone > summary {
+      cursor:pointer; padding:0 var(--space-4); min-height:44px; display:flex; align-items:center;
+      font-weight:600; color:var(--fg-1); list-style:none;
+    }
+    details.rail-phone > summary::-webkit-details-marker { display:none; }
+    details.rail-phone > summary::after { content:"\\25BE"; margin-left:auto; color:var(--fg-3); }
+    details.rail-phone[open] > summary::after { content:"\\25B4"; }
+    details.rail-phone .rail-list { padding:0 var(--space-4) var(--space-3); border-top:1px solid var(--border); }
+    details.rail-phone .rail-list a { margin-left:0; min-height:40px; display:flex; align-items:center; }
   }
-  .crumb { font-size:var(--fs-sm); color:var(--fg-3); margin:0 0 var(--space-5); }
-  .crumb a { color:var(--fg-3); text-decoration:none; }
-  .crumb a:hover { color:var(--brand); }
+  @media (max-width: 46rem) {
+    .layout { padding-left:16px; padding-right:16px; }
+  }
+  .nowrap { white-space:nowrap; }
   h1 { margin:0 0 var(--space-4); font-size:var(--fs-3xl); letter-spacing:var(--tracking-tight); line-height:var(--lh-tight); text-wrap:balance; }
-  h2 { margin:var(--space-7) 0 var(--space-3); font-size:var(--fs-xl); letter-spacing:var(--tracking-tight); }
-  h3 { margin:var(--space-6) 0 var(--space-2); font-size:var(--fs-md); }
+  h2 { margin:var(--space-7) 0 var(--space-3); font-size:var(--fs-xl); letter-spacing:var(--tracking-tight); text-wrap:balance; }
+  h3 { margin:var(--space-6) 0 var(--space-2); font-size:var(--fs-md); text-wrap:balance; }
   h4 { margin:var(--space-5) 0 var(--space-2); font-size:var(--fs-base); }
   p, li { margin:var(--space-3) 0; color:var(--fg-2); }
   li > p { margin:var(--space-2) 0; }
@@ -76,7 +90,16 @@ const DOCS_STYLE = `
   code { font-family:var(--font-mono); font-size:0.88em; background:var(--gray-100); padding:1px 5px; border-radius:var(--radius-sm); color:var(--fg-1); }
   pre { background:var(--gray-50); border:1px solid var(--border); border-radius:var(--radius-md); padding:var(--space-4) var(--space-5); overflow-x:auto; }
   pre code { background:none; padding:0; font-size:var(--fs-sm); line-height:1.6; }
-  table { width:100%; border-collapse:collapse; margin:var(--space-4) 0; font-size:var(--fs-sm); display:block; overflow-x:auto; }
+  /* Wide tables scroll inside their wrapper, with a shadow at the edge that has more. */
+  .table-wrap {
+    overflow-x:auto; margin:var(--space-4) 0;
+    background:
+      linear-gradient(to right, var(--bg) 30%, transparent) left / 24px 100% no-repeat local,
+      linear-gradient(to left, var(--bg) 30%, transparent) right / 24px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.14), transparent) left / 10px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.14), transparent) right / 10px 100% no-repeat scroll;
+  }
+  table { width:100%; border-collapse:collapse; margin:0; font-size:var(--fs-sm); }
   th, td { text-align:left; padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--border); vertical-align:top; }
   th { font-weight:600; color:var(--fg-1); }
   blockquote { margin:var(--space-4) 0; padding:var(--space-2) var(--space-4); border-left:3px solid var(--brand-bright); background:var(--brand-wash); border-radius:0 var(--radius-sm) var(--radius-sm) 0; color:var(--fg-2); }
@@ -85,7 +108,7 @@ const DOCS_STYLE = `
   hr { border:none; border-top:1px solid var(--border); margin:var(--space-7) 0; }
   .pager { display:flex; justify-content:space-between; gap:var(--space-4); margin-top:var(--space-7); padding-top:var(--space-4); border-top:1px solid var(--border); font-size:var(--fs-sm); }
   .pager span { color:var(--fg-3); }
-  .lede { font-family:var(--font-serif); color:var(--fg-2); font-size:var(--fs-md); max-width:62ch; line-height:1.55; }
+  .lede { font-family:var(--font-serif); color:var(--fg-2); font-size:var(--fs-md); line-height:1.55; }
   figure.flow { margin:var(--space-5) 0 0; }
   figure.flow svg { max-width:100%; height:auto; color:var(--fg-1); display:block; }
   figure.flow .mono { font-family:var(--font-mono); }
@@ -95,6 +118,7 @@ const DOCS_STYLE = `
   .api-group h2 { margin:0 0 var(--space-1); }
   .api-group p.blurb { color:var(--fg-3); font-size:var(--fs-sm); margin:0 0 var(--space-3); }
   .api-list { display:grid; grid-template-columns:minmax(13rem,auto) 1fr; gap:var(--space-2) var(--space-5); font-size:var(--fs-sm); align-items:baseline; }
+  @media (max-width: 46rem) { .api-list { grid-template-columns:minmax(0,1fr); gap:0; } .api-list span { margin-bottom:var(--space-3); } }
   .api-list a { font-family:var(--font-mono); font-size:var(--fs-sm); }
   .api-list span { color:var(--fg-2); }
   .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr)); gap:var(--space-4); margin-top:var(--space-4); }
@@ -109,59 +133,95 @@ const DOCS_STYLE = `
   pre.shiki code { display:block; font-size:var(--fs-sm); line-height:1.6; }
 `;
 
-/** The guides in reading order, plus the API reference, with you marked. */
-function rail(slug: string): string {
+type MenuEntry = { title: string; href: string; note: string; slug: string };
+
+/**
+ * The Developers menu: MENU_GROUPS in order, each with its guides in GUIDES
+ * order, the API reference leading Reference. nav.json and the rail both
+ * come from here. Every guide but the front page must name a group.
+ */
+function menuTree(): Array<{ title: MenuGroup; items: MenuEntry[] }> {
+  const groups = MENU_GROUPS.map((title) => ({ title, items: [] as MenuEntry[] }));
+  const group = (title: MenuGroup) => groups.find((g) => g.title === title)!;
+  group("Reference").items.push({ title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module", slug: "api-index" });
+  for (const g of GUIDES) {
+    if (g.slug === ROOT_SLUG || !existsSync(g.file)) continue;
+    if (!g.menuGroup || !g.menuNote) {
+      throw new Error(`${g.slug}: every page but the front page needs a menuGroup and a menuNote (scripts/site-nav.ts)`);
+    }
+    group(g.menuGroup).items.push({ title: g.title, href: hrefFor(g.slug), note: g.menuNote, slug: g.slug });
+  }
+  return groups.filter((g) => g.items.length);
+}
+const MENU = menuTree();
+
+const API_MODULES = API_GROUPS.map((g) => g.module).filter((m, i, all) => all.indexOf(m) === i);
+
+/** The menu as a list, with you marked. Module pages show under the API reference while you're in it. */
+function railList(slug: string): string {
   const here = (s: string) => (s === slug ? ' aria-current="page"' : "");
-  const guides = LEVELS.map(({ level, label }) => {
-    const items = GUIDES.filter((g) => g.level === level && existsSync(g.file))
-      .map((g) => `<li><a href="${hrefFor(g.slug)}"${here(g.slug)}>${g.title}</a></li>`)
-      .join("");
-    return `<li class="track"><span>${label}</span><ul>${items}</ul></li>`;
-  }).join("");
-  const api = API_GROUPS.map((g) => g.module)
-    .filter((m, i, all) => all.indexOf(m) === i)
-    .map((m) => `<li><a href="${BASE}/docs/api/${m}.html"${here(`api-${m}`)}>${m}</a></li>`)
-    .join("");
-  return `<nav class="rail" aria-label="Documentation">
-    <h4>Docs</h4>
-    <ul class="tracks">${guides}</ul>
-    <h4><a href="${BASE}/docs/api/"${here("api-index")}>API reference</a></h4>
-    <ul>${api}</ul>
-  </nav>`;
+  const api = slug.startsWith("api-")
+    ? `<ul class="rail-sub">${API_MODULES.map((m) => `<li><a href="${BASE}/docs/api/${m}.html"${here(`api-${m}`)}>${m}</a></li>`).join("")}</ul>`
+    : "";
+  const groups = MENU.map(
+    (g) => `<div class="rail-group" data-group="${g.title}"><span class="rail-h">${g.title}</span><ul>${g.items
+      .map((i) => `<li><a href="${i.href}"${here(i.slug)}>${i.title}</a>${i.slug === "api-index" ? api : ""}</li>`)
+      .join("")}</ul></div>`,
+  ).join("");
+  return `<div class="rail-list"><ul><li><a href="${BASE}/"${here(ROOT_SLUG)}>Overview</a></li></ul>${groups}</div>`;
 }
 
-function crumb(title: string, isApi: boolean): string {
-  return `<p class="crumb"><a href="${BASE}/">Developers</a>${isApi ? ` <span>/</span> <a href="${BASE}/docs/api/">API reference</a>` : ""} <span>/</span> ${title}</p>`;
+const rail = (slug: string): string => `<nav class="rail" aria-label="Developers docs">${railList(slug)}</nav>`;
+
+/** On phones the rail is a disclosure right under the H1. */
+function withPhoneRail(slug: string, body: string): string {
+  const block = `<details class="rail-phone"><summary>In this section</summary><nav aria-label="Developers docs">${railList(slug)}</nav></details>`;
+  const at = body.indexOf("</h1>");
+  if (at < 0) throw new Error(`${slug}: no <h1>`);
+  return body.slice(0, at + 5) + "\n" + block + body.slice(at + 5);
 }
 
+/** Next and previous follow the rail, through every group but Reference. */
 function pager(slug: string): string {
-  // The start pages and guides read in order; reference pages stand alone.
-  const list = GUIDES.filter((g) => g.level !== "reference" && existsSync(g.file));
+  const list: Array<{ title: string; href: string; slug: string }> = [
+    { title: "Overview", href: `${BASE}/`, slug: ROOT_SLUG },
+    ...MENU.filter((g) => g.title !== "Reference").flatMap((g) => g.items),
+  ];
   const i = list.findIndex((g) => g.slug === slug);
   if (i < 0) return "";
   const prev = list[i - 1];
   const next = list[i + 1];
   return `<div class="pager">
-    <span>${prev ? `← <a href="${hrefFor(prev.slug)}">${prev.title}</a>` : ""}</span>
-    <span>${next ? `<a href="${hrefFor(next.slug)}">${next.title}</a> →` : ""}</span>
+    <span>${prev ? `← <a href="${prev.href}">${prev.title}</a>` : ""}</span>
+    <span>${next ? `<a href="${next.href}">${next.title}</a> →` : ""}</span>
   </div>`;
 }
 
-const shell = (title: string, slug: string, body: string, markdown?: string): string => `<!doctype html>
+/** Keep "Check-in" and "hand-off" whole when a heading wraps. */
+function keepHyphenated(html: string): string {
+  return html.replace(/(<h[1-3][^>]*>)([\s\S]*?)(<\/h[1-3]>)/g, (_m, open: string, inner: string, close: string) =>
+    open + inner.replace(/(^|>)([^<]+)/g, (_n, gt: string, text: string) =>
+      gt + text.replace(/\b((?:[Cc]heck|[Hh]and)-(?:in|off))\b/g, '<span class="nowrap">$1</span>')) + close);
+}
+
+const shell = (title: string, slug: string, body: string, opts: { markdown?: string; current?: string } = {}): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
-${markdown ? `<link rel="alternate" type="text/markdown" href="${markdown}">` : ""}
+${opts.markdown ? `<link rel="alternate" type="text/markdown" href="${opts.markdown}">` : ""}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${CHROME_ASSETS}
 <style>${DOCS_STYLE}</style>
 </head>
 <body>
 ${header()}
+<nav data-smart-breadcrumb${slug === ROOT_SLUG ? " hidden" : ""}${opts.current ? ` data-current="${opts.current}"` : ""}></nav>
 <div class="layout">
   ${rail(slug)}
-  <article>${body}</article>
+  <main id="main">${keepHyphenated(withPhoneRail(slug, body))}</main>
 </div>
 ${footer()}
 </body>
@@ -170,6 +230,8 @@ ${footer()}
 
 function rewriteLinks(html: string): string {
   return html
+    .replace(/<table>/g, '<div class="table-wrap"><table>')
+    .replace(/<\/table>/g, "</table></div>")
     .replace(/href="(?:\.\.\/)?api\/index\.md"/g, `href="${BASE}/docs/api/"`)
     .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
     .replace(/href="\.\.\/demo\/README\.md"/g, `href="${BASE}/docs/demo.html"`)
@@ -273,11 +335,11 @@ mkdirSync(join(OUT, "api"), { recursive: true });
 for (const guide of GUIDES) {
   if (!existsSync(guide.file)) continue;
   const md = readFileSync(guide.file, "utf8");
-  const html = (guide.slug === ROOT_SLUG ? "" : crumb(guide.title, false)) + render(md) + pager(guide.slug);
+  const html = render(md) + pager(guide.slug);
   writeFileSync(outFor(guide.slug, "md"), md);
   writeFileSync(
     outFor(guide.slug, "html"),
-    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html, `${BASE}${mdPathFor(guide.slug)}`),
+    shell(`${guide.title} — SMART Health Check-in`, guide.slug, html, { markdown: `${BASE}${mdPathFor(guide.slug)}` }),
   );
 }
 
@@ -293,7 +355,8 @@ const apiPages = readdirSync("docs/api")
   .filter((file) => file.endsWith(".md") && file !== "index.md")
   .map((file) => {
     const md = readFileSync(join("docs/api", file), "utf8");
-    const html = renderApi(md).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
+    // TypeDoc's own "API / module" line is dropped: the breadcrumb and rail cover it.
+    const html = renderApi(md.replace(/^\[[^\n]*\]\(index\.md\) \/ [^\n]*\n/, "")).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
     const name = basename(file, ".md");
     const ids = new Map<string, string>();
     for (const m of html.matchAll(/<h3 id="([^"]+)">(?:<code>)?([^<]+)(?:<\/code>)?<\/h3>/g)) ids.set(m[2]!.trim().replace(/\(\)$/, ""), m[1]!);
@@ -306,7 +369,7 @@ for (const page of apiPages) {
   writeFileSync(join(OUT, "api", `${name}.md`), md);
   writeFileSync(
     join(OUT, "api", `${name}.html`),
-    shell(`${name} — API reference`, `api-${name}`, crumb(`${name} module`, true) + html, `${BASE}/docs/api/${name}.md`),
+    shell(`${name} — API reference`, `api-${name}`, html, { markdown: `${BASE}/docs/api/${name}.md`, current: `API reference: ${name}` }),
   );
 }
 
@@ -341,8 +404,7 @@ writeFileSync(
   shell(
     "API reference — SMART Health Check-in",
     "api-index",
-    `<p class="crumb"><a href="${BASE}/">Developers</a> <span>/</span> API reference</p>
-<h1>API reference</h1>
+    `<h1>API reference</h1>
 <p class="lede">
   Every export, grouped by what you'd be doing. Signatures and types are
   generated from the source, so they can't drift; this page is checked at
@@ -353,7 +415,7 @@ writeFileSync(
   <a href="${BASE}/docs/api/checkin.html#runcheckin"><code>runCheckin</code></a> and
   <a href="${BASE}/docs/api/checkin.html#checkinresponse"><code>CheckinResponse</code></a>.
   For explanation rather than signatures, start with
-  <a href="${BASE}/">Getting started</a>.
+  the <a href="${BASE}/">Overview</a>.
 </p>
 ${groupsHtml}
 <div class="pager">
@@ -362,22 +424,14 @@ ${groupsHtml}
   ),
 );
 
-// nav.json: the "Developers" menu, read by the site chrome at runtime. Every
-// entry sits in a named group (MENU_GROUPS order); within a group, reading
-// order. The API reference leads the Reference group.
-type NavLink = { title: string; href: string; note?: string };
-const grouped = new Map<string, NavLink[]>(MENU_GROUPS.map((g) => [g, []]));
-grouped.get("Reference")!.push({ title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" });
-for (const g of GUIDES.filter((g) => g.menuNote && existsSync(g.file))) {
-  if (!g.menuGroup) throw new Error(`${g.slug} has a menuNote but no menuGroup; every menu entry needs a named group`);
-  grouped.get(g.menuGroup)!.push({ title: g.title, href: hrefFor(g.slug), note: g.menuNote });
-}
+// nav.json: the "Developers" menu, read by the site chrome at runtime. The
+// rail on every docs page lists the same entries (menuTree).
 writeFileSync(
   join(OUT_ROOT, "nav.json"),
   JSON.stringify({
     label: "Developers",
     href: `${BASE}/`,
-    items: [...grouped].filter(([, items]) => items.length).map(([title, items]) => ({ title, items })),
+    items: MENU.map(({ title, items }) => ({ title, items: items.map(({ title, href, note }) => ({ title, href, note })) })),
   }, null, 2) + "\n",
 );
 
