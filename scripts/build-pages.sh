@@ -24,6 +24,8 @@ cp demo/angular.html $OUT/demo/angular.html
 cp demo/kiosk.html $OUT/demo/kiosk.html
 cp demo/handoff.html $OUT/demo/handoff.html
 cp demo/picker.html $OUT/demo/picker.html
+# The tutorial's finished page, cut from docs/tutorial.md.
+bun scripts/tutorial-page.ts $OUT/demo/tutorial.html
 bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts demo/src/picker.ts --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/react.tsx --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/angular.ts --outdir $OUT/demo --format esm --minify
@@ -56,6 +58,8 @@ touch $OUT/.nojekyll
 
 # A hosted bundle that does not run is a broken deploy, not a smaller one.
 bun scripts/verify-lib.ts
+# Every link inside the site reaches a page, and an anchor on it.
+bun scripts/check-links.ts "$OUT" "${SITE_BASE:-}"
 
 echo "Built $OUT:"
 find "$OUT" -type f | sort

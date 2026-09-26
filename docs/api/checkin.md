@@ -2434,7 +2434,7 @@ Build and validate a request. `type` and `version` are fixed by the spec,
 function configureHealthCardTrust(trust): void;
 ```
 
-Defined in: [src/core/health-cards.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L56)
+Defined in: [src/core/health-cards.ts:70](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L70)
 
 Set the trust used for every check-in that doesn't pass its own.
 
@@ -2501,7 +2501,7 @@ Defined in: [src/browser/index.ts:20](https://github.com/smart-health-checkin/cl
 function healthCardTrust(): HealthCardTrust;
 ```
 
-Defined in: [src/core/health-cards.ts:61](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L61)
+Defined in: [src/core/health-cards.ts:75](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L75)
 
 The trust currently configured.
 

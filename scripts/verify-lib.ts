@@ -38,6 +38,24 @@ if (result.status !== "completed" || !result.response?.status("a")) {
   throw new Error(`hosted check-in round trip failed: ${JSON.stringify(result.status === "failed" ? result.error : result.status)}`);
 }
 
+// Each hosted bundle carries its own copy of the core. Trust configured
+// through checkin.js has to reach a check-in run by another bundle (here
+// testing.js; on a real page, the picker in ui.js). The demo card's signature
+// is invalid, so only accept: "everything" lets it through.
+const cardRequest = checkin.checkinRequest({
+  purpose: "shared trust",
+  items: [{ id: "c", title: "C", content: { kind: "selection.fhir" }, accept: ["application/smart-health-card"] }],
+});
+const cardAccepted = async (): Promise<boolean | undefined> => {
+  const r = await testing.mockWallet().start(cardRequest);
+  if (r.status !== "completed") throw new Error(`health-card round trip failed: ${JSON.stringify(r)}`);
+  return r.response.healthCards("c")[0]?.accepted;
+};
+if ((await cardAccepted()) !== false) throw new Error("an invalid demo card was accepted under default trust");
+checkin.configureHealthCardTrust({ accept: "everything" });
+if ((await cardAccepted()) !== true) throw new Error("health-card trust set in checkin.js did not reach testing.js");
+checkin.configureHealthCardTrust({});
+
 const plan = fhir.buildCheckinBundle({
   request,
   response: {
@@ -68,5 +86,5 @@ if (checkinSize < 20_000) {
 
 console.log(
   `hosted bundles OK — checkin.js ${(checkinSize / 1024).toFixed(1)}KB (${Object.keys(checkin).length} exports), ` +
-    `fhir.js ${(fhirSize / 1024).toFixed(1)}KB, full check-in round trip verified`,
+    `fhir.js ${(fhirSize / 1024).toFixed(1)}KB, full check-in round trip and shared health-card trust verified`,
 );

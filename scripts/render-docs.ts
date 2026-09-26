@@ -198,14 +198,21 @@ const LANG_ALIASES: Record<string, string> = {
 
 // GitHub-style heading ids, so "page.md#section" links work, unique per page.
 const usedSlugs = new Map<string, number>();
-const slugFor = (text: string): string => {
-  const base = text
+// On API pages, each symbol's own heading (###) keeps its plain id even when a
+// member of the same name comes first, so "checkin.html#wallet" is the Wallet
+// interface, not some option called wallet.
+const reservedSlugs = new Set<string>();
+const baseSlug = (text: string): string =>
+  text
     .toLowerCase()
     .replace(/<[^>]+>/g, "")
     .replace(/[^\p{L}\p{N}\s-]/gu, "")
     .trim()
     .replace(/\s/g, "-");
-  const n = usedSlugs.get(base) ?? 0;
+const slugFor = (text: string, depth = 0): string => {
+  const base = baseSlug(text);
+  if (depth === 3 && reservedSlugs.delete(base)) return base;
+  const n = usedSlugs.get(base) ?? (reservedSlugs.has(base) ? 1 : 0);
   usedSlugs.set(base, n + 1);
   return n ? `${base}-${n}` : base;
 };
@@ -214,7 +221,7 @@ marked.use({
   renderer: {
     heading({ tokens, depth, text }: { tokens: unknown[]; depth: number; text: string }): string {
       const inner = (this as unknown as { parser: { parseInline(t: unknown[]): string } }).parser.parseInline(tokens);
-      return `<h${depth} id="${slugFor(text.replace(/[`*]/g, ""))}">${inner}</h${depth}>\n`;
+      return `<h${depth} id="${slugFor(text.replace(/[`*]/g, ""), depth)}">${inner}</h${depth}>\n`;
     },
     code({ text, lang }: { text: string; lang?: string }): string {
       const requested = (lang ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
@@ -236,8 +243,26 @@ const render = (md: string): string => {
 // Reference pages link to each other as "checkin.md#x"; keep those under /docs/api/.
 const renderApi = (md: string): string => {
   usedSlugs.clear();
-  return rewriteLinks((marked.parse(md) as string).replace(/href="([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/api/$1.html$2"`));
+  reservedSlugs.clear();
+  for (const m of md.matchAll(/^### (.+)$/gm)) reservedSlugs.add(baseSlug(m[1]!.replace(/[`*]/g, "")));
+  const html = (marked.parse(md) as string).replace(/href="([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/api/$1.html$2"`);
+  reservedSlugs.clear();
+  return rewriteLinks(html);
 };
+
+// TypeDoc numbers repeated anchors its own way ("#checkinerrorcode-1"), which
+// needn't match the ids above. A link whose text is a symbol's name goes to
+// that symbol's heading on the target page.
+const symbolIds = new Map<string, Map<string, string>>(); // module -> name -> id
+function linkSymbols(module: string, html: string): string {
+  return html.replace(
+    /<a href="((?:[^"#]*\/docs\/api\/([a-z-]+)\.html)?)#[^"]*"><code>([A-Za-z_$][\w$]*)<\/code><\/a>/g,
+    (whole, page: string, target: string | undefined, name: string) => {
+      const id = symbolIds.get(target ?? module)?.get(name);
+      return id ? `<a href="${page}#${id}"><code>${name}</code></a>` : whole;
+    },
+  );
+}
 
 mkdirSync(OUT, { recursive: true });
 mkdirSync(join(OUT, "api"), { recursive: true });
@@ -264,11 +289,20 @@ for (const { module, source } of CHECKED_MODULES) {
   for (const name of Object.keys(imported)) if (!listed.has(name)) missing.push(`${module}: ${name}`);
 }
 
-for (const file of readdirSync("docs/api")) {
-  if (!file.endsWith(".md") || file === "index.md") continue;
-  const md = readFileSync(join("docs/api", file), "utf8");
-  const html = renderApi(md).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
-  const name = basename(file, ".md");
+const apiPages = readdirSync("docs/api")
+  .filter((file) => file.endsWith(".md") && file !== "index.md")
+  .map((file) => {
+    const md = readFileSync(join("docs/api", file), "utf8");
+    const html = renderApi(md).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
+    const name = basename(file, ".md");
+    const ids = new Map<string, string>();
+    for (const m of html.matchAll(/<h3 id="([^"]+)">(?:<code>)?([^<]+)(?:<\/code>)?<\/h3>/g)) ids.set(m[2]!.trim().replace(/\(\)$/, ""), m[1]!);
+    symbolIds.set(name, ids);
+    return { name, md, html };
+  });
+for (const page of apiPages) {
+  const { name, md } = page;
+  const html = linkSymbols(name, page.html);
   writeFileSync(join(OUT, "api", `${name}.md`), md);
   writeFileSync(
     join(OUT, "api", `${name}.html`),

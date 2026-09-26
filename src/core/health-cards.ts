@@ -50,16 +50,30 @@ export type HealthCard = {
   reason?: string;
 };
 
-let defaultTrust: HealthCardTrust = {};
+// Trust settings and key caches live on globalThis, not in this module, so
+// every copy of the library on a page shares them. Each hosted bundle
+// (checkin.js, ui.js, ...) is self-contained and carries its own copy; trust
+// configured through checkin.js still has to reach the picker in ui.js.
+interface SharedState {
+  trust: HealthCardTrust;
+  jwks: Map<string, Promise<{ keys: Array<JsonWebKey & { kid?: string }> }>>;
+  directories: Map<string, Promise<Set<string>>>;
+}
+const SHARED = Symbol.for("smart-health-checkin.health-cards");
+const shared: SharedState = ((globalThis as { [SHARED]?: SharedState })[SHARED] ??= {
+  trust: {},
+  jwks: new Map(),
+  directories: new Map(),
+});
 
 /** Set the trust used for every check-in that doesn't pass its own. */
 export function configureHealthCardTrust(trust: HealthCardTrust): void {
-  defaultTrust = { ...trust };
+  shared.trust = { ...trust };
 }
 
 /** The trust currently configured. */
 export function healthCardTrust(): HealthCardTrust {
-  return defaultTrust;
+  return shared.trust;
 }
 
 const b64urlDecode = (s: string): Uint8Array =>
@@ -70,7 +84,7 @@ async function inflateRaw(bytes: Uint8Array): Promise<string> {
   return new Response(stream).text();
 }
 
-const jwksCache = new Map<string, Promise<{ keys: Array<JsonWebKey & { kid?: string }> }>>();
+const jwksCache = shared.jwks;
 function fetchJwks(issuer: string, fetchImpl: typeof fetch): Promise<{ keys: Array<JsonWebKey & { kid?: string }> }> {
   let cached = jwksCache.get(issuer);
   if (!cached) {
@@ -84,7 +98,7 @@ function fetchJwks(issuer: string, fetchImpl: typeof fetch): Promise<{ keys: Arr
   return cached;
 }
 
-const directoryCache = new Map<string, Promise<Set<string>>>();
+const directoryCache = shared.directories;
 function fetchDirectory(url: string, fetchImpl: typeof fetch): Promise<Set<string>> {
   let cached = directoryCache.get(url);
   if (!cached) {
@@ -114,7 +128,7 @@ async function isTrusted(issuer: string, trust: HealthCardTrust, fetchImpl: type
 export async function checkHealthCard(
   jws: string,
   fulfills: ReadonlyArray<string>,
-  trust: HealthCardTrust = defaultTrust,
+  trust: HealthCardTrust = shared.trust,
   fetchImpl: typeof fetch = fetch,
 ): Promise<HealthCard> {
   const accept = trust.accept ?? "trusted";

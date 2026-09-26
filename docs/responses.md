@@ -88,7 +88,7 @@ configureHealthCardTrust({ keys: { "https://issuer.example": jwks } }); // keys 
 
 - Every card appears in `healthCards()` and `entries()`, whatever `accept` says, with `valid`, `trusted`, `accepted`, and a `reason` when it isn't.
 - Set trust for one check-in with `runCheckin(request, { healthCards: { accept: "any-valid" } })`, or the picker's `checkinOptions`.
-- The hosted `ui.js` has its own copy of the library, so set the picker's trust through `checkinOptions`.
+- `configureHealthCardTrust` applies to every copy of the library on the page. Trust set through the hosted `checkin.js` also reaches the picker in `ui.js`.
 - If you store a card, store the JWS as received (`card.jws`). The signature is in the token; unpacked FHIR loses it.
 
 ## Prefill, then ask only for what's missing

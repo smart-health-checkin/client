@@ -3,7 +3,7 @@
 Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link you text before a visit. The patient's health app fills in what the visit needs, and the patient never leaves your page.
 
 <figure class="flow">
-      <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the awaited response lands back in your own code, where forms, FHIR, payment and routing happen in any order.">
+      <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the response arrives in your own code, where you prefill forms, write FHIR, or ask follow-up questions.">
         <defs>
           <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
@@ -31,8 +31,8 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
           <text x="20" y="110">result.response → the data, in your own code</text>
         </g>
         <g class="sans" fill="currentColor" font-size="10.5" opacity="0.75">
-          <text x="20" y="132">prefill your forms · write FHIR · take payment · ask follow-ups · route the patient</text>
-          <text x="20" y="148">…whatever your workflow needs, whenever it needs it — you never left your page.</text>
+          <text x="20" y="132">prefill your forms · write FHIR · ask follow-up questions</text>
+          <text x="20" y="148">The patient stays on your page the whole time.</text>
         </g>
       </svg>
       <figcaption>
@@ -48,9 +48,9 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
 | --- | --- |
 | Build a check-in page step by step | [The tutorial](tutorial.md): an intake form that fills itself in, in one HTML page |
 | Drop a picker into a page you have | [The picker](wallets.md#the-picker), below |
-| Call it from your own code | [`runCheckin`](#call-it-yourself), below |
+| Call it from your own code | [`wallet.start`](#call-it-yourself), below, or [`runCheckin`](wallets.md#starting-inside-the-click) |
 
-Or try it first: the [clinic demo](demo/), the [picker](demo/picker.html), the [allergy form](demo/autofill.html), the [kiosk](demo/kiosk.html).
+Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic demo](demo/), the [picker](demo/picker.html), the [allergy form](demo/autofill.html), the [kiosk](demo/kiosk.html).
 
 ## Drop in the picker
 
@@ -96,6 +96,7 @@ Or with no build step, from a hosted file:
 | `/client/lib/0.2.0/handoff.js` | The kiosk hand-off |
 | `/client/lib/0.2.0/wallet.js` | For building a web wallet |
 | `/client/lib/0.2.0/testing.js` | The mock wallet |
+| `/client/lib/0.2.0/fhir.js` | Turning a response into a FHIR transaction |
 
 All at `https://smart-health-checkin.org`. Drop the version for the latest.
 

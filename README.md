@@ -82,15 +82,9 @@ Or with no build step, from the hosted ES modules at `/client/lib/`, each self-c
 
 ## Try it
 
-<https://smart-health-checkin.org/client/demo/> — a fictional clinic running the real
-protocol stack. It opens with this project's demo wallet in a tab — a real consent screen,
-no phone needed — and the split button offers the device's own wallet and a
-mock. What came back is one click away in the results table, and every wire
-artifact under *Developer detail*.
-
-The [allergy example](https://smart-health-checkin.org/client/demo/autofill.html)
-shows the pattern worth stealing: prefill from the app, then ask only for what
-the shared record couldn't carry.
+- [Clinic demo](https://smart-health-checkin.org/client/demo/): a fictional clinic running the real protocol. It opens this project's demo wallet in a tab, with a real consent screen and no phone needed. It can also use the device's own wallet or a mock, and shows every wire artifact under *Developer detail*.
+- [Tutorial page](https://smart-health-checkin.org/client/demo/tutorial.html): the finished page from the tutorial.
+- [Allergy example](https://smart-health-checkin.org/client/demo/autofill.html): prefill from the app, then ask only for what the shared record didn't include.
 
 ## What's in here
 

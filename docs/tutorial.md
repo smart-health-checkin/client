@@ -9,7 +9,7 @@ What you'll build:
 - Code that fills the form from the answer, and falls back to typing when nothing comes back.
 - A page you can test with made-up data, then with a real test wallet.
 
-You need a text editor and a local web server (`npx serve`, `python3 -m http.server`, or similar). No build step, no install. [The finished page](#the-whole-page) is at the end.
+You need a text editor and a local web server (`npx serve`, `python3 -m http.server`, or similar). No build step, no install. [The finished page](#the-whole-page) is at the end, and you can [try it running](../demo/tutorial.html).
 
 ## Step 1: Start with your form
 
@@ -227,7 +227,7 @@ Take out the mock and the test registry, then work through [Going to production]
 
 ## The whole page
 
-Save this as `checkin.html` and open it through your local web server.
+Save this as `checkin.html` and open it through your local web server. It is also [running on this site](../demo/tutorial.html).
 
 ```html
 <!doctype html>

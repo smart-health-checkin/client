@@ -69,14 +69,14 @@ const isMobile = (): boolean => {
 const HTMLElementBase: typeof HTMLElement =
   typeof HTMLElement === "undefined" ? (class {} as unknown as typeof HTMLElement) : HTMLElement;
 
+/** Public properties a page may set before the element is defined. */
+const PROPERTIES = ["request", "checkinOptions", "wallets", "strings"] as const;
+
 export class SmartCheckinPicker extends HTMLElementBase {
   static observedAttributes = ["registry", "platform", "remember", "mock", "mode", "heading", "description"];
 
-  /** What to ask the patient for. Required unless `mode="pick"`. */
-  request?: CheckinRequestInput;
-  /** Passed to `runCheckin`: `keys`, `healthCards`, `fetch`. */
-  checkinOptions: Omit<CheckinOptions, "wallet" | "signal" | "session"> = {};
-
+  private _request?: CheckinRequestInput;
+  private _checkinOptions: Omit<CheckinOptions, "wallet" | "signal" | "session"> = {};
   private _strings: PickerStrings = DEFAULT_STRINGS;
   private _wallets?: Wallet[];
   private resolved: Wallet[] = [];
@@ -90,6 +90,36 @@ export class SmartCheckinPicker extends HTMLElementBase {
   private root!: ShadowRoot;
   private main!: HTMLElement;
   private dialog!: HTMLDialogElement;
+
+  constructor() {
+    super();
+    // A page can set properties before this element is defined (the script
+    // loads late, or a framework renders first). Those land as plain own
+    // properties that hide the accessors below; move them through the setters.
+    for (const name of PROPERTIES) {
+      if (Object.prototype.hasOwnProperty.call(this, name)) {
+        const value = (this as Record<string, unknown>)[name];
+        delete (this as Record<string, unknown>)[name];
+        (this as Record<string, unknown>)[name] = value;
+      }
+    }
+  }
+
+  /** What to ask the patient for. Required unless `mode="pick"`. */
+  get request(): CheckinRequestInput | undefined {
+    return this._request;
+  }
+  set request(value: CheckinRequestInput | undefined) {
+    this._request = value;
+  }
+
+  /** Passed to `runCheckin`: `keys`, `healthCards`, `fetch`. */
+  get checkinOptions(): Omit<CheckinOptions, "wallet" | "signal" | "session"> {
+    return this._checkinOptions;
+  }
+  set checkinOptions(value: Omit<CheckinOptions, "wallet" | "signal" | "session"> | undefined) {
+    this._checkinOptions = value ?? {};
+  }
 
   /** Replace any of the picker's text. Missing keys keep their defaults. */
   get strings(): PickerStrings {

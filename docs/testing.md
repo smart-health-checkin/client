@@ -141,9 +141,10 @@ Two hosted tools let you test against a known-good counterpart.
 
 <https://smart-health-checkin.org/connectathon/testing-ehr/>
 
-- Sends any connectathon scenario to any registry wallet, or to this device's own wallet.
-- Checks the response against the spec and lists each check as pass or fail, with what went wrong.
-- Links a finished run to a prefilled result report.
+- Sends a connectathon scenario, a request you build from items, or one you paste.
+- Sends it to a registry wallet, this device's own wallet, or any web wallet by URL, so you can test before you're registered.
+- Shows the verdict first, then each failing check with what to fix, then what came back: readable, as JSON, and the wire layers.
+- Downloads the whole run, keeps recent runs in the browser, and opens a prefilled issue for a result.
 
 ### SMART Testing Wallet
 
@@ -163,8 +164,13 @@ A web wallet with synthetic patients. Its testing panel can send a deliberately 
 | `bad-encryption` | A corrupted HPKE ciphertext |
 | `wrong-origin` | A transcript bound to a different origin |
 | `bad-shc-signature` | A SMART Health Card with a broken signature |
+| `combine-allergies-meds` | Allergies and medications in one shared Bundle. A valid response, for scenario O7. |
 
-Every fault except `oversized` and `bad-shc-signature` should end your check-in as failed with `invalid-response`. `bad-shc-signature` arrives as a card with `valid: false`, left out of `resources()`. `oversized` should arrive intact.
+What your EHR should do with each:
+
+- **`oversized` and `combine-allergies-meds`:** accept the response intact.
+- **`bad-shc-signature`:** accept the response. The card arrives with `valid: false` and is left out of `resources()`.
+- **Every other fault:** fail the check-in with `invalid-response`.
 
 ## Reading a failed result
 
@@ -192,6 +198,7 @@ Each demo page runs the real flow and shows one way to use the library. Source i
 | Page | What it shows |
 | --- | --- |
 | [Clinic check-in](../demo/) | The reference EHR: `wallets()` for a menu, `wallet.start` in the click, the raw response, the optional FHIR helper |
+| [Tutorial page](../demo/tutorial.html) | The finished page from [the tutorial](tutorial.md): the picker, a request, and a form filled from the answer |
 | [Wallet picker](../demo/picker.html) | The picker in canned situations and styles, pick mode, and reskinning |
 | [React](../demo/react.html) | `<CheckinPicker>` and `response.resources("meds", { type: "MedicationRequest" })` |
 | [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |

@@ -36,6 +36,7 @@ Nothing is posted unless both `post` and `fhir` are set. The public HAPI R4 test
 …/demo/#wallet=platform                   the device's own wallet
 …/demo/#wallet=mock                       an instant made-up answer, no consent screen
 …/demo/#wallet=mock&post=transaction&fhir=<base>   then post it there
+…/demo/tutorial.html                      the tutorial's finished page
 …/demo/picker.html                        the picker element
 …/demo/autofill.html                      prefill a form from the app
 …/demo/kiosk.html                         a kiosk: QR code, then the phone answers
