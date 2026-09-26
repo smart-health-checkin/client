@@ -48,12 +48,11 @@ has to audit and configure.
 The docs site is at [smart-health-checkin.org/client/docs](https://smart-health-checkin.org/client/docs/);
 the same pages live in this repo, so they read here too.
 
-| Track | Guides |
+| Level | Pages |
 | --- | --- |
-| Add check-in to an EHR page | [Getting started](docs/getting-started.md) · [Wallet picker](docs/picker.md) · [Request model](docs/requests.md) · [Response model](docs/responses.md) · [Offering wallets](docs/wallets.md) · [Wallet registries](docs/registry.md) · [Kiosk](docs/kiosk.md) · [Writing FHIR](docs/fhir.md) · [Production checklist](docs/production.md) · [Server-held keys](docs/server-authority.md) |
-| Build a wallet | [Build a wallet](docs/build-a-wallet.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) |
-| Test and debug | [Test and debug](docs/testing.md) · [Running the demos](demo/README.md) · [Upgrading from 0.1](docs/upgrading.md) |
-| Reference | [API reference](docs/api/index.md), generated from source, one page per entry point |
+| Start | [Overview](docs/getting-started.md) · [Tutorial: build a check-in page](docs/tutorial.md) |
+| Guides | [Asking for data](docs/requests.md) · [Offering wallets](docs/wallets.md) · [Using the answer](docs/responses.md) · [Going to production](docs/production.md) · [Building a wallet](docs/build-a-wallet.md) · [Testing](docs/testing.md) |
+| Reference | [API reference](docs/api/index.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) · [Registry format](docs/registry.md) · [Upgrading from 0.1](docs/upgrading.md) · [Demo options](demo/README.md) |
 
 ## Install
 

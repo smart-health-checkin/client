@@ -1,21 +1,8 @@
-# Check-in demo
+# Demo options
 
 The sample pages for `@smart-health-checkin/client`, served at `/client/demo/`. Each page shows one way to use the library, running the real flow. Responses stay in the page unless you say where to post them.
 
-## The pages
-
-| Page | What it is | What it shows |
-| --- | --- | --- |
-| `index.html` (`src/main.ts`) | A fictional clinic's check-in page: the reference EHR | `wallets()` for the menu, `wallet.start(request)` in the click, `result.response.json` for the raw response, and the optional `/fhir` helper for posting |
-| `picker.html` (`src/picker.ts`) | The `<smart-checkin-picker>` element, in canned situations and skins | The element's attributes, pick mode with `setOutcome`, and reskinning with `--smart-checkin-*` variables |
-| `react.html` (`src/frameworks/react.tsx`) | A medication review in React | `<CheckinPicker>` from `/react`, and `response.resources("meds", { type: "MedicationRequest" })` |
-| `angular.html` (`src/frameworks/angular.ts`) | The same review in Angular | A small service over `wallets()` and `wallet.start(request)` |
-| `autofill.html` (`src/autofill.ts`) | An allergy form, prefilled from the patient's app | `response.resources("allergies", { type: "AllergyIntolerance" })`, then asking only for what the record lacks |
-| `kiosk.html` (`src/kiosk.ts`) | A screen with no wallet: shows a QR code and waits | `handoffWallet()` from `/handoff`, started like any wallet |
-| `handoff.html` (`src/handoff.ts`) | What the phone opens from the kiosk's QR code | `fetchHandoff`, then `answerHandoff` with the wallet the patient picks |
-| `wallet.html` (`src/wallet.ts`) | The Demo Health Wallet, a web wallet with made-up records | `serveWebWallet()` from `/wallet`; the page itself is only the consent screen |
-
-The requests the demos send are plain objects in `src/requests.ts`.
+What each page shows is in [Testing: the demos](../docs/testing.md#the-demos). The requests the demos send are plain objects in `src/requests.ts`.
 
 ## URL options for the reference EHR
 

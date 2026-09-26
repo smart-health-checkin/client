@@ -205,7 +205,7 @@ type DeviceRequestInspection = {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:41
+Defined in: [src/wire/inspect-request.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L41)
 
 #### Properties
 
@@ -215,7 +215,7 @@ Defined in: src/wire/inspect-request.ts:41
 deviceRequest: JsonValue;
 ```
 
-Defined in: src/wire/inspect-request.ts:44
+Defined in: [src/wire/inspect-request.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L44)
 
 ##### deviceRequestDiagnostic
 
@@ -223,7 +223,7 @@ Defined in: src/wire/inspect-request.ts:44
 deviceRequestDiagnostic: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:43
+Defined in: [src/wire/inspect-request.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L43)
 
 ##### deviceRequestHex
 
@@ -231,7 +231,7 @@ Defined in: src/wire/inspect-request.ts:43
 deviceRequestHex: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:42
+Defined in: [src/wire/inspect-request.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L42)
 
 ##### docRequests
 
@@ -239,7 +239,7 @@ Defined in: src/wire/inspect-request.ts:42
 docRequests: ItemsRequestInspection[];
 ```
 
-Defined in: src/wire/inspect-request.ts:45
+Defined in: [src/wire/inspect-request.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L45)
 
 ***
 
@@ -520,7 +520,7 @@ type EncryptionInfoInspection = {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:48
+Defined in: [src/wire/inspect-request.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L48)
 
 #### Properties
 
@@ -530,7 +530,7 @@ Defined in: src/wire/inspect-request.ts:48
 encryptionInfo: JsonValue;
 ```
 
-Defined in: src/wire/inspect-request.ts:51
+Defined in: [src/wire/inspect-request.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L51)
 
 ##### encryptionInfoDiagnostic
 
@@ -538,7 +538,7 @@ Defined in: src/wire/inspect-request.ts:51
 encryptionInfoDiagnostic: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:50
+Defined in: [src/wire/inspect-request.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L50)
 
 ##### encryptionInfoHex
 
@@ -546,7 +546,7 @@ Defined in: src/wire/inspect-request.ts:50
 encryptionInfoHex: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:49
+Defined in: [src/wire/inspect-request.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L49)
 
 ##### nonce?
 
@@ -557,7 +557,7 @@ optional nonce?: {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:52
+Defined in: [src/wire/inspect-request.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L52)
 
 ###### base64url
 
@@ -577,7 +577,7 @@ hex: string;
 optional recipientPublicKey?: JsonValue;
 ```
 
-Defined in: src/wire/inspect-request.ts:53
+Defined in: [src/wire/inspect-request.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L53)
 
 ***
 
@@ -833,7 +833,7 @@ type ItemsRequestInspection = {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:12
+Defined in: [src/wire/inspect-request.ts:12](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L12)
 
 #### Properties
 
@@ -843,7 +843,7 @@ Defined in: src/wire/inspect-request.ts:12
 optional docType?: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:16
+Defined in: [src/wire/inspect-request.ts:16](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L16)
 
 ##### itemsRequest
 
@@ -851,7 +851,7 @@ Defined in: src/wire/inspect-request.ts:16
 itemsRequest: JsonValue;
 ```
 
-Defined in: src/wire/inspect-request.ts:15
+Defined in: [src/wire/inspect-request.ts:15](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L15)
 
 ##### itemsRequestDiagnostic
 
@@ -859,7 +859,7 @@ Defined in: src/wire/inspect-request.ts:15
 itemsRequestDiagnostic: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:14
+Defined in: [src/wire/inspect-request.ts:14](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L14)
 
 ##### itemsRequestHex
 
@@ -867,7 +867,7 @@ Defined in: src/wire/inspect-request.ts:14
 itemsRequestHex: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:13
+Defined in: [src/wire/inspect-request.ts:13](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L13)
 
 ##### readerAuth?
 
@@ -881,7 +881,7 @@ optional readerAuth?: {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:24
+Defined in: [src/wire/inspect-request.ts:24](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L24)
 
 ###### payloadIsDetached
 
@@ -923,7 +923,7 @@ requestedElements: {
 }[];
 ```
 
-Defined in: src/wire/inspect-request.ts:17
+Defined in: [src/wire/inspect-request.ts:17](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L17)
 
 ###### elementIdentifier
 
@@ -949,7 +949,7 @@ namespace: string;
 optional requestInfo?: JsonValue;
 ```
 
-Defined in: src/wire/inspect-request.ts:22
+Defined in: [src/wire/inspect-request.ts:22](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L22)
 
 ##### smartHealthCheckin
 
@@ -957,7 +957,7 @@ Defined in: src/wire/inspect-request.ts:22
 smartHealthCheckin: SmartRequestInspection;
 ```
 
-Defined in: src/wire/inspect-request.ts:23
+Defined in: [src/wire/inspect-request.ts:23](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L23)
 
 ***
 
@@ -1061,7 +1061,7 @@ type OrgIsoMdocInspection = {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:56
+Defined in: [src/wire/inspect-request.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L56)
 
 #### Properties
 
@@ -1071,7 +1071,7 @@ Defined in: src/wire/inspect-request.ts:56
 deviceRequest: DeviceRequestInspection;
 ```
 
-Defined in: src/wire/inspect-request.ts:58
+Defined in: [src/wire/inspect-request.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L58)
 
 ##### encryptionInfo?
 
@@ -1079,7 +1079,7 @@ Defined in: src/wire/inspect-request.ts:58
 optional encryptionInfo?: EncryptionInfoInspection;
 ```
 
-Defined in: src/wire/inspect-request.ts:59
+Defined in: [src/wire/inspect-request.ts:59](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L59)
 
 ##### protocol
 
@@ -1087,7 +1087,7 @@ Defined in: src/wire/inspect-request.ts:59
 protocol: typeof PROTOCOL_ID;
 ```
 
-Defined in: src/wire/inspect-request.ts:57
+Defined in: [src/wire/inspect-request.ts:57](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L57)
 
 ##### sessionTranscript?
 
@@ -1099,7 +1099,7 @@ optional sessionTranscript?: {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:60
+Defined in: [src/wire/inspect-request.ts:60](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L60)
 
 ###### diagnostic
 
@@ -1371,7 +1371,7 @@ type SmartRequestCarrierResolution = {
 };
 ```
 
-Defined in: src/wire/inspect-request.ts:33
+Defined in: [src/wire/inspect-request.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L33)
 
 #### Properties
 
@@ -1381,7 +1381,7 @@ Defined in: src/wire/inspect-request.ts:33
 optional companionElementIdentifier?: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:38
+Defined in: [src/wire/inspect-request.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L38)
 
 ##### companionPresent
 
@@ -1389,7 +1389,7 @@ Defined in: src/wire/inspect-request.ts:38
 companionPresent: boolean;
 ```
 
-Defined in: src/wire/inspect-request.ts:37
+Defined in: [src/wire/inspect-request.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L37)
 
 ##### json?
 
@@ -1397,7 +1397,7 @@ Defined in: src/wire/inspect-request.ts:37
 optional json?: string;
 ```
 
-Defined in: src/wire/inspect-request.ts:34
+Defined in: [src/wire/inspect-request.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L34)
 
 ##### requestInfoPresent
 
@@ -1405,7 +1405,7 @@ Defined in: src/wire/inspect-request.ts:34
 requestInfoPresent: boolean;
 ```
 
-Defined in: src/wire/inspect-request.ts:36
+Defined in: [src/wire/inspect-request.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L36)
 
 ##### source
 
@@ -1413,7 +1413,7 @@ Defined in: src/wire/inspect-request.ts:36
 source: "requestInfo" | "companion" | "none";
 ```
 
-Defined in: src/wire/inspect-request.ts:35
+Defined in: [src/wire/inspect-request.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L35)
 
 ***
 
@@ -2340,7 +2340,7 @@ Defined in: [src/wire/response.ts:133](https://github.com/smart-health-checkin/c
 function inspectDeviceRequestBytes(bytes): DeviceRequestInspection;
 ```
 
-Defined in: src/wire/inspect-request.ts:99
+Defined in: [src/wire/inspect-request.ts:99](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L99)
 
 #### Parameters
 
@@ -2380,7 +2380,7 @@ Defined in: [src/wire/response.ts:288](https://github.com/smart-health-checkin/c
 function inspectEncryptionInfoBytes(bytes): EncryptionInfoInspection;
 ```
 
-Defined in: src/wire/inspect-request.ts:179
+Defined in: [src/wire/inspect-request.ts:179](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L179)
 
 #### Parameters
 
@@ -2400,7 +2400,7 @@ Defined in: src/wire/inspect-request.ts:179
 function inspectItemsRequestBytes(bytes): ItemsRequestInspection;
 ```
 
-Defined in: src/wire/inspect-request.ts:130
+Defined in: [src/wire/inspect-request.ts:130](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L130)
 
 #### Parameters
 
@@ -2420,7 +2420,7 @@ Defined in: src/wire/inspect-request.ts:130
 function inspectOrgIsoMdocNavigatorArgument(arg, options?): Promise<OrgIsoMdocInspection>;
 ```
 
-Defined in: src/wire/inspect-request.ts:67
+Defined in: [src/wire/inspect-request.ts:67](https://github.com/smart-health-checkin/client/blob/main/src/wire/inspect-request.ts#L67)
 
 #### Parameters
 

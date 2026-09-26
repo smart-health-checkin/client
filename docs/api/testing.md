@@ -23,7 +23,7 @@ type MockItemSpec =
 };
 ```
 
-Defined in: src/testing/mock.ts:25
+Defined in: [src/testing/mock.ts:25](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L25)
 
 What the mock wallet should return for one requested item.
 
@@ -83,7 +83,7 @@ type MockItemSpecs =
   | readonly MockItemSpec[];
 ```
 
-Defined in: src/testing/mock.ts:39
+Defined in: [src/testing/mock.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L39)
 
 One item can be answered by several artifacts: give it a list.
 
@@ -100,7 +100,7 @@ type MockWalletOptions = {
 };
 ```
 
-Defined in: src/testing/mock.ts:41
+Defined in: [src/testing/mock.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L41)
 
 #### Properties
 
@@ -110,7 +110,7 @@ Defined in: src/testing/mock.ts:41
 optional fallback?: "fabricate" | MockItemSpec;
 ```
 
-Defined in: src/testing/mock.ts:63
+Defined in: [src/testing/mock.ts:63](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L63)
 
 What to do with items `items` doesn't mention: "fabricate" (default)
 invents plausible demo data; a spec applies that spec to all of them.
@@ -121,7 +121,7 @@ invents plausible demo data; a spec applies that spec to all of them.
 optional items?: Record<string, MockItemSpecs>;
 ```
 
-Defined in: src/testing/mock.ts:58
+Defined in: [src/testing/mock.ts:58](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L58)
 
 Exactly what to return, per request item id. Anything not named here
 follows `fallback`.
@@ -143,7 +143,7 @@ createMockWalletCredentialGetter({
 origin: string;
 ```
 
-Defined in: src/testing/mock.ts:42
+Defined in: [src/testing/mock.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L42)
 
 ##### respond?
 
@@ -151,7 +151,7 @@ Defined in: src/testing/mock.ts:42
 optional respond?: (request) => SmartCheckinResponse;
 ```
 
-Defined in: src/testing/mock.ts:65
+Defined in: [src/testing/mock.ts:65](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L65)
 
 Full manual control: build the entire response yourself.
 
@@ -173,7 +173,7 @@ Full manual control: build the entire response yourself.
 const DEMO_HEALTH_CARD_JWS: "eyJ6aXAiOiJERUYiLCJhbGciOiJFUzI1NiIsImtpZCI6Im1vY2sta2V5In0.fZHNjtQwEIRfZVVcnZkkGmbAR1gkQFqB-Lus5tBxOhsjx4nszrBR5HdHDquBw4pj293V9VWvsDFCoxeZot7vf5FzLDt-pGFyvG95GKHgmw66Oh1Pdf3yWJYKFwO9QpaJoe-vw3GgID2Tk35nKLTxxZ-iyAXOCiZwy14sua9z85ONZJWut-EHh2hHD43DrtxVUNvrm9m3jnNP4DjOwfC3bSOePtSTA5jROTaSFRTYS1ig71d0s3Pfg4O-zusS6lo8I_yZxLKXjExDZlvR0WDdAo0vvHCEwoO9sM_YH8fQksc5nRUaG6S_Jcki1etXh6I8FmWNlNSzNjLhf2y8HS8c6CETRiGZ84XIiL38ZV4h_CjQuOVhvHm_5XwzOfJICnFuogm24fChzS3v7j4Vh0N1gkLDnjtrLOWM8uKOA_vs4t-QksJEyxi2BFobJ0c5gm3X3SwzOWTqiYMd26wThUJ2U5f1sSiroqyQUjqnlNJv.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" = "eyJ6aXAiOiJERUYiLCJhbGciOiJFUzI1NiIsImtpZCI6Im1vY2sta2V5In0.fZHNjtQwEIRfZVVcnZkkGmbAR1gkQFqB-Lus5tBxOhsjx4nszrBR5HdHDquBw4pj293V9VWvsDFCoxeZot7vf5FzLDt-pGFyvG95GKHgmw66Oh1Pdf3yWJYKFwO9QpaJoe-vw3GgID2Tk35nKLTxxZ-iyAXOCiZwy14sua9z85ONZJWut-EHh2hHD43DrtxVUNvrm9m3jnNP4DjOwfC3bSOePtSTA5jROTaSFRTYS1ig71d0s3Pfg4O-zusS6lo8I_yZxLKXjExDZlvR0WDdAo0vvHCEwoO9sM_YH8fQksc5nRUaG6S_Jcki1etXh6I8FmWNlNSzNjLhf2y8HS8c6CETRiGZ84XIiL38ZV4h_CjQuOVhvHm_5XwzOfJICnFuogm24fChzS3v7j4Vh0N1gkLDnjtrLOWM8uKOA_vs4t-QksJEyxi2BFobJ0c5gm3X3SwzOWTqiYMd26wThUJ2U5f1sSiroqyQUjqnlNJv.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 ```
 
-Defined in: src/testing/mock.ts:186
+Defined in: [src/testing/mock.ts:186](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L186)
 
 ***
 
@@ -195,7 +195,7 @@ This project's demo web wallet, for demos.
 function buildMockResponse(request, options?): SmartCheckinResponse;
 ```
 
-Defined in: src/testing/mock.ts:72
+Defined in: [src/testing/mock.ts:72](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L72)
 
 Build a response from a per-item specification. Exported so tests can
 assert on the response without going through the wire layer at all.
@@ -219,7 +219,7 @@ assert on the response without going through the wire layer at all.
 function fabricateResponse(request, include?): SmartCheckinResponse;
 ```
 
-Defined in: src/testing/mock.ts:189
+Defined in: [src/testing/mock.ts:189](https://github.com/smart-health-checkin/client/blob/main/src/testing/mock.ts#L189)
 
 #### Parameters
 

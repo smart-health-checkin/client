@@ -11,7 +11,7 @@ import { createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, CHECKED_MODULES, anchorFor } from "./api-index.ts";
-import { GUIDES, TRACKS } from "./site-nav.ts";
+import { GUIDES, LEVELS, MOVED } from "./site-nav.ts";
 import { CHROME_ASSETS, footer, header } from "./site-chrome.ts";
 import { BASE, OUT_ROOT } from "./site-base.ts";
 
@@ -112,18 +112,18 @@ const DOCS_STYLE = `
 /** The guides in reading order, plus the API reference, with you marked. */
 function rail(slug: string): string {
   const here = (s: string) => (s === slug ? ' aria-current="page"' : "");
-  const guides = TRACKS.map((track) => {
-    const items = GUIDES.filter((g) => g.track === track && existsSync(g.file))
+  const guides = LEVELS.map(({ level, label }) => {
+    const items = GUIDES.filter((g) => g.level === level && existsSync(g.file))
       .map((g) => `<li><a href="${hrefFor(g.slug)}"${here(g.slug)}>${g.title}</a></li>`)
       .join("");
-    return `<li class="track"><span>${track}</span><ul>${items}</ul></li>`;
+    return `<li class="track"><span>${label}</span><ul>${items}</ul></li>`;
   }).join("");
   const api = API_GROUPS.map((g) => g.module)
     .filter((m, i, all) => all.indexOf(m) === i)
     .map((m) => `<li><a href="${BASE}/docs/api/${m}.html"${here(`api-${m}`)}>${m}</a></li>`)
     .join("");
   return `<nav class="rail" aria-label="Documentation">
-    <h4>Guides</h4>
+    <h4>Docs</h4>
     <ul class="tracks">${guides}</ul>
     <h4><a href="${BASE}/docs/api/"${here("api-index")}>API reference</a></h4>
     <ul>${api}</ul>
@@ -131,11 +131,12 @@ function rail(slug: string): string {
 }
 
 function crumb(title: string, isApi: boolean): string {
-  return `<p class="crumb"><a href="${BASE}/">JavaScript client</a>${isApi ? ` <span>/</span> <a href="${BASE}/docs/api/">API reference</a>` : ""} <span>/</span> ${title}</p>`;
+  return `<p class="crumb"><a href="${BASE}/">Developers</a>${isApi ? ` <span>/</span> <a href="${BASE}/docs/api/">API reference</a>` : ""} <span>/</span> ${title}</p>`;
 }
 
 function pager(slug: string): string {
-  const list = GUIDES.filter((g) => existsSync(g.file));
+  // The start pages and guides read in order; reference pages stand alone.
+  const list = GUIDES.filter((g) => g.level !== "reference" && existsSync(g.file));
   const i = list.findIndex((g) => g.slug === slug);
   if (i < 0) return "";
   const prev = list[i - 1];
@@ -172,9 +173,10 @@ function rewriteLinks(html: string): string {
     .replace(/href="(?:\.\.\/)?api\/index\.md"/g, `href="${BASE}/docs/api/"`)
     .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
     .replace(/href="\.\.\/demo\/README\.md"/g, `href="${BASE}/docs/demo.html"`)
-    .replace(/href="(?:\.\.\/)?getting-started\.md"/g, `href="${BASE}/"`)
-    .replace(/href="\.\.\/([a-z-]+)\.md"/g, `href="${BASE}/docs/$1.html"`)
-    .replace(/href="([a-z-]+)\.md"/g, `href="${BASE}/docs/$1.html"`);
+    .replace(/href="\.\.\/docs\/([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/$1.html$2"`)
+    .replace(/href="(?:\.\.\/)?getting-started\.md(#[^"]*)?"/g, `href="${BASE}/$1"`)
+    .replace(/href="\.\.\/([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/$1.html$2"`)
+    .replace(/href="([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/$1.html$2"`);
 }
 
 // Build-time syntax highlighting: dual-theme CSS variables, so the page
@@ -194,8 +196,26 @@ const LANG_ALIASES: Record<string, string> = {
   "": "text",
 };
 
+// GitHub-style heading ids, so "page.md#section" links work, unique per page.
+const usedSlugs = new Map<string, number>();
+const slugFor = (text: string): string => {
+  const base = text
+    .toLowerCase()
+    .replace(/<[^>]+>/g, "")
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .trim()
+    .replace(/\s/g, "-");
+  const n = usedSlugs.get(base) ?? 0;
+  usedSlugs.set(base, n + 1);
+  return n ? `${base}-${n}` : base;
+};
+
 marked.use({
   renderer: {
+    heading({ tokens, depth, text }: { tokens: unknown[]; depth: number; text: string }): string {
+      const inner = (this as unknown as { parser: { parseInline(t: unknown[]): string } }).parser.parseInline(tokens);
+      return `<h${depth} id="${slugFor(text.replace(/[`*]/g, ""))}">${inner}</h${depth}>\n`;
+    },
     code({ text, lang }: { text: string; lang?: string }): string {
       const requested = (lang ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
       const resolved = LANG_ALIASES[requested] ?? requested;
@@ -209,7 +229,15 @@ marked.use({
   },
 });
 
-const render = (md: string): string => rewriteLinks(marked.parse(md) as string);
+const render = (md: string): string => {
+  usedSlugs.clear();
+  return rewriteLinks(marked.parse(md) as string);
+};
+// Reference pages link to each other as "checkin.md#x"; keep those under /docs/api/.
+const renderApi = (md: string): string => {
+  usedSlugs.clear();
+  return rewriteLinks((marked.parse(md) as string).replace(/href="([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/api/$1.html$2"`));
+};
 
 mkdirSync(OUT, { recursive: true });
 mkdirSync(join(OUT, "api"), { recursive: true });
@@ -239,9 +267,7 @@ for (const { module, source } of CHECKED_MODULES) {
 for (const file of readdirSync("docs/api")) {
   if (!file.endsWith(".md") || file === "index.md") continue;
   const md = readFileSync(join("docs/api", file), "utf8");
-  const html = render(md)
-    .replace(/href="([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
-    .replace(/href="\/docs\/api\/index\.html"/g, `href="${BASE}/docs/api/"`);
+  const html = renderApi(md).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
   const name = basename(file, ".md");
   writeFileSync(join(OUT, "api", `${name}.md`), md);
   writeFileSync(
@@ -281,7 +307,7 @@ writeFileSync(
   shell(
     "API reference — SMART Health Check-in",
     "api-index",
-    `<p class="crumb"><a href="${BASE}/">JavaScript client</a> <span>/</span> API reference</p>
+    `<p class="crumb"><a href="${BASE}/">Developers</a> <span>/</span> API reference</p>
 <h1>API reference</h1>
 <p class="lede">
   Every export, grouped by what you'd be doing. Signatures and types are
@@ -302,6 +328,8 @@ ${groupsHtml}
   ),
 );
 
+const ORIGIN_FOR_REDIRECTS = process.env.SITE_ORIGIN ?? "https://smart-health-checkin.org";
+
 // --- the old doors: /docs/ and /docs/getting-started.html lead to the front page
 const redirect = (to: string): string => `<!doctype html>
 <meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${to}">
@@ -309,6 +337,28 @@ const redirect = (to: string): string => `<!doctype html>
 <p>Moved to <a href="${to}">${to}</a>.</p>
 `;
 for (const stale of ["index.html", "getting-started.html"]) writeFileSync(join(OUT, stale), redirect(`${BASE}/`));
+// Pages merged into others keep working.
+for (const [slug, to] of Object.entries(MOVED)) {
+  writeFileSync(join(OUT, `${slug}.html`), redirect(`${BASE}/docs/${to}`));
+  writeFileSync(join(OUT, `${slug}.md`), `Moved to ${ORIGIN_FOR_REDIRECTS}${BASE}/docs/${to}\n`);
+}
+
+// nav.json: the site's "Developers" menu (smart-health-checkin.github.io/assets/site-chrome.js mirrors it).
+writeFileSync(
+  join(OUT_ROOT, "nav.json"),
+  JSON.stringify(
+    {
+      label: "Developers",
+      href: `${BASE}/`,
+      items: [
+        ...GUIDES.filter((g) => g.menuNote && existsSync(g.file)).map((g) => ({ title: g.title, href: hrefFor(g.slug), note: g.menuNote })),
+        { title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" },
+      ],
+    },
+    null,
+    2,
+  ) + "\n",
+);
 
 console.log(
   `docs rendered: ${GUIDES.length} guides, API index (${CHECKED_MODULES.length} modules checked) -> ${OUT}`,
@@ -327,7 +377,7 @@ const apiModules = readdirSync("docs/api")
 writeFileSync(
   join(OUT_ROOT, "llms.txt"),
   [
-    "# SMART Health Check-in — JavaScript client",
+    "# SMART Health Check-in — Developers",
     "",
     "> Add SMART Health Check-in to an EHR page: a drop-in picker, or one call (`runCheckin`) that asks the patient's health app for what the visit needs and returns a verified response. Also a wallet-side module, a kiosk hand-off, and a mock wallet for testing. Install from git (`npm install github:smart-health-checkin/client`) or import the hosted ES modules.",
     "",
@@ -347,7 +397,7 @@ writeFileSync(
 const section = (url: string, body: string): string => `\n\n---\n\n<!-- ${url} -->\n\n${body.trim()}\n`;
 writeFileSync(
   join(OUT_ROOT, "llms-full.txt"),
-  "# SMART Health Check-in — JavaScript client\n" +
+  "# SMART Health Check-in — Developers\n" +
     guides.map((g) => section(abs(mdPathFor(g.slug)), readFileSync(g.file, "utf8"))).join("") +
     apiModules.map((m) => section(abs(`/docs/api/${m}.md`), readFileSync(join("docs/api", `${m}.md`), "utf8"))).join(""),
 );

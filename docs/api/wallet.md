@@ -106,7 +106,7 @@ type ParsedWalletRequest = {
 };
 ```
 
-Defined in: src/wallet/seal.ts:29
+Defined in: [src/wallet/seal.ts:29](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L29)
 
 #### Properties
 
@@ -116,7 +116,7 @@ Defined in: src/wallet/seal.ts:29
 deviceRequestBytes: Uint8Array;
 ```
 
-Defined in: src/wallet/seal.ts:31
+Defined in: [src/wallet/seal.ts:31](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L31)
 
 ##### encryptionInfoBytes
 
@@ -124,7 +124,7 @@ Defined in: src/wallet/seal.ts:31
 encryptionInfoBytes: Uint8Array;
 ```
 
-Defined in: src/wallet/seal.ts:32
+Defined in: [src/wallet/seal.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L32)
 
 ##### smartRequest
 
@@ -132,7 +132,7 @@ Defined in: src/wallet/seal.ts:32
 smartRequest: SmartCheckinRequest;
 ```
 
-Defined in: src/wallet/seal.ts:30
+Defined in: [src/wallet/seal.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L30)
 
 ***
 
@@ -490,7 +490,7 @@ Defined in: [src/kit/web-wallet.ts:19](https://github.com/smart-health-checkin/c
 function buildSignedDeviceResponse(input): Promise<Uint8Array<ArrayBufferLike>>;
 ```
 
-Defined in: src/wallet/seal.ts:132
+Defined in: [src/wallet/seal.ts:132](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L132)
 
 A structurally real SMART Health Card: a JWS whose payload is the raw-DEFLATEd
 `{ iss, nbf, vc.credentialSubject.fhirBundle }` (one Patient, one Coverage),
@@ -517,7 +517,7 @@ zeros — nothing verifies it, and nothing should.
 function parseWalletRequest(navigatorArgument): ParsedWalletRequest;
 ```
 
-Defined in: src/wallet/seal.ts:36
+Defined in: [src/wallet/seal.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L36)
 
 Wallet side: recover the SMART request from a navigator.credentials.get argument.
 
@@ -539,7 +539,7 @@ Wallet side: recover the SMART request from a navigator.credentials.get argument
 function recipientJwkFromEncryptionInfo(encryptionInfoBytes): JsonWebKey;
 ```
 
-Defined in: src/wallet/seal.ts:107
+Defined in: [src/wallet/seal.ts:107](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L107)
 
 #### Parameters
 
@@ -564,7 +564,7 @@ function sealWalletResponse(input): Promise<{
 }>;
 ```
 
-Defined in: src/wallet/seal.ts:52
+Defined in: [src/wallet/seal.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/wallet/seal.ts#L52)
 
 Wallet side: sign and HPKE-seal a SMART response for the verifier.
 `verifierOrigin` is the requesting page's origin — the SessionTranscript

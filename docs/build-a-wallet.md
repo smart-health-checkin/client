@@ -1,4 +1,4 @@
-# Build a wallet
+# Building a wallet
 
 A wallet answers a clinic's check-in request with records and form answers the patient chose to share. `@smart-health-checkin/client/wallet` has the protocol and the matching rules; the consent screen is yours.
 
@@ -49,6 +49,15 @@ const served = serveWebWallet({
 
 if (!served.opened) showLandingPage(); // opened directly, not by an EHR
 ```
+
+What happens under it, the [web wallet hand-off](web-wallet-handoff.md):
+
+| Step | Message |
+| --- | --- |
+| The EHR opens your page in a tab | none |
+| Your page says it's ready | `ready`, to the opener |
+| The EHR sends the request | `request`, with the Digital Credentials API argument |
+| You answer | `response`: approved with a credential, declined, or an error |
 
 `onRequest` returns one of four answers:
 
@@ -139,6 +148,16 @@ For wallets that seal their own responses, or run somewhere `serveWebWallet` doe
 
 ## A reference to compare against
 
-The [SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing-wallet/) implements all of this, plus switches for sending deliberately broken responses. Its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) lists exactly what it does.
+The [SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing-wallet/) implements all of this with `serveWebWallet` and `selectEntries`, plus switches for sending deliberately broken responses. Its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) lists exactly what it does.
 
-To get your wallet into an EHR's picker, list it in a [wallet registry](registry.md).
+Test your wallet against the [Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/): it sends every connectathon scenario and checks your answer against the spec. See [Testing](testing.md).
+
+## Getting listed
+
+EHR pages offer web wallets from a registry, a `wallets.json` file. To appear in one:
+
+- **The connectathon registry:** fill in the [registration form](https://smart-health-checkin.org/connectathon/register/). It opens a pull request with your entry; once merged, the registry rebuilds within minutes.
+- **A clinic's registry:** send them your entry. [Registry format](registry.md) lists the fields.
+- **Your icon:** a small square SVG or PNG, with no scripts or external references. Registries should inline it as a `data:` URL.
+
+Next: [Testing](testing.md)

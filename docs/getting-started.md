@@ -1,6 +1,6 @@
-# Getting started
+# SMART Health Check-in for JavaScript
 
-Add SMART Health Check-in to a page you own, such as a patient portal, a kiosk, or a link you text before a visit. The patient's health app fills in what the visit needs, and the patient never leaves your page.
+Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link you text before a visit. The patient's health app fills in what the visit needs, and the patient never leaves your page.
 
 <figure class="flow">
       <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the awaited response lands back in your own code, where forms, FHIR, payment and routing happen in any order.">
@@ -42,163 +42,72 @@ Add SMART Health Check-in to a page you own, such as a patient portal, a kiosk, 
       </figcaption>
     </figure>
 
-## Try it first
+## Three ways in
 
-- [Clinic demo](demo/): a check-in page with a demo health app that opens in a tab. Works in any browser.
-- [Wallet picker](demo/picker.html): the drop-in picker in different situations and styles.
-- [Allergy form](demo/autofill.html): fills a form from the response, then asks only for what's missing.
-- [Kiosk](demo/kiosk.html): a screen with no health app hands the request to a phone.
-
-## Install
-
-The library isn't on npm. Install it from GitHub:
-
-```sh
-npm install github:smart-health-checkin/client
-bun add github:smart-health-checkin/client
-```
-
-Or load a hosted module, with no build step:
-
-| File | What it gives you |
+| If you want to | Start with |
 | --- | --- |
-| `https://smart-health-checkin.org/client/lib/ui.js` | `<smart-checkin-picker>`, with everything it needs |
-| `https://smart-health-checkin.org/client/lib/checkin.js` | `runCheckin`, `wallets`, `CheckinResponse`, and the rest of the root module |
-| `https://smart-health-checkin.org/client/lib/handoff.js` | The kiosk hand-off |
-| `https://smart-health-checkin.org/client/lib/wallet.js` | For building a web wallet |
-| `https://smart-health-checkin.org/client/lib/testing.js` | The mock wallet, for demos and tests |
+| Build a check-in page step by step | [The tutorial](tutorial.md): an intake form that fills itself in, in one HTML page |
+| Drop a picker into a page you have | [The picker](wallets.md#the-picker), below |
+| Call it from your own code | [`runCheckin`](#call-it-yourself), below |
 
-Each has a pinned copy at `/client/lib/<version>/`, for example `/client/lib/0.2.0/ui.js`.
+Or try it first: the [clinic demo](demo/), the [picker](demo/picker.html), the [allergy form](demo/autofill.html), the [kiosk](demo/kiosk.html).
 
-## The quickest way: the picker
-
-The picker shows the patient the health apps they can use, runs the check-in, and hands you the result.
+## Drop in the picker
 
 ```html
-<script type="module" src="https://smart-health-checkin.org/client/lib/ui.js"></script>
+<script type="module" src="https://smart-health-checkin.org/client/lib/0.2.0/ui.js"></script>
 
 <smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
 
 <script type="module">
   const picker = document.querySelector("smart-checkin-picker");
   picker.request = myRequest;
-  picker.addEventListener("smart-checkin-response", (e) => {
-    prefillMyForm(e.detail.response);
-  });
+  picker.addEventListener("smart-checkin-response", (e) => prefillMyForm(e.detail.response));
 </script>
 ```
 
-- The phone's own health app leads when the browser can reach it.
-- Web health apps from your registry follow. Leave out `registry` to offer only the phone's app.
-- [Wallet picker](picker.md) covers its options, events, and styling.
-
-Names that start with `my` are yours: the request you built, the form you already have.
-
-## Or call runCheckin yourself
-
-Draw your own buttons, and call `start` on the wallet the patient chose, inside the click.
+## Call it yourself
 
 ```ts
 import { wallets } from "@smart-health-checkin/client";
 
-const options = await wallets({ registry: "/wallets.json" });
-
-for (const wallet of options) {
-  const button = document.createElement("button");
-  button.textContent = wallet.name;
-  button.onclick = async () => {
-    const result = await wallet.start(myRequest);
-    if (result.status === "completed") prefillMyForm(result.response);
-    else showMyOrdinaryForm();
-  };
-  myMenu.append(button);
-}
+const [wallet] = await wallets({ registry: "/wallets.json" });
+button.onclick = async () => {
+  const result = await wallet.start(myRequest); // inside the click
+  if (result.status === "completed") prefillMyForm(result.response);
+  else showMyOrdinaryForm();
+};
 ```
 
-`start` opens a web wallet's tab right away, while the browser still allows it. Call it directly from the click handler, before any `await`.
+## Install
 
-With no wallet named, `runCheckin(myRequest)` uses the phone's own health app.
+From GitHub (the library isn't on npm):
 
-## Write a request
-
-A request is a list of items. Each item has a title the patient reads and a description the health app acts on.
-
-```ts
-import { checkinRequest } from "@smart-health-checkin/client";
-
-const myRequest = checkinRequest({
-  purpose: "Before your visit with Dr. Reyes",
-  items: [
-    {
-      id: "allergies",
-      title: "Allergies and intolerances",
-      summary: "So we can check them against anything we prescribe.",
-      content: {
-        kind: "selection.fhir",
-        profiles: ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"],
-      },
-      accept: ["application/fhir+json"],
-    },
-  ],
-});
+```sh
+npm install github:smart-health-checkin/client#v0.2.0
 ```
 
-| Field | What it's for |
+Or with no build step, from a hosted file:
+
+| File | What it gives you |
 | --- | --- |
-| `purpose` | One line the patient sees. Write it the way you'd say it. |
-| `items[].id` | Your name for the item. You look the answer up by it. |
-| `items[].title`, `summary` | What the patient sees for this item. |
-| `items[].content` | What you're asking for: records by FHIR profile (`selection.fhir`), or a form to fill in (`form.fhir`). |
-| `items[].accept` | The formats you can handle. |
+| `/client/lib/0.2.0/ui.js` | `<smart-checkin-picker>`, self-contained |
+| `/client/lib/0.2.0/checkin.js` | `runCheckin`, `wallets`, `CheckinResponse`, and the rest of the root module |
+| `/client/lib/0.2.0/handoff.js` | The kiosk hand-off |
+| `/client/lib/0.2.0/wallet.js` | For building a web wallet |
+| `/client/lib/0.2.0/testing.js` | The mock wallet |
 
-The library fills in the protocol fields and a unique id. [Request model](requests.md) covers every option.
+All at `https://smart-health-checkin.org`. Drop the version for the latest.
 
-## Read the response
+## The guides
 
-A completed check-in gives you a `CheckinResponse`. The library has already decrypted it, checked its signatures, and confirmed it answers your request.
-
-```ts
-const response = result.response;
-
-response.status("allergies");                   // "fulfilled", "declined", …
-response.resources("allergies");                // the FHIR resources for that item
-response.form("phq2");                          // a form item's QuestionnaireResponse
-response.json;                                  // the full response as received
-```
-
-[Response model](responses.md) covers every lookup, SMART Health Cards, and how trust is decided.
-
-## When it doesn't complete
-
-Every check-in ends with a status. Plan for each to end at the form you already have.
-
-| `result.status` | What happened | What to do |
-| --- | --- | --- |
-| `completed` | The patient shared, and the response checked out | Use `result.response` |
-| `declined` | The patient said no, or closed the health app | Show your ordinary form |
-| `failed` | Something went wrong; `result.error.code` says what | Show your ordinary form; log the code |
-
-| `result.error.code` | Meaning |
+| Guide | Covers |
 | --- | --- |
-| `unsupported` | This browser can't reach that health app |
-| `blocked` | The browser blocked the health app's tab |
-| `timeout` | The health app didn't answer in time |
-| `wallet-error` | The health app reported an error |
-| `invalid-response` | The response failed decryption, signatures, or checks |
-| `server` | Your server holding the keys failed |
+| [Asking for data](requests.md) | Items and titles, records by profile, forms, formats |
+| [Offering wallets](wallets.md) | The picker, kinds of wallet, registries, kiosks, custom transports |
+| [Using the answer](responses.md) | Statuses, lookups, health-card trust, prefill, writing FHIR |
+| [Going to production](production.md) | Key custody, trust, fallback, privacy, pinning, monitoring |
+| [Building a wallet](build-a-wallet.md) | For health-app builders: native and web, matching, forms, cards |
+| [Testing](testing.md) | The mock, the connectathon's testing tools, reading failures, the demos |
 
-## Test without a phone
-
-```ts
-import { mockWallet } from "@smart-health-checkin/client/testing";
-
-const result = await mockWallet().start(myRequest); // answers at once with made-up data
-```
-
-Add the `mock` attribute to the picker to offer it there. [Test and debug](testing.md) covers the mock and the connectathon's testing tools.
-
-## Next
-
-- Adding check-in to a page: [Request model](requests.md) · [Response model](responses.md) · [Offering wallets](wallets.md) · [Production checklist](production.md)
-- Building a health app: [Build a wallet](build-a-wallet.md)
-- Upgrading from 0.1: [Upgrading](upgrading.md)
+Reference: [API reference](api/index.md) · [Web wallet hand-off](web-wallet-handoff.md) · [Registry format](registry.md) · [Upgrading from 0.1](upgrading.md)

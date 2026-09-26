@@ -1,111 +1,124 @@
-# Production checklist
+# Going to production
 
-The demo is a demo: it accepts any health app, matches no patients, and keeps
-nothing. This page lists what changes when real patients and real charts are
-involved. Most of it is yours to decide, because it is deployment policy, not
-protocol.
-
-## Key custody
-
-Each check-in encrypts the response to a key that your page creates for that
-one request and throws away afterwards. The key lives in the page's memory
-for the few seconds the exchange takes. That is the intended design, not a
-shortcut, for two reasons.
-
-First, the page is supposed to read the response. Prefilling a form, showing
-the patient what came back, asking only for what is missing — none of that is
-possible if the response is decrypted on a server the page cannot see into.
-
-Second, it keeps the library to one implementation. Because the whole flow
-runs in the browser, nobody has to write and maintain a server-side version
-in Java, .NET, Python, or Ruby for each EHR backend. The browser is the one
-platform every deployment has.
-
-What the key protects is the hop from the health app to this page. The
-response is encrypted to a key only this page holds and is tied to this
-request and this page's origin, so it cannot be read in transit or replayed
-at another site. The page was going to read the plaintext anyway, so keeping
-the key in the page's memory does not widen what the page can see.
-
-The library also supports a server-held key, through the `keys` option
-— key custody being the part of the flow that holds the key and opens the
-response. It is for the narrow case where a deployment does not want the page
-to hold the response at all: a kiosk you do not control, or a policy that
-allows PHI to be decrypted only on a server. The cost is real: no prefill in
-the page, and a service to build and maintain in your own language. Most
-deployments should not choose it. If yours does, [Server-held keys](server-authority.md)
-specifies the contract.
-
-Whichever you choose, the ordinary rules for a page that handles health data
-still apply: serve it over HTTPS, keep third-party scripts you do not trust
-off it, and treat cross-site scripting on it as the data breach it would be.
-
-## Trust policy
-
-The library verifies that a response is internally consistent: the
-signatures check against the certificate the health app presented, the
-digests match the data, and the response is bound to your page and your
-request. It gives you the certificate chain. It does not decide which health
-apps or which issuers you are willing to believe. The demo accepts any app,
-including one that vouches for itself; that is fine for a demo and wrong for
-a chart.
-
-Decide this explicitly, and write it down: which certificate chains you
-accept, and what you do with a response from an app that only vouches for
-itself — reject it, or accept it and flag it for review.
-
-## Patient identity
-
-Nothing in the library matches a response to a patient record. The `context`
-you pass to the FHIR module is written exactly as you gave it. Before you
-rely on that, the page must be tied to an authenticated patient session.
-Treat data from an unauthenticated check-in page as data with no known
-patient attached.
-
-## Where the data goes
-
-Data the patient supplied is not the same as data a clinician entered, and
-that difference should survive wherever the data is written: a staging
-queue, a reconciliation worklist, a chart section marked for review. Make
-sure a person can see where each item came from, and that someone is
-responsible for reviewing it. The `Provenance` resource the
-[FHIR module](fhir.md) writes records the origin; it does not create the
-review step.
-
-Decide retention as well: how long a raw response is kept in logs or queues,
-and who can read it there.
-
-## Configuration in the URL fragment
-
-The demo keeps its configuration in the URL fragment (the part after `#`),
-never in the query string. Fragments are not sent to servers, so patient
-references and request payloads never appear in server logs or in referrer
-headers. Keep that property in your own pages. Never accept credentials,
-tokens, or FHIR authorization material through a URL at all.
-
-## Availability and fallback
-
-The Digital Credentials API is not in every browser yet (see
-[Wallets and browser support](wallets.md)). The patient may decline. The
-health app may return nothing useful. Each of those paths has to end at the
-intake form you already have. A check-in saves the patient typing when it
-works; if its being unavailable can block a visit, the integration is wrong.
-
-## Pin your dependencies
-
-Install from a specific commit rather than a branch, and if you use the
-hosted module, use the versioned URL (`/client/lib/<version>/checkin.js`)
-rather than the one that moves with each release. Then the code you validated
-is the code you are running. Better still, build and host a copy yourself:
-this is code that runs on a page where a patient is sharing health data.
+The demos accept any health app, match no patients, and keep nothing. This page lists what changes with real patients and real charts. Most of it is deployment policy, so it's yours to decide.
 
 ## Before you go live
 
-- [ ] Key custody decided on purpose: browser-local unless you have a
-      specific reason, and you know what you give up otherwise
-- [ ] A written trust policy for health-app certificates
-- [ ] The page tied to an authenticated patient session
-- [ ] Provenance preserved wherever the data is written, with a review step
-- [ ] Fallback to your existing form on declined, unsupported, and error
-- [ ] Dependency pinned, ideally self-hosted
+- [ ] Key custody chosen on purpose: in the page, unless you have a specific reason
+- [ ] Health-card trust configured, not left at a testing setting
+- [ ] Your own registry of web wallets you recognize
+- [ ] The page tied to a signed-in patient
+- [ ] Fallback to your existing form on every path
+- [ ] A review step wherever patient-supplied data lands, with provenance kept
 - [ ] Retention decided for responses and logs
+- [ ] The library pinned to a version, ideally self-hosted
+- [ ] Failure codes logged and watched
+
+## Key custody
+
+Each check-in encrypts the response to a key your page makes for that one request and then throws away.
+
+| `keys` | Where the key lives | Use it when |
+| --- | --- | --- |
+| `"browser"` (default) | The page's memory, for the few seconds of the exchange | Almost always. The page is going to read the response anyway, to prefill a form. |
+| `{ server: "/checkin-api" }` | Your server, behind two HTTP calls | Policy says health data may only be decrypted on a server, or you need an audit point outside the browser |
+| Your own `KeyCustody` | Wherever you implement it | Your server needs a header instead of a cookie, or a different API |
+
+Keeping the key in the page is the design, not a shortcut:
+
+- The response is bound to your page's origin and this one request. It can't be read in transit or replayed elsewhere.
+- The page was going to read the data anyway. The key in memory doesn't widen what it can see.
+- One implementation, in the browser. No server SDK per EHR backend.
+
+Server-held keys cost you prefill in the page and a service to build. Most deployments shouldn't choose them.
+
+### Server-held keys
+
+The page and your server make two JSON calls. Nothing between the page and the health app changes.
+
+```ts
+const result = await runCheckin(myRequest, { wallet, keys: { server: "/checkin-api" } });
+
+if (result.status === "completed") {
+  if (result.response) prefillMyForm(result.response); // the server returned the data
+  else showMyReceipt(result.serverReference);           // the server kept it
+}
+```
+
+**Call 1, prepare:** `POST /credential-requests` with `{ request }`. The server:
+
+- decides what to ask for (it may ignore the page's request and build its own, which a compromised page can't widen);
+- builds the wire request with a fresh key (`buildOrgIsoMdocRequest(request, { origin })` from `/wire` in this language);
+- stores the key, the request, the origin, the session, and an expiry under an unguessable handle;
+- returns `{ handle, navigatorArgument }`.
+
+**Call 2, complete:** `POST /credential-requests/{handle}/complete` with `{ credential }`. The server:
+
+- rejects an unknown, expired, reused, or other-session handle;
+- decrypts and verifies (`openWalletResponse`, then `verifyDeviceResponseSignatures`);
+- checks the data against the stored request (`validateResponseAgainstRequest` from `/model`), never against anything the page sent;
+- deletes the key;
+- returns `{ smartResponse, presentation }`, or `{ handledByServer: true, reference }` to keep the data from the page.
+
+Rules for the server:
+
+- **Handles are secrets:** at least 128 random bits, single use, a few minutes long, tied to the session.
+- **The origin comes from configuration,** never from the request body.
+- **Rate-limit prepare.** Each call makes a key and a record.
+- **Log that a check-in happened** and each item's status. Logging the data itself is rarely needed.
+
+The built-in client sends your session cookie (`credentials: "include"`). For a bearer token or CSRF header, pass your own `KeyCustody` object as `keys`. For a server in another language, build against the [conformance fixtures](https://github.com/smart-health-checkin/spec/tree/main/fixtures): they include a real capture with a published test key.
+
+## Trust settings
+
+The library checks that a response is internally sound. Which health apps and issuers you believe is policy. Write it down.
+
+- **Health cards:** trust a directory or named issuers, and leave `accept` at `"trusted"`. See [SMART Health Cards](responses.md#smart-health-cards).
+- **Web wallets:** offer only wallets you recognize, in your own `wallets.json`. See [Registries](wallets.md#registries-and-icons).
+- **Self-vouching apps:** decide whether to reject them, or accept and flag for review.
+
+## Fallback
+
+The Digital Credentials API isn't in every browser. The patient may decline. The app may have nothing useful.
+
+- Every path ends at the form you already have.
+- A missing health app must never block a visit.
+- Items that come back `declined`, `unavailable`, or `partial` go to the form, not to an error.
+
+## Identity and review
+
+- **Tie the page to a signed-in patient.** Nothing in the library matches a response to a chart. Treat data from an anonymous page as having no known patient.
+- **Keep provenance.** Patient-supplied data isn't clinician-entered data. The FHIR module's `Provenance` records where it came from.
+- **Add a review step:** a worklist, a staging area, a chart section marked for review. Someone is responsible for it.
+
+## Privacy
+
+- **Configuration in the URL fragment,** never the query string. Fragments aren't sent to servers, so patient references stay out of logs.
+- **No credentials in URLs** at all.
+- **Icons as `data:` URLs** in your registry, so loading the picker contacts no wallet's server.
+- **Retention:** decide how long raw responses stay in logs and queues, and who can read them.
+- **The page handles health data:** HTTPS, no untrusted third-party scripts, and cross-site scripting treated as a breach.
+
+## Pinning versions
+
+- Install a specific commit or tag: `npm install github:smart-health-checkin/client#v0.2.0`.
+- Use versioned hosted files: `/client/lib/0.2.0/ui.js`, not `/client/lib/ui.js`.
+- Better still, build and host your own copy.
+
+The [upgrade guide](upgrading.md) lists what changed from 0.1.
+
+## Monitoring
+
+Log each failed result's `error.code`, and watch the counts.
+
+| Code | A rise usually means |
+| --- | --- |
+| `blocked` | A code change put an `await` before `wallet.start` |
+| `timeout` | A web wallet is down or not replying |
+| `wallet-error` | A wallet is failing; its message says why |
+| `invalid-response` | A wallet or network problem worth investigating; `error.check` says which check |
+| `server` | Your key server |
+
+`unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
+
+Next: [Building a wallet](build-a-wallet.md)

@@ -1,4 +1,4 @@
-# Test and debug
+# Testing
 
 Run check-ins without a real wallet, test against known-good and deliberately broken counterparts, and read what went wrong when a check-in fails.
 
@@ -106,7 +106,7 @@ const blocked = customWallet({
 });
 ```
 
-## In a demo page
+## The mock in a page
 
 Add the `mock` attribute to the picker. It offers a "Simulated response" option after the real ones.
 
@@ -184,3 +184,19 @@ if (result.status === "failed") console.log(result.error.code, result.error.chec
 | `server` | Server-held keys failed to prepare or open the request. | Your key server's logs. |
 
 A declined check-in is not a failure: `result.status` is `"declined"`, with no error.
+
+## The demos
+
+Each demo page runs the real flow and shows one way to use the library. Source is in [`demo/src/`](https://github.com/smart-health-checkin/client/tree/main/demo/src).
+
+| Page | What it shows |
+| --- | --- |
+| [Clinic check-in](../demo/) | The reference EHR: `wallets()` for a menu, `wallet.start` in the click, the raw response, the optional FHIR helper |
+| [Wallet picker](../demo/picker.html) | The picker in canned situations and styles, pick mode, and reskinning |
+| [React](../demo/react.html) | `<CheckinPicker>` and `response.resources("meds", { type: "MedicationRequest" })` |
+| [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |
+| [Allergy autofill](../demo/autofill.html) | Prefill from `response.resources`, then ask only for what's missing |
+| [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | `handoffWallet()` and `answerHandoff` |
+| [Demo wallet](../demo/wallet.html) | A web wallet built on `serveWebWallet` |
+
+The clinic demo takes options in the URL fragment, such as `#wallet=mock` or `#wallet=platform`. [`demo/README.md`](https://github.com/smart-health-checkin/client/blob/main/demo/README.md) lists them.
