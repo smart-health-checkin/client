@@ -2,7 +2,7 @@
 
 ## 0.2 to 0.3
 
-0.3 follows the rewritten spec. The main change: a response is judged part by part. A bad record, a missing status, or a failed signature no longer fails the whole check-in. Only a few problems still do (spec §6.4 [XV-1], [XV-2], and the steps spec §8 marks as failures).
+0.3 follows the rewritten spec. The main change: a response is judged part by part. A bad record, a missing status, or a failed signature no longer fails the whole check-in. Only a few problems still do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) [XV-1](https://smart-health-checkin.org/spec/#XV-1), [XV-2](https://smart-health-checkin.org/spec/#XV-2), and the steps spec [§8](https://smart-health-checkin.org/spec/#8-same-device-presentation-flow) marks as failures).
 
 ### Running a check-in
 
@@ -24,18 +24,18 @@
 
 ### Validating JSON yourself
 
-- `validateResponseAgainstRequest` fails (`ok: false`, with `rule`) only on [XV-1] and [XV-2]. On success it returns `artifacts` (each usable or not, with problems), `usableArtifacts`, and `items` (each with its status and problems). Code that treated `ok: true` as "every record is fine" should use `usableArtifacts`.
-- `validateSmartCheckinRequest` fails only on [REQ-2] and [ITEM-2]. A selector a Wallet can't use (an unknown `kind`, a string where an array belongs, a form with no Questionnaire) is listed in `unsupportedItems` instead, and the rest of the request stands.
+- `validateResponseAgainstRequest` fails (`ok: false`, with `rule`) only on [XV-1](https://smart-health-checkin.org/spec/#XV-1) and [XV-2](https://smart-health-checkin.org/spec/#XV-2). On success it returns `artifacts` (each usable or not, with problems), `usableArtifacts`, and `items` (each with its status and problems). Code that treated `ok: true` as "every record is fine" should use `usableArtifacts`.
+- `validateSmartCheckinRequest` fails only on [REQ-2](https://smart-health-checkin.org/spec/#REQ-2) and [ITEM-2](https://smart-health-checkin.org/spec/#ITEM-2). A selector a Wallet can't use (an unknown `kind`, a string where an array belongs, a form with no Questionnaire) is listed in `unsupportedItems` instead, and the rest of the request stands.
 - The old `canonical` and `resource` selector members are ignored like any unknown member, rather than rejected. `profilesFrom` entries no longer have to start with `http`.
-- New: `parseSmartCheckinRequest(text)` and `parseSmartCheckinResponse(text, request?)` parse JSON text and reject duplicate member names ([JSON-2]), which `JSON.parse` can't detect.
+- New: `parseSmartCheckinRequest(text)` and `parseSmartCheckinResponse(text, request?)` parse JSON text and reject duplicate member names ([JSON-2](https://smart-health-checkin.org/spec/#JSON-2)), which `JSON.parse` can't detect.
 
 ### Building a wallet
 
-- **`parseWalletRequest` follows spec §8.4.** It throws `WalletRequestError` (with `rule`) only when the request can't be decoded, has no SMART DocRequest or request text, holds an invalid SMART request, or has no usable key. Other problems come back in `warnings`, and items to answer `unsupported` in `unsupportedItems`.
+- **`parseWalletRequest` follows spec [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction).** It throws `WalletRequestError` (with `rule`) only when the request can't be decoded, has no SMART DocRequest or request text, holds an invalid SMART request, or has no usable key. Other problems come back in `warnings`, and items to answer `unsupported` in `unsupportedItems`.
 - **`serveWebWallet` checks a response before sealing it.** A response that doesn't match the request (a record in a media type the item doesn't accept, a missing status) becomes an error reply instead of being sent. The context passed to `onRequest` gains `unsupportedItems`.
-- **Declining.** `{ declined: true }` now means the patient closed the wallet without reviewing. After reviewing and declining everything, answer `{ response: declineAll(request) }` ([HOLD-4]).
+- **Declining.** `{ declined: true }` now means the patient closed the wallet without reviewing. After reviewing and declining everything, answer `{ response: declineAll(request) }` ([HOLD-4](https://smart-health-checkin.org/spec/#HOLD-4)).
 - New: `checkWalletResponse(request, response)` lists what a Verifier would object to; `sealWalletResponse` takes an optional `request` and runs it.
-- `selects` and `selectEntries` match a `profilesFrom` family by URL prefix, as [SEL-5] says: any profile whose URL starts with the family URL and `/`.
+- `selects` and `selectEntries` match a `profilesFrom` family by URL prefix, as [SEL-5](https://smart-health-checkin.org/spec/#SEL-5) says: any profile whose URL starts with the family URL and `/`.
 
 ### Removed
 

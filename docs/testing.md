@@ -3,7 +3,7 @@
 Run check-ins without a real wallet, test against known-good and deliberately broken counterparts, and read what went wrong when a check-in fails.
 
 - **In code:** `mockWallet()` from `@smart-health-checkin/client/testing`.
-- **In a browser:** the connectathon's Testing EHR and SMART Testing Wallet.
+- **In a browser:** the connectathon's [Testing EHR](#testing-ehr) and [SMART Testing Wallet](#smart-testing-wallet).
 - **When it fails:** every failed result carries a code. See [Reading a failed result](#reading-a-failed-result).
 
 Never offer the mock wallet or the testing tools to patients.
@@ -150,7 +150,7 @@ Two hosted tools let you test against a known-good counterpart.
 
 <https://smart-health-checkin.org/connectathon/testing-wallet/>
 
-A web wallet with synthetic patients. Its testing panel can send a deliberately broken response, so you can check your EHR's error handling. Pick faults in the Testing EHR, or open the wallet with `#faults=…`.
+A web wallet with synthetic patients. Its testing panel can send a deliberately broken response, so you can check your EHR's error handling. Pick faults in the [Testing EHR](#testing-ehr), or open the wallet with `#faults=…`.
 
 | Fault | What the wallet sends |
 | --- | --- |
@@ -166,7 +166,7 @@ A web wallet with synthetic patients. Its testing panel can send a deliberately 
 | `bad-shc-signature` | A SMART Health Card with a broken signature |
 | `combine-allergies-meds` | Allergies and medications in one shared Bundle. A valid response, for scenario O7. |
 
-What this library does with each, and what your EHR should do (spec §6.4 and §8.5):
+What this library does with each, and what your EHR should do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) and [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
 
 - **`oversized` and `combine-allergies-meds`:** accept the response intact.
 - **`bad-shc-signature`:** accept the response. The card arrives with `valid: false` and is left out of `resources()`.

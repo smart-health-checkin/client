@@ -257,7 +257,7 @@ The phone is just another wallet:
 import { handoffWallet } from "@smart-health-checkin/client/handoff";
 
 const phone = handoffWallet({
-  mailbox: myMailbox,                         // yours; see below
+  mailbox: myMailbox,                         // yours; see "The mailbox" below
   handoffUrl: "/checkin/handoff.html",        // the page the phone opens
   onWaiting: ({ url }) => drawMyQrCode(url),
 });

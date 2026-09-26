@@ -13,7 +13,7 @@ pattern.
 
 ## How it works on Android
 
-1. The app opens the bridge page in a Custom Tab.
+1. The app opens the [bridge page](#the-bridge-page) in a Custom Tab.
 2. The app asks Chrome for a message channel to the page. Chrome grants it only if the page's site lists
    the app in `/.well-known/assetlinks.json`, so the page knows its messages come from that app.
 3. The app sends the SMART request. The page shows the picker, runs the check-in, and decrypts and
@@ -154,7 +154,7 @@ Wallet (a web wallet) answering, twice in a row:
 | 4,382 characters | 1 | 0.6 s |
 | 1,927,289 characters (a large patient record) | 10 | 0.6–2.8 s |
 
-The direct path, on the same emulator, with the reference Android wallet v0.4.0 answering: the wallet
+The direct path, on the same emulator, with the [reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest) v0.4.0 answering: the wallet
 binds the transcript to the app's `android:apk-key-hash:` origin, and the app decrypts a 4,595-character
 response with it. About 11 seconds from tap to result, including the platform's sheet and the wallet's
 consent screen.

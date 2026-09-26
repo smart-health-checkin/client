@@ -197,7 +197,7 @@ Open the page and pick **Simulated response**. The form fills in with made-up al
 
 ## Step 7: Try it with a test wallet
 
-Now offer real web wallets. Point the picker at the connectathon's wallet registry:
+Now offer real web wallets. Point the picker at the connectathon's [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry):
 
 ```html
 <smart-checkin-picker
@@ -206,7 +206,7 @@ Now offer real web wallets. Point the picker at the connectathon's wallet regist
 </smart-checkin-picker>
 ```
 
-Pick **SMART Testing Wallet**. It opens in a tab with a synthetic patient. Choose what to share and press Share; the tab closes and the form fills in.
+Pick **SMART Testing Wallet** ([what it is](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md)). It opens in a tab with a synthetic patient. Choose what to share and press Share; the tab closes and the form fills in.
 
 The Testing Wallet signs insurance cards with a test issuer that no one trusts in production. Accept any validly signed card while you test:
 

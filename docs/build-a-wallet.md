@@ -70,7 +70,7 @@ What happens under it, the [web wallet hand-off](web-wallet-handoff.md):
 | Answer | What the EHR gets |
 | --- | --- |
 | `{ response }` | Your SMART response, signed and encrypted for the EHR's origin. It's checked against the request first; a response a Verifier would set aside (a status missing, a record in a type the item doesn't accept) becomes an error reply instead. |
-| `{ declined: true }` | The patient closed the wallet without reviewing. If they reviewed and declined everything, send `{ response: declineAll(request) }` instead ([HOLD-4]). |
+| `{ declined: true }` | The patient closed the wallet without reviewing. If they reviewed and declined everything, send `{ response: declineAll(request) }` instead ([HOLD-4](https://smart-health-checkin.org/spec/#HOLD-4)). |
 | `{ error: "…" }` | An error with your message |
 | `{ credential }` | A credential you sealed yourself, sent as is. For test wallets that inject faults. |
 
@@ -147,7 +147,7 @@ For wallets that seal their own responses, or run somewhere `serveWebWallet` doe
 
 | Function | What it does |
 | --- | --- |
-| `parseWalletRequest(navigatorArgument)` | The SMART request, the items to answer `unsupported`, `warnings` about the request's wire format, and the pieces needed to answer. Throws `WalletRequestError` only where spec §8.4 says not to respond. |
+| `parseWalletRequest(navigatorArgument)` | The SMART request, the items to answer `unsupported`, `warnings` about the request's wire format, and the pieces needed to answer. Throws `WalletRequestError` only where spec [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) says not to respond. |
 | `checkWalletResponse(request, response)` | What a Verifier would object to in your response; empty when it's clean |
 | `declineAll(request)` | The response for a patient who reviewed and declined everything |
 | `sealWalletResponse({ smartResponse, encryptionInfoBytes, verifierOrigin, request? })` | Sign and encrypt a response; returns the credential to send. With `request`, checks the response first. |

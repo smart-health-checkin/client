@@ -92,7 +92,7 @@ Or with no build step, from the hosted ES modules at `/client/lib/`, each self-c
 
 | Path | What it is |
 | --- | --- |
-| `src/model` | The transport-neutral request/response model and validators (spec §§5–6). |
+| `src/model` | The transport-neutral request/response model and validators (spec [§§5–6](https://smart-health-checkin.org/spec/#5-clinical-request-model)). |
 | `src/wire` | The mdoc binding as pure byte functions: CBOR, SessionTranscript, HPKE, COSE verification. No DOM. |
 | `src/browser` | Digital Credentials API invocation and the key-custody seam. |
 | `src/core` | The root module: `runCheckin`, `Wallet`, `CheckinResponse`, errors, health-card trust. |
@@ -114,7 +114,7 @@ scripts/build-pages.sh   # this package's pages into _site/
 bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5   # the kiosk demo's mailbox schema and rules; reads INSTANT_CLI_AUTH_TOKEN from ./.env
 ```
 
-The tests read the spec's fixtures and conformance cases at a pinned tag
+The tests read the spec's [fixtures](https://github.com/smart-health-checkin/spec/tree/main/fixtures) and [conformance cases](https://github.com/smart-health-checkin/spec/tree/main/conformance) at a pinned tag
 (`SPEC_REF` in `scripts/fetch-spec.sh`, currently `v1.0.0-draft.1`). `bun test`
 fetches them into the gitignored `fixtures/` and `spec-conformance/`; set
 `SPEC_DIR=../spec` to test against a local spec checkout.
