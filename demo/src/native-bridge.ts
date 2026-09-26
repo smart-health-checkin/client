@@ -7,8 +7,9 @@
 //
 // The app sends one message, the check-in to run:
 //   {"type":"checkin","request":{…SMART request…},"registry":"https://…/wallets.json"}
-// The page runs it like any web page would, with the picker (the phone's wallet
-// and the registry's web wallets), and answers with one of:
+// The page answers {"type":"started"} at once (the app gives up if that doesn't
+// arrive), runs the check-in like any web page would, with the picker (the
+// phone's wallet and the registry's web wallets), and answers with one of:
 //   {"type":"result-begin","total":N,"chars":C,"sha256":"<hex of the UTF-8 JSON>"}
 //   {"type":"result-part","i":0..N-1,"data":"<slice of the JSON text>"}  (N of these)
 //   {"type":"result-end"}
@@ -31,8 +32,10 @@ let port: MessagePort | undefined;
 
 // Chrome delivers the app's first message on window, carrying the channel's port.
 // Later messages from the app arrive on the port, and replies go out on it.
+// A new channel (the app starting again in this same page) replaces the old one.
 window.addEventListener("message", (event) => {
-  if (port || !event.ports[0]) return;
+  if (!event.ports[0]) return;
+  port?.close();
   port = event.ports[0];
   port.onmessage = (e) => onAppMessage(e.data);
   onAppMessage(event.data);
@@ -46,6 +49,7 @@ function onAppMessage(data: unknown): void {
     return;
   }
   if (message?.type !== "checkin" || !message.request) return;
+  send({ type: "started" });
   purpose.textContent = message.request.purpose ?? "Choose the health app that holds your records.";
   if (message.registry) picker.setAttribute("registry", message.registry);
   picker.request = message.request;

@@ -25,11 +25,12 @@ and signed with the key this site's `assetlinks.json` lists, so both buttons wor
 
 ## How it works on Android
 
-1. The app opens the [bridge page](#the-bridge-page) in a Custom Tab.
+1. The app opens the [bridge page](#the-bridge-page) in a Custom Tab, in a new Custom Tabs session for each
+   check-in.
 2. The app asks Chrome for a message channel to the page. Chrome grants it only if the page's site lists
    the app in `/.well-known/assetlinks.json`, so the page knows its messages come from that app.
-3. The app sends the SMART request. The page shows the picker, runs the check-in, and decrypts and
-   validates the response with `runCheckin`.
+3. The app sends the SMART request. The page answers `started`, shows the picker, runs the check-in, and
+   decrypts and validates the response with `runCheckin`.
 4. The page sends the response back in parts, because each message crosses Android's inter-process
    channel, which caps one message at about 1 MB. The app reassembles the parts and checks a SHA-256 hash.
    There's no limit on the total size.
@@ -44,10 +45,11 @@ its core:
 import "@smart-health-checkin/client/ui";
 
 // Chrome delivers the app's first message on window, with the channel's port.
-// Later messages arrive on the port, and replies go out on it.
+// Later messages arrive on the port, and replies go out on it. A new channel replaces the old one.
 let port: MessagePort | undefined;
 window.addEventListener("message", (event) => {
-  if (port || !event.ports[0]) return;
+  if (!event.ports[0]) return;
+  port?.close();
   port = event.ports[0];
   port.onmessage = (e) => start(e.data);
   start(event.data);
@@ -55,6 +57,7 @@ window.addEventListener("message", (event) => {
 
 function start(data: string) {
   const { request, registry } = JSON.parse(data);
+  port!.postMessage(JSON.stringify({ type: "started" }));
   picker.setAttribute("registry", registry);
   picker.request = request;
 }
@@ -75,6 +78,7 @@ The page also sends `{"type":"declined"}` when nothing was shared and
 | Message | Direction | Fields |
 | --- | --- | --- |
 | `checkin` | app → page | `request` (the SMART request), `registry` (optional wallet registry URL) |
+| `started` | page → app | none; the app fails the check-in if this doesn't arrive in time |
 | `result-begin` | page → app | `total` parts, `chars`, `sha256` of the UTF-8 result text |
 | `result-part` | page → app | `i`, `data` (a slice of the result text) |
 | `result-end` | page → app | none |
@@ -88,10 +92,12 @@ The example's [`BrowserCheckin`](https://github.com/smart-health-checkin/android
 class is the reusable part. It uses `androidx.browser` 1.8:
 
 ```kotlin
-// Once, early: connect to the browser's Custom Tabs service.
-CustomTabsClient.bindCustomTabsService(activity, browserPackage, connection) // → session = client.newSession(callback)
+// Once, early: connect to the browser's Custom Tabs service and keep the client.
+CustomTabsClient.bindCustomTabsService(activity, browserPackage, connection) // → client
 
-// To start: have Chrome verify the site, then open the page.
+// To start: a new session for each check-in (Chrome keeps one message channel per session),
+// have Chrome verify the site, then open the page.
+val session = client.newSession(callback)
 session.validateRelationship(CustomTabsService.RELATION_USE_AS_ORIGIN, bridgeOrigin, null)
 CustomTabsIntent.Builder(session).build().launchUrl(activity, bridgeUrl)
 
@@ -99,10 +105,14 @@ CustomTabsIntent.Builder(session).build().launchUrl(activity, bridgeUrl)
 // open the channel once both have.
 override fun onRelationshipValidationResult(relation: Int, origin: Uri, result: Boolean, extras: Bundle?) { verified = result; openChannelWhenReady() }
 override fun onNavigationEvent(event: Int, extras: Bundle?) { if (event == NAVIGATION_FINISHED) { loaded = true; openChannelWhenReady() } }
-fun openChannelWhenReady() { if (verified && loaded) session.requestPostMessageChannel(bridgeOrigin, bridgeOrigin, Bundle()) }
+fun openChannelWhenReady() { if (verified && loaded && !session.requestPostMessageChannel(bridgeOrigin, bridgeOrigin, Bundle())) fail() }
 override fun onMessageChannelReady(extras: Bundle?) { session.postMessage(checkinMessage, null) }
-override fun onPostMessage(message: String, extras: Bundle?) { /* collect parts; check the hash on result-end */ }
+override fun onPostMessage(message: String, extras: Bundle?) { /* `started`, then collect parts; check the hash on result-end */ }
 ```
+
+Reusing one session for a second check-in fails silently: Chrome reports the new channel ready and accepts
+the message, but the new page never receives it. The example also fails the check-in if `started` hasn't
+arrived 30 seconds after it opens the page, so the app never waits forever.
 
 The manifest declares the channel's service, and lets the app find the browser on Android 11 and later:
 
