@@ -27,16 +27,27 @@ export type WalletSession = {
   cancel(): void;
 };
 
+/**
+ * One way a patient can answer: the phone's own wallet, a web wallet, a kiosk
+ * hand-off, a mock, or your own. Get them from `wallets()`, `platformWallet()`,
+ * `webWallet()`, `handoffWallet()`, `mockWallet()`, or `customWallet()`.
+ */
 export type Wallet = {
   /** "platform", a registry id, "handoff", "mock", or your own. */
   id: string;
+  /** What sort of wallet it is, for a UI that shows kinds differently. */
   kind: "platform" | "web" | "handoff" | "mock" | "custom";
+  /** The name to show the patient. */
   name: string;
+  /** A short line to show under the name. */
   description?: string;
+  /** An icon to show beside the name; a `data:` URL when it came from a registry that inlines icons. */
   iconUrl?: string;
+  /** The wallet's own website, for a "learn more" link. */
   homepage?: string;
   /** False when this browser can't use it; `unavailableReason` says why. */
   available: boolean;
+  /** Why `available` is false, in words for a developer (for example, no Digital Credentials API in this browser). */
   unavailableReason?: string;
   /** The registry entry, for web wallets. */
   entry?: WebWalletEntry;
@@ -117,6 +128,7 @@ export function customWallet(init: {
   return makeWallet({ ...init, kind: init.kind ?? "custom" });
 }
 
+/** Options for `wallets()`: which wallets a page offers. */
 export type WalletsOptions = {
   /** Offer the phone's own wallet (default true). Listed only when this browser can reach it, unless `includeUnavailable`. */
   platform?: boolean;
@@ -126,6 +138,7 @@ export type WalletsOptions = {
   extra?: ReadonlyArray<Wallet>;
   /** Keep wallets this browser can't use in the list, marked unavailable. */
   includeUnavailable?: boolean;
+  /** Used to load a registry given as a URL. Defaults to the global `fetch`. */
   fetch?: typeof fetch;
 };
 

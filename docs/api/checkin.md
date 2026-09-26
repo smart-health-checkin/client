@@ -1770,7 +1770,11 @@ type Wallet = {
 };
 ```
 
-Defined in: [src/core/wallets.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L30)
+Defined in: [src/core/wallets.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L35)
+
+One way a patient can answer: the phone's own wallet, a web wallet, a kiosk
+hand-off, a mock, or your own. Get them from `wallets()`, `platformWallet()`,
+`webWallet()`, `handoffWallet()`, `mockWallet()`, or `customWallet()`.
 
 #### Properties
 
@@ -1780,7 +1784,7 @@ Defined in: [src/core/wallets.ts:30](https://github.com/smart-health-checkin/cli
 available: boolean;
 ```
 
-Defined in: [src/core/wallets.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L39)
+Defined in: [src/core/wallets.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L49)
 
 False when this browser can't use it; `unavailableReason` says why.
 
@@ -1790,7 +1794,9 @@ False when this browser can't use it; `unavailableReason` says why.
 optional description?: string;
 ```
 
-Defined in: [src/core/wallets.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L35)
+Defined in: [src/core/wallets.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L43)
+
+A short line to show under the name.
 
 ##### entry?
 
@@ -1798,7 +1804,7 @@ Defined in: [src/core/wallets.ts:35](https://github.com/smart-health-checkin/cli
 optional entry?: WebWalletEntry;
 ```
 
-Defined in: [src/core/wallets.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L42)
+Defined in: [src/core/wallets.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L53)
 
 The registry entry, for web wallets.
 
@@ -1808,7 +1814,9 @@ The registry entry, for web wallets.
 optional homepage?: string;
 ```
 
-Defined in: [src/core/wallets.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L37)
+Defined in: [src/core/wallets.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L47)
+
+The wallet's own website, for a "learn more" link.
 
 ##### iconUrl?
 
@@ -1816,7 +1824,9 @@ Defined in: [src/core/wallets.ts:37](https://github.com/smart-health-checkin/cli
 optional iconUrl?: string;
 ```
 
-Defined in: [src/core/wallets.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L36)
+Defined in: [src/core/wallets.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L45)
+
+An icon to show beside the name; a `data:` URL when it came from a registry that inlines icons.
 
 ##### id
 
@@ -1824,7 +1834,7 @@ Defined in: [src/core/wallets.ts:36](https://github.com/smart-health-checkin/cli
 id: string;
 ```
 
-Defined in: [src/core/wallets.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L32)
+Defined in: [src/core/wallets.ts:37](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L37)
 
 "platform", a registry id, "handoff", "mock", or your own.
 
@@ -1834,7 +1844,7 @@ Defined in: [src/core/wallets.ts:32](https://github.com/smart-health-checkin/cli
 optional keys?: KeyCustody;
 ```
 
-Defined in: [src/core/wallets.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L44)
+Defined in: [src/core/wallets.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L55)
 
 Key custody this wallet needs (a kiosk hand-off binds to the hand-off page's origin). Used unless the caller passes `keys`.
 
@@ -1844,7 +1854,9 @@ Key custody this wallet needs (a kiosk hand-off binds to the hand-off page's ori
 kind: "platform" | "web" | "handoff" | "mock" | "custom";
 ```
 
-Defined in: [src/core/wallets.ts:33](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L33)
+Defined in: [src/core/wallets.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L39)
+
+What sort of wallet it is, for a UI that shows kinds differently.
 
 ##### name
 
@@ -1852,7 +1864,9 @@ Defined in: [src/core/wallets.ts:33](https://github.com/smart-health-checkin/cli
 name: string;
 ```
 
-Defined in: [src/core/wallets.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L34)
+Defined in: [src/core/wallets.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L41)
+
+The name to show the patient.
 
 ##### unavailableReason?
 
@@ -1860,7 +1874,9 @@ Defined in: [src/core/wallets.ts:34](https://github.com/smart-health-checkin/cli
 optional unavailableReason?: string;
 ```
 
-Defined in: [src/core/wallets.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L40)
+Defined in: [src/core/wallets.ts:51](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L51)
+
+Why `available` is false, in words for a developer (for example, no Digital Credentials API in this browser).
 
 #### Methods
 
@@ -1870,7 +1886,7 @@ Defined in: [src/core/wallets.ts:40](https://github.com/smart-health-checkin/cli
 open(): WalletSession;
 ```
 
-Defined in: [src/core/wallets.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L46)
+Defined in: [src/core/wallets.ts:57](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L57)
 
 Connect to the wallet. Synchronous; call inside the click.
 
@@ -1884,7 +1900,7 @@ Connect to the wallet. Synchronous; call inside the click.
 start(request, options?): Promise<CheckinResult>;
 ```
 
-Defined in: [src/core/wallets.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L48)
+Defined in: [src/core/wallets.ts:59](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L59)
 
 Run a check-in with this wallet. Call inside the click.
 
@@ -1999,7 +2015,9 @@ type WalletsOptions = {
 };
 ```
 
-Defined in: [src/core/wallets.ts:120](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L120)
+Defined in: [src/core/wallets.ts:132](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L132)
+
+Options for `wallets()`: which wallets a page offers.
 
 #### Properties
 
@@ -2009,7 +2027,7 @@ Defined in: [src/core/wallets.ts:120](https://github.com/smart-health-checkin/cl
 optional extra?: ReadonlyArray<Wallet>;
 ```
 
-Defined in: [src/core/wallets.ts:126](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L126)
+Defined in: [src/core/wallets.ts:138](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L138)
 
 More wallets to offer after the registry's, such as `handoffWallet(...)` or `mockWallet()`.
 
@@ -2019,7 +2037,9 @@ More wallets to offer after the registry's, such as `handoffWallet(...)` or `moc
 optional fetch?: typeof fetch;
 ```
 
-Defined in: [src/core/wallets.ts:129](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L129)
+Defined in: [src/core/wallets.ts:142](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L142)
+
+Used to load a registry given as a URL. Defaults to the global `fetch`.
 
 ##### includeUnavailable?
 
@@ -2027,7 +2047,7 @@ Defined in: [src/core/wallets.ts:129](https://github.com/smart-health-checkin/cl
 optional includeUnavailable?: boolean;
 ```
 
-Defined in: [src/core/wallets.ts:128](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L128)
+Defined in: [src/core/wallets.ts:140](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L140)
 
 Keep wallets this browser can't use in the list, marked unavailable.
 
@@ -2037,7 +2057,7 @@ Keep wallets this browser can't use in the list, marked unavailable.
 optional platform?: boolean;
 ```
 
-Defined in: [src/core/wallets.ts:122](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L122)
+Defined in: [src/core/wallets.ts:134](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L134)
 
 Offer the phone's own wallet (default true). Listed only when this browser can reach it, unless `includeUnavailable`.
 
@@ -2050,7 +2070,7 @@ optional registry?:
   | WebWalletEntry[];
 ```
 
-Defined in: [src/core/wallets.ts:124](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L124)
+Defined in: [src/core/wallets.ts:136](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L136)
 
 Web wallets: a registry URL, a registry, or a list of entries. None by default.
 
@@ -2209,7 +2229,7 @@ Set the trust used for every check-in that doesn't pass its own.
 function customWallet(init): Wallet;
 ```
 
-Defined in: [src/core/wallets.ts:105](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L105)
+Defined in: [src/core/wallets.ts:116](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L116)
 
 Wrap any transport as a wallet: for experiments, tests, and new kinds of wallet.
 
@@ -2272,7 +2292,7 @@ The trust currently configured.
 function platformWallet(): Wallet;
 ```
 
-Defined in: [src/core/wallets.ts:65](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L65)
+Defined in: [src/core/wallets.ts:76](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L76)
 
 The phone's own wallet, through the browser's Digital Credentials API.
 
@@ -2312,7 +2332,7 @@ outcome (declined, failed); throws only for a malformed request.
 function wallets(options?): Promise<Wallet[]>;
 ```
 
-Defined in: [src/core/wallets.ts:137](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L137)
+Defined in: [src/core/wallets.ts:150](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L150)
 
 The wallets a page offers, in order: the platform wallet, the registry's
 web wallets in registry order, then `extra`. Throws if a registry can't be
@@ -2336,7 +2356,7 @@ loaded or is malformed.
 function webWallet(entry): Wallet;
 ```
 
-Defined in: [src/core/wallets.ts:84](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L84)
+Defined in: [src/core/wallets.ts:95](https://github.com/smart-health-checkin/client/blob/main/src/core/wallets.ts#L95)
 
 A web wallet from a registry entry. Opens in a tab (or a popup, if the entry says so).
 
