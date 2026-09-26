@@ -48,6 +48,7 @@ export const API_GROUPS: ApiGroup[] = [
     module: "checkin",
     entries: [
       { name: "createWebWalletCredentialGetter", what: "Hand the request to a wallet web app in a tab — a real consent screen." },
+      { name: "openWebWallet", what: "Open a web wallet's tab inside the click, before any await, so it isn't blocked." },
       { name: "createMockWalletCredentialGetter", what: "Answer instantly — either with fabricated data or with exactly the data your test pins, per item." },
       { name: "WalletDeclinedError", what: "Thrown when the person declines or closes the wallet." },
       { name: "WebWalletOptions", what: "Wallet URL, tab vs popup, timeout." },

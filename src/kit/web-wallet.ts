@@ -40,7 +40,39 @@ export type WebWalletOptions = {
   features?: string;
   /** Give up after this many ms (default 5 minutes). */
   timeoutMs?: number;
+  /**
+   * A window you already opened at `walletUrl` (or `about:blank`) inside the
+   * person's click. Browsers only allow `window.open` during a click, and
+   * building a request can take long enough to lose that permission; opening
+   * first and passing the window here avoids a blocked tab. See `openWebWallet`.
+   */
+  window?: Window | null;
 };
+
+/**
+ * Open a web wallet's tab right away, inside a click handler, before any
+ * `await`. Pass the result as `window` to `createWebWalletCredentialGetter`.
+ */
+export function openWebWallet(options: Pick<WebWalletOptions, "walletUrl" | "target" | "features">): Window | null {
+  const features = options.features ?? (options.target === "popup" ? "popup,width=460,height=720" : "");
+  const url = new URL(options.walletUrl, location.href);
+  const opened = window.open(url.href, "smart-checkin-wallet", features);
+  if (opened) watchForReady(opened, url.origin);
+  return opened;
+}
+
+// Wallets opened early may say "ready" before the request exists; remember it.
+const readyWindows = new WeakSet<Window>();
+function watchForReady(win: Window, origin: string): void {
+  const onMessage = (event: MessageEvent): void => {
+    if (event.source !== win || event.origin !== origin) return;
+    if ((event.data as { type?: string } | null)?.type !== WEB_WALLET_READY_MESSAGE_TYPE) return;
+    readyWindows.add(win);
+    window.removeEventListener("message", onMessage);
+  };
+  window.addEventListener("message", onMessage);
+  setTimeout(() => window.removeEventListener("message", onMessage), 10 * 60_000);
+}
 
 /** Thrown when the person closes or declines in the wallet app. */
 export class WalletDeclinedError extends Error {
@@ -59,7 +91,7 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
   return async (navigatorArgument: unknown): Promise<unknown> => {
     const walletUrl = new URL(options.walletUrl, location.href);
     const walletOrigin = walletUrl.origin;
-    const popup = window.open(walletUrl.href, "smart-checkin-wallet", features);
+    const popup = options.window && !options.window.closed ? options.window : window.open(walletUrl.href, "smart-checkin-wallet", features);
     if (!popup) {
       throw new Error("the wallet tab was blocked — allow pop-ups for this site and try again");
     }
@@ -78,22 +110,29 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
           fn();
         };
 
+        let sent = false;
+        const sendRequest = (): void => {
+          if (sent) return;
+          sent = true;
+          popup.postMessage(
+            {
+              type: WEB_WALLET_REQUEST_MESSAGE_TYPE,
+              credentialRequestOptions: navigatorArgument,
+              requestId,
+              // No origin field: the wallet reads this page's origin from the
+              // message event, which the browser sets and the sender cannot forge.
+            },
+            walletOrigin,
+          );
+        };
+
         const onMessage = (event: MessageEvent): void => {
-          if (event.origin !== walletOrigin) return;
+          if (event.source !== popup || event.origin !== walletOrigin) return;
           const data = event.data as { type?: string } | null;
           if (!data || typeof data !== "object") return;
 
           if (data.type === WEB_WALLET_READY_MESSAGE_TYPE) {
-            popup.postMessage(
-              {
-                type: WEB_WALLET_REQUEST_MESSAGE_TYPE,
-                credentialRequestOptions: navigatorArgument,
-                requestId,
-                // No origin field: the wallet reads this page's origin from the
-                // message event, which the browser sets and the sender cannot forge.
-              },
-              walletOrigin,
-            );
+            sendRequest();
             return;
           }
 
@@ -121,6 +160,8 @@ export function createWebWalletCredentialGetter(options: WebWalletOptions) {
         }, timeoutMs);
 
         window.addEventListener("message", onMessage);
+        // Opened early by openWebWallet and already ready: send now.
+        if (readyWindows.has(popup)) sendRequest();
       });
     } finally {
       if (!popup.closed) popup.close();

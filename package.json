@@ -22,6 +22,24 @@
       "import": "./dist/wire/index.js",
       "default": "./dist/wire/index.js"
     },
+    "./picker": {
+      "bun": "./src/picker/index.ts",
+      "types": "./dist/picker/index.d.ts",
+      "import": "./dist/picker/index.js",
+      "default": "./dist/picker/index.js"
+    },
+    "./ui": {
+      "bun": "./src/ui/index.ts",
+      "types": "./dist/ui/index.d.ts",
+      "import": "./dist/ui/index.js",
+      "default": "./dist/ui/index.js"
+    },
+    "./react": {
+      "bun": "./src/react/index.ts",
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -66,5 +84,13 @@
     "src",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  }
 }

@@ -20,7 +20,7 @@ function mount(html: string, foot: string): string {
 // one-line footer — the site map belongs on docs pages, not under a form.
 // wallet.html is deliberately absent: it simulates a separate product and
 // carries no clinic-site chrome at all.
-for (const file of ["index.html", "autofill.html", "react.html", "angular.html", "kiosk.html", "handoff.html"]) {
+for (const file of ["index.html", "autofill.html", "react.html", "angular.html", "kiosk.html", "handoff.html", "picker.html"]) {
   const path = `${OUT_ROOT}/demo/${file}`;
   if (!existsSync(path)) continue;
   writeFileSync(path, mount(readFileSync(path, "utf8"), shallowFooter()));

@@ -293,7 +293,7 @@ Error.prepareStackTrace
 
 ### WalletDeclinedError
 
-Defined in: [src/kit/web-wallet.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L46)
+Defined in: [src/kit/web-wallet.ts:78](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L78)
 
 Thrown when the person closes or declines in the wallet app.
 
@@ -309,7 +309,7 @@ Thrown when the person closes or declines in the wallet app.
 new WalletDeclinedError(message?): WalletDeclinedError;
 ```
 
-Defined in: [src/kit/web-wallet.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L48)
+Defined in: [src/kit/web-wallet.ts:80](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L80)
 
 ###### Parameters
 
@@ -365,7 +365,7 @@ Error.message
 readonly name: "NotAllowedError" = "NotAllowedError";
 ```
 
-Defined in: [src/kit/web-wallet.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L47)
+Defined in: [src/kit/web-wallet.ts:79](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L79)
 
 ###### Overrides
 
@@ -2442,6 +2442,7 @@ type WebWalletOptions = {
   target?: "tab" | "popup";
   timeoutMs?: number;
   walletUrl: string;
+  window?: Window | null;
 };
 ```
 
@@ -2491,6 +2492,19 @@ Defined in: [src/kit/web-wallet.ts:32](https://github.com/smart-health-checkin/c
 
 URL of the wallet web app (same-origin or any origin you trust). Usually
 comes from a registry entry — see `resolveResponders`.
+
+##### window?
+
+```ts
+optional window?: Window | null;
+```
+
+Defined in: [src/kit/web-wallet.ts:49](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L49)
+
+A window you already opened at `walletUrl` (or `about:blank`) inside the
+person's click. Browsers only allow `window.open` during a click, and
+building a request can take long enough to lose that permission; opening
+first and passing the window here avoids a blocked tab. See `openWebWallet`.
 
 ***
 
@@ -2994,7 +3008,7 @@ docs/server-authority.md.
 function createWebWalletCredentialGetter(options): (navigatorArgument) => Promise<unknown>;
 ```
 
-Defined in: [src/kit/web-wallet.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L53)
+Defined in: [src/kit/web-wallet.ts:85](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L85)
 
 #### Parameters
 
@@ -3225,6 +3239,29 @@ Defined in: [src/wire/response.ts:206](https://github.com/smart-health-checkin/c
 #### Returns
 
 `Promise`\<`OpenWalletResponseResult`\>
+
+***
+
+### openWebWallet()
+
+```ts
+function openWebWallet(options): Window | null;
+```
+
+Defined in: [src/kit/web-wallet.ts:56](https://github.com/smart-health-checkin/client/blob/main/src/kit/web-wallet.ts#L56)
+
+Open a web wallet's tab right away, inside a click handler, before any
+`await`. Pass the result as `window` to `createWebWalletCredentialGetter`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `Pick`\<[`WebWalletOptions`](#webwalletoptions), `"walletUrl"` \| `"target"` \| `"features"`\> |
+
+#### Returns
+
+`Window` \| `null`
 
 ***
 

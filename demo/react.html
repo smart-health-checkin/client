@@ -54,47 +54,34 @@
   <header>
     <h1>Same core, React bindings</h1>
     <p class="muted">
-      The library is a plain async function with no framework dependency. A
-      binding owns three things: the responder list the page renders (resolved
-      from a policy), the one call, and its state. This page's
-      <code>useCheckin</code> hook is all of it; the
-      <a href="./angular.html">Angular example</a> is the same as a service.
+      <code>@smart-health-checkin/client/react</code> wraps the
+      <a href="./picker.html">&lt;smart-checkin-picker&gt; element</a> as a
+      component. It's the same UI every page gets, with callbacks for the
+      result. Pages that draw their own buttons can use the
+      <code>useCheckin</code> hook from the same module instead.
     </p>
   </header>
 
   <div id="root"></div>
 
   <section class="smart-panel">
-    <h2>The whole binding</h2>
-<pre><code>export function useCheckin(request, policy) {
-  const [responders, setResponders] = useState([]);
-  const [state, setState] = useState({ status: "idle" });
+    <h2>The component</h2>
+<pre><code>import { CheckinPicker } from "@smart-health-checkin/client/react";
 
-  // who may answer in this browser — availability and the default come back in the list
-  useEffect(() =&gt; { void resolveResponders(policy).then(setResponders); }, [policy]);
+&lt;CheckinPicker
+  request={REQUEST}
+  wallets="/wallets.json"
+  onResponse={({ response }) =&gt; setResponse(response)}
+  onDeclined={() =&gt; setNote("Nothing was shared.")}
+/&gt;</code></pre>
+    <h2>Or draw your own buttons</h2>
+<pre><code>import { useCheckin } from "@smart-health-checkin/client/react";
 
-  const start = useCallback(async (responder = responders.find((r) =&gt; r.isDefault)) =&gt; {
-    setState({ status: "waiting" });
-    try {
-      const response = await requestCheckin(request, {
-        getCredential: credentialGetterFor(responder, { origin: policy.origin }),
-      });
-      setState({ status: "done", response });
-    } catch (e) {
-      setState(e instanceof CheckinFlowError &amp;&amp; e.outcome.status === "declined"
-        ? { status: "declined" }
-        : { status: "error", error: String(e) });
-    }
-  }, [request, policy, responders]);
+const { responders, start, status, response } = useCheckin(REQUEST, { webWallets: "/wallets.json" });
 
-  return { ...state, responders, start };
-}
-
-// …and the component renders the list: one button per responder, the default leading
-{responders.map((r) =&gt; ( className={r.isDefault ? "smart-btn primary" : "smart-btn"}
-          disabled={!r.available} title={r.reason} onClick={() =&gt; start(r)}&gt;
-    {r.name}
-  &lt;/button&gt;
+// start(r) opens a web wallet's tab inside the click, so call it from onClick
+{responders.filter((r) =&gt; r.available).map((r) =&gt; (
+  &lt;button key={r.id} onClick={() =&gt; start(r)}&gt;{r.name}&lt;/button&gt;
 ))}</code></pre>
   </section>
 </main>

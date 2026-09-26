@@ -11,6 +11,9 @@ const here = (p: string): string => new URL(p, import.meta.url).href;
 
 const checkin = await import(here("../_site/lib/checkin.js"));
 const fhir = await import(here("../_site/lib/fhir.js"));
+const ui = await import(here("../_site/lib/ui.js"));
+if (typeof ui.SmartCheckinPicker !== "function" || typeof ui.defineCheckinPicker !== "function") throw new Error("ui.js does not export the picker element");
+if (!String(ui.PICKER_CSS).includes("--smart-checkin-accent")) throw new Error("ui.js is missing the picker styles");
 
 const request = checkin.buildRequest({
   purpose: "hosted bundle smoke test",

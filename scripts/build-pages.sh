@@ -23,7 +23,8 @@ cp demo/react.html $OUT/demo/react.html
 cp demo/angular.html $OUT/demo/angular.html
 cp demo/kiosk.html $OUT/demo/kiosk.html
 cp demo/handoff.html $OUT/demo/handoff.html
-bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts --outdir $OUT/demo --format esm --minify
+cp demo/picker.html $OUT/demo/picker.html
+bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kiosk.ts demo/src/handoff.ts demo/src/picker.ts --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/react.tsx --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/angular.ts --outdir $OUT/demo --format esm --minify
 # hosted builds under /lib/ so the URL space stays organized
@@ -32,6 +33,9 @@ bun build src/index.ts --outdir $OUT/lib --format esm --minify
 mv $OUT/lib/index.js $OUT/lib/checkin.js
 bun build src/fhir/index.ts --outdir $OUT/lib --format esm --minify
 mv $OUT/lib/index.js $OUT/lib/fhir.js
+# <smart-checkin-picker>, self-contained: one <script type="module"> line on any page
+bun build src/ui/index.ts --outdir $OUT/lib --format esm --minify
+mv $OUT/lib/index.js $OUT/lib/ui.js
 # docs: narrative guides + generated API reference, all from repo markdown
 bun run docs >/dev/null
 bun scripts/render-docs.ts
@@ -42,6 +46,7 @@ VERSION=$(bun -e 'console.log(require("./package.json").version)')
 mkdir -p "$OUT/lib/$VERSION"
 cp $OUT/lib/checkin.js "$OUT/lib/$VERSION/checkin.js"
 cp $OUT/lib/fhir.js "$OUT/lib/$VERSION/fhir.js"
+cp $OUT/lib/ui.js "$OUT/lib/$VERSION/ui.js"
 printf '{"version":"%s"}\n' "$VERSION" > $OUT/lib/version.json
 
 touch $OUT/.nojekyll

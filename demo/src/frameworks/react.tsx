@@ -1,19 +1,9 @@
-/** React example: the same flow, rendered by React via the useCheckin hook. */
+/** React example: <CheckinPicker> from @smart-health-checkin/client/react. */
 
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import type { ResponderPolicy } from "../../../src/index.js";
-import { useCheckin } from "./use-checkin.js";
-
-// What this page accepts, and which one leads. The demo wallet leads because
-// it works in any browser; a real deployment would more likely say "platform".
-const POLICY: ResponderPolicy = {
-  platform: true,
-  webWallets: "./wallets.json",
-  mock: true,
-  default: "demo",
-  origin: location.origin,
-};
+import type { SmartCheckinResponse } from "../../../src/index.js";
+import { CheckinPicker } from "../../../src/react/index.js";
 
 const REQUEST = {
   purpose: "Confirm your medications before your visit",
@@ -33,7 +23,8 @@ const REQUEST = {
 };
 
 function MedicationCheckin() {
-  const { status, response, error, responders, start } = useCheckin(REQUEST, POLICY);
+  const [response, setResponse] = useState<SmartCheckinResponse | undefined>();
+  const [note, setNote] = useState<string | undefined>();
 
   const medications =
     response?.artifacts
@@ -46,29 +37,22 @@ function MedicationCheckin() {
     <div className="card">
       <h2>Medication review</h2>
       <p className="muted">
-        Rendered by React. The check-in call is the same plain async function
-        the vanilla and Angular examples use.
+        Rendered by React. The picker is the same element every page uses,
+        wrapped as a component with callbacks.
       </p>
 
-      {/* Rendering is the page's business: one control per responder, the default leading. */}
-      <div className="choices">
-        {responders.map((r) => (
-          <button
-            key={r.id}
-            className={r.isDefault ? "smart-btn primary" : "smart-btn"}
-            disabled={!r.available || status === "waiting"}
-            title={r.reason ?? r.description ?? ""}
-            onClick={() => void start(r)}
-          >
-            {r.kind === "platform" ? "Prefill from my health app" : r.name}
-          </button>
-        ))}
-      </div>
-      {status === "waiting" && <p className="note">Waiting for the wallet…</p>}
+      <CheckinPicker
+        request={REQUEST}
+        wallets="./wallets.json"
+        mock
+        heading="Confirm your medications"
+        description="Bring in your medication list from a health app you use."
+        onResponse={({ response }) => { setResponse(response); setNote(undefined); }}
+        onDeclined={() => setNote("Nothing was shared. Fill in the list yourself.")}
+        onError={({ message }) => setNote(message)}
+      />
 
-      {status === "declined" && <p className="note">Nothing was shared — fill the form manually.</p>}
-      {status === "error" && <p className="note error">{error}</p>}
-
+      {note && <p className="note">{note}</p>}
       {medications.length > 0 && (
         <ul className="meds">
           {medications.map((text, index) => (

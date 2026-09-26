@@ -31,6 +31,12 @@ export const GUIDES: Guide[] = [
     blurb: "Platform API, wallet web app, mock, and where keys live.",
   },
   {
+    file: "docs/picker.md",
+    slug: "picker",
+    title: "Wallet picker",
+    blurb: "A drop-in element (and React component) that lets the patient choose an app and runs the check-in.",
+  },
+  {
     file: "docs/kiosk.md",
     slug: "kiosk",
     title: "Kiosk and front-desk check-in",

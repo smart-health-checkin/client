@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wallet picker</title>
+<link rel="stylesheet" href="/assets/smart-design.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<script src="/assets/site-chrome.js" defer></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg-alt); color: var(--fg-1); font-family: var(--font-sans); line-height: 1.55; }
+  .wrap { max-width: 64rem; margin: 0 auto; padding: 0 1.25rem; }
+  main.wrap { padding-block: 2rem 4rem; display: grid; gap: 1.25rem; }
+  h1 { font-size: 1.4rem; margin: 0; }
+  .muted { color: var(--fg-2); margin: 0.3rem 0 0; max-width: 70ch; }
+  .controls { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: end; }
+  .controls label { display: grid; gap: 0.25rem; font-size: var(--fs-sm); font-weight: 600; color: var(--fg-2); }
+  .controls select { font: inherit; font-size: var(--fs-sm); padding: 0.35rem 0.5rem; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--fg-1); }
+  .stage { display: grid; grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  @media (max-width: 760px) { .stage { grid-template-columns: 1fr; } }
+  .clinic { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--clinic-bg); color: var(--clinic-ink); }
+  .clinic header { background: var(--clinic-head); color: var(--clinic-head-ink); padding: 0.75rem 1rem; font-weight: 700; font-family: var(--clinic-font); }
+  .clinic .body { padding: 1rem; display: grid; gap: 0.85rem; font-family: var(--clinic-font); }
+  .clinic h2 { margin: 0; font-size: 1.15rem; }
+  .log { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: var(--font-mono); font-size: var(--fs-xs); white-space: pre-wrap; min-height: 8rem; overflow-x: auto; }
+
+  /* Skins: the clinic page's colors, and the picker restyled only through its custom properties. */
+  .skin-smart { --clinic-bg: #F6F8FA; --clinic-ink: #1F2933; --clinic-head: #0E6FB8; --clinic-head-ink: #fff; --clinic-font: var(--font-sans); }
+  .skin-portal {
+    --clinic-bg: #F7F4F1; --clinic-ink: #22262B; --clinic-head: #246FB5; --clinic-head-ink: #fff; --clinic-font: "Source Sans 3", sans-serif;
+    --smart-checkin-font: "Source Sans 3", "Segoe UI", sans-serif;
+    --smart-checkin-accent: #205E9B; --smart-checkin-accent-hover: #184A7B;
+    --smart-checkin-border: #E3DDD7; --smart-checkin-text: #22262B; --smart-checkin-text-muted: #5A5F66;
+    --smart-checkin-warning: #CD1543; --smart-checkin-success: #2E7D5B;
+    --smart-checkin-radius: 24px; --smart-checkin-radius-large: 8px; --smart-checkin-icon-radius: 50%;
+  }
+  .skin-clinic {
+    --clinic-bg: #FFFFFF; --clinic-ink: #0F2A2A; --clinic-head: #0B3B3C; --clinic-head-ink: #00E0B9; --clinic-font: "Nunito Sans", sans-serif;
+    --smart-checkin-font: "Nunito Sans", "Segoe UI", sans-serif;
+    --smart-checkin-accent: #00735F; --smart-checkin-accent-hover: #005A4A;
+    --smart-checkin-surface: #F2F7F6; --smart-checkin-border: #C9D6D4; --smart-checkin-text: #0F2A2A; --smart-checkin-text-muted: #4A6363;
+    --smart-checkin-radius: 3px; --smart-checkin-radius-large: 4px; --smart-checkin-icon-radius: 3px;
+  }
+  .clinic.dark { --clinic-bg: #11161D; --clinic-ink: #E6EAEF; }
+</style>
+</head>
+<body>
+<div class="demo-strip smart-banner"><div class="wrap smart-banner-inner">
+  <span class="smart-chip warning">Demo</span>
+  <span class="what grow">The &lt;smart-checkin-picker&gt; element</span>
+  <a class="strip-link" href="./">Full check-in demo →</a>
+</div></div>
+
+<main class="wrap">
+  <header>
+    <h1>Wallet picker</h1>
+    <p class="muted">The drop-in element from <code>@smart-health-checkin/client/ui</code>, also served as one file at <code>/client/lib/ui.js</code>. Pick a situation to see how it adapts, or choose <b>Live</b> to run a real check-in against this site's demo wallets. The skins change only CSS custom properties.</p>
+  </header>
+
+  <div class="controls">
+    <label>Situation
+      <select id="situation">
+        <option value="live">Live: demo wallets and the simulated response</option>
+        <option value="connectathon" selected>Phone wallet and two web wallets</option>
+        <option value="no-api">No Digital Credentials API, two web wallets</option>
+        <option value="platform-only">Phone wallet only</option>
+        <option value="one">One web wallet</option>
+        <option value="five">Five web wallets</option>
+        <option value="nine">Nine web wallets</option>
+        <option value="none">Nothing available</option>
+      </select>
+    </label>
+    <label>Skin
+      <select id="skin">
+        <option value="smart">SMART</option>
+        <option value="portal">Portal blue</option>
+        <option value="clinic">Clinic teal</option>
+      </select>
+    </label>
+    <label>Theme
+      <select id="theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+    <label>Appearance
+      <select id="appearance">
+        <option value="card">Card</option>
+        <option value="flat">Flat</option>
+      </select>
+    </label>
+    <label>Remember last app
+      <select id="remember">
+        <option value="off">Off</option>
+        <option value="on">On</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="stage">
+    <div class="clinic skin-smart" id="clinic">
+      <header>Riverbend Family Medicine</header>
+      <div class="body">
+        <h2>Before your visit</h2>
+        <smart-checkin-picker id="picker"></smart-checkin-picker>
+      </div>
+    </div>
+    <div class="log" id="log" aria-live="polite">Events from the picker appear here.</div>
+  </div>
+</main>
+<script type="module" src="./picker.js"></script>
+</body>
+</html>
