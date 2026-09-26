@@ -7,9 +7,7 @@ dist/
 docs-site/
 .env
 
-# The spec's fixtures, fetched by tag (scripts/fetch-fixtures.sh)
+# The spec's fixtures and conformance cases, fetched by tag (scripts/fetch-spec.sh)
 fixtures/
-.cache/
-
-# The spec's conformance cases, fetched at a pinned ref (scripts/fetch-conformance.sh)
 spec-conformance/
+.cache/

@@ -114,10 +114,10 @@ scripts/build-pages.sh   # this package's pages into _site/
 bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5   # the kiosk demo's mailbox schema and rules; reads INSTANT_CLI_AUTH_TOKEN from ./.env
 ```
 
-The conformance tests read the spec's fixtures at a pinned tag
-(`SPEC_FIXTURES_REF` in `scripts/fetch-fixtures.sh`, currently `fixtures-v2`).
-`bun test` fetches them into the gitignored `fixtures/` on first run; set
-`SPEC_FIXTURES_DIR=../spec/fixtures` to test against a local spec checkout.
+The tests read the spec's fixtures and conformance cases at a pinned tag
+(`SPEC_REF` in `scripts/fetch-spec.sh`, currently `v1.0.0-draft.1`). `bun test`
+fetches them into the gitignored `fixtures/` and `spec-conformance/`; set
+`SPEC_DIR=../spec` to test against a local spec checkout.
 
 `scripts/build-pages.sh` refuses to finish if the hosted bundles don't
 actually run — see `scripts/verify-lib.ts` for why that check exists.

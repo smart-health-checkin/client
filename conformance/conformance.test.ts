@@ -1,7 +1,7 @@
 /**
  * The spec's conformance cases (github.com/smart-health-checkin/spec,
  * conformance/), run against this library. Cases are fetched at a pinned ref
- * by scripts/fetch-conformance.sh. Every claimed case must pass except those
+ * by scripts/fetch-spec.sh. Every claimed case must pass except those
  * listed in known-failures.json, which must still fail: a listed case that
  * starts passing fails this suite too, so remove it from the list.
  */
@@ -23,9 +23,11 @@ import {
 import { parseWalletRequest, sealWalletResponse } from "../src/wallet/index.js";
 
 const ROOT = join(import.meta.dir, "../spec-conformance");
-if (process.env.SPEC_CONFORMANCE_DIR || !existsSync(join(ROOT, ".ref"))) {
-  const fetched = Bun.spawnSync([join(import.meta.dir, "../scripts/fetch-conformance.sh")], { stdout: "inherit", stderr: "inherit" });
-  if (!fetched.success) throw new Error("could not fetch conformance cases: run scripts/fetch-conformance.sh");
+// The cases come from the spec repo at a pinned tag. fetch-spec.sh returns at
+// once when they are already current.
+{
+  const fetched = Bun.spawnSync([join(import.meta.dir, "../scripts/fetch-spec.sh")], { stdout: "inherit", stderr: "inherit" });
+  if (!fetched.success) throw new Error("could not fetch conformance cases: run scripts/fetch-spec.sh");
 }
 
 type Case = {

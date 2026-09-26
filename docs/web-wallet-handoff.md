@@ -61,7 +61,7 @@ walletWindow.postMessage({
 }, walletOrigin);
 ```
 
-`credentialRequestOptions` is the same argument the EHR would pass to `navigator.credentials.get` ([A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers)).
+`credentialRequestOptions` is the same argument the EHR would pass to `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)).
 
 ### Response: wallet → EHR
 
@@ -79,7 +79,7 @@ Sent once, to the EHR's origin only. One of three outcomes:
 { type: "digital-credentials/web-wallet/response", requestId, outcome: "error", message: "<what went wrong>" }
 ```
 
-`response` is the base64url `dcapiResponse`, exactly what a native wallet returns ([A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers)).
+`response` is the base64url `dcapiResponse`, exactly what a native wallet returns ([HPKE-2](https://smart-health-checkin.org/spec/#HPKE-2)).
 
 ## The EHR's origin
 
@@ -114,7 +114,7 @@ For an EHR:
 - Open the wallet only during a user click, and keep the window reference.
 - Filter every incoming message by `event.source`, `event.origin`, and `requestId`.
 - Send the request only to the wallet's origin, never to `"*"`.
-- Validate an approved response as in [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing) and [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist).
+- Validate an approved response as in [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing).
 
 For a web wallet:
 

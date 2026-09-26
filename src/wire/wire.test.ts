@@ -1,12 +1,12 @@
 /**
  * Wire-layer conformance tests against the spec's fixture corpus, fetched by
- * tag into fixtures/ (scripts/fetch-fixtures.sh). The real-capture fixtures are byte oracles: the
+ * tag into fixtures/ (scripts/fetch-spec.sh). The real-capture fixtures are byte oracles: the
  * kit must reproduce the exact bytes a real Chrome/Android session produced,
  * open the real encrypted response, and verify its signatures.
  */
 
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   base64UrlDecodeBytes,
@@ -38,15 +38,16 @@ import {
 } from "./verify.js";
 
 const FIXTURES = join(import.meta.dir, "../../fixtures");
-// The fixtures come from the spec repo at a pinned tag; fetch them on first run.
-if (!existsSync(join(FIXTURES, ".ref"))) {
-  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-fixtures.sh")], { stdout: "inherit", stderr: "inherit" });
-  if (!fetched.success) throw new Error("could not fetch fixtures: run scripts/fetch-fixtures.sh");
+// The fixtures come from the spec repo at a pinned tag. fetch-spec.sh returns
+// at once when they are already current.
+{
+  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-spec.sh")], { stdout: "inherit", stderr: "inherit" });
+  if (!fetched.success) throw new Error("could not fetch the spec fixtures: run scripts/fetch-spec.sh");
 }
-const REQ = join(FIXTURES, "dcapi-requests/real-chrome-android-smart-checkin");
-const RESP = join(FIXTURES, "responses/real-chrome-android-smart-checkin");
-const TS_BASIC = join(FIXTURES, "dcapi-requests/ts-smart-checkin-basic");
-const TS_READERAUTH = join(FIXTURES, "dcapi-requests/ts-smart-checkin-readerauth");
+const REQ = join(FIXTURES, "dcapi-requests/android-chrome-capture");
+const RESP = join(FIXTURES, "responses/android-chrome-capture");
+const TS_BASIC = join(FIXTURES, "dcapi-requests/synthetic-basic");
+const TS_READERAUTH = join(FIXTURES, "dcapi-requests/synthetic-reader-auth");
 
 const bytes = (path: string): Uint8Array => new Uint8Array(readFileSync(path));
 const text = (path: string): string => readFileSync(path, "utf8").trim();

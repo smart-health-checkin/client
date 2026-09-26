@@ -13,7 +13,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install
       - run: bun run typecheck
-      - run: scripts/fetch-fixtures.sh
+      - run: scripts/fetch-spec.sh
       - run: bun test
       - run: bun run build
       - run: scripts/build-pages.sh

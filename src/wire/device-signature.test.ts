@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildSignedDeviceResponse } from "../wallet/seal.js";
 import { CborTag, cborDecode, cborEncode, mapGet } from "./cbor.js";
@@ -14,12 +14,15 @@ import { buildDcapiSessionTranscript } from "./request.js";
 import { verifyDeviceResponseSignatures } from "./verify.js";
 
 const FIXTURES = join(import.meta.dir, "../../fixtures");
-if (!existsSync(join(FIXTURES, ".ref"))) {
-  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-fixtures.sh")], { stdout: "inherit", stderr: "inherit" });
-  if (!fetched.success) throw new Error("could not fetch fixtures: run scripts/fetch-fixtures.sh");
+// The fixtures come from the spec repo at a pinned tag. fetch-spec.sh returns
+// at once when they are already current.
+{
+  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-spec.sh")], { stdout: "inherit", stderr: "inherit" });
+  if (!fetched.success) throw new Error("could not fetch the spec fixtures: run scripts/fetch-spec.sh");
 }
-const REQ = join(FIXTURES, "dcapi-requests/real-chrome-android-smart-checkin");
-const RESP = join(FIXTURES, "responses/real-chrome-android-smart-checkin");
+// A synthetic DeviceResponse whose device signature carries an attached payload
+// equal to this session's DeviceAuthentication (spec conformance case).
+const ATTACHED = join(FIXTURES, "../spec-conformance/mdoc-verify/attached-payload-equal");
 const bytes = (path: string): Uint8Array => new Uint8Array(readFileSync(path));
 
 const transcript = (origin: string) =>
@@ -48,21 +51,21 @@ describe("device signature", () => {
     expect(v!.deviceSignature.signatureValid).toBe(true);
   });
 
-  test("an attached payload equal to this session's DeviceAuthentication verifies (real Android capture)", async () => {
-    const response = bytes(join(RESP, "device-response.cbor"));
+  test("an attached payload equal to this session's DeviceAuthentication verifies", async () => {
+    const response = bytes(join(ATTACHED, "device-response.cbor"));
     expect(deviceSignatureOf(response)[2]).toBeInstanceOf(Uint8Array);
     const [v] = await verifyDeviceResponseSignatures({
       deviceResponseBytes: response,
-      sessionTranscript: bytes(join(REQ, "session-transcript.cbor")),
+      sessionTranscript: bytes(join(ATTACHED, "session-transcript.cbor")),
     });
     expect(v!.deviceSignature.signatureValid).toBe(true);
   });
 
   test("an attached payload signed for another session is rejected", async () => {
-    // The capture's signature is genuinely valid over its attached payload, so
+    // The signature is genuinely valid over its attached payload, so
     // trusting the attached bytes would pass it under any transcript.
     const [v] = await verifyDeviceResponseSignatures({
-      deviceResponseBytes: bytes(join(RESP, "device-response.cbor")),
+      deviceResponseBytes: bytes(join(ATTACHED, "device-response.cbor")),
       sessionTranscript: await transcript("https://someone-else.example"),
     });
     expect(v!.deviceSignature.signatureValid).toBe(false);

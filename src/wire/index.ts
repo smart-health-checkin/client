@@ -2,7 +2,7 @@
  * wire — pure byte-level mdoc binding for SMART Health Check-in (draft spec
  * §8): request construction, SessionTranscript, HPKE seal/open, DeviceResponse
  * inspection, and COSE signature verification. No DOM. Verified against the
- * fixtures (the spec's, fetched into `fixtures/` by scripts/fetch-fixtures.sh).
+ * fixtures (the spec's, fetched into `fixtures/` by scripts/fetch-spec.sh).
  */
 
 export * from "./bytes.js";

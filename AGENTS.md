@@ -5,9 +5,10 @@ Deploys to smart-health-checkin.org/client/.
 [MAINTAINING.md](https://github.com/smart-health-checkin/smart-health-checkin.github.io/blob/main/MAINTAINING.md) maps every repo, what triggers what, and how to release.
 
 - Check: `bun install && bun run typecheck && bun test`. Tests fetch the
-  spec's fixtures at the pinned tag (`scripts/fetch-fixtures.sh`) on first run.
+  spec's fixtures and conformance cases at the pinned tag (`SPEC_REF` in
+  `scripts/fetch-spec.sh`; `SPEC_DIR=../spec` uses a local checkout).
 - Conformance: `conformance/conformance.test.ts` runs the spec's conformance
-  cases (pinned by `SPEC_CONFORMANCE_REF` in `scripts/fetch-conformance.sh`).
+  cases.
   `conformance/known-failures.json` lists what fails today; when a fix makes a
   listed case pass, the suite fails until you remove it from the list.
 - Site: `scripts/build-pages.sh`. It builds the hosted bundles and runs them
