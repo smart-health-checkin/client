@@ -55,7 +55,7 @@ Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic
 ## Drop in the picker
 
 ```html
-<script type="module" src="https://smart-health-checkin.org/client/lib/0.2.2/ui.js"></script>
+<script type="module" src="https://smart-health-checkin.org/client/lib/0.3.0/ui.js"></script>
 
 <smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
 
@@ -84,7 +84,7 @@ button.onclick = async () => {
 From the GitHub release (the library isn't on the npm registry):
 
 ```sh
-npm install https://github.com/smart-health-checkin/client/releases/download/v0.2.2/smart-health-checkin-client-0.2.2.tgz
+npm install https://github.com/smart-health-checkin/client/releases/download/v0.3.0/smart-health-checkin-client-0.3.0.tgz
 ```
 
 What you get:
@@ -98,12 +98,12 @@ Or with no build step, from a hosted file:
 
 | File | What it gives you |
 | --- | --- |
-| `/client/lib/0.2.2/ui.js` | `<smart-checkin-picker>`, self-contained |
-| `/client/lib/0.2.2/checkin.js` | `runCheckin`, `wallets`, `CheckinResponse`, and the rest of the root module |
-| `/client/lib/0.2.2/handoff.js` | The kiosk hand-off |
-| `/client/lib/0.2.2/wallet.js` | For building a web wallet |
-| `/client/lib/0.2.2/testing.js` | The mock wallet |
-| `/client/lib/0.2.2/fhir.js` | Turning a response into a FHIR transaction |
+| `/client/lib/0.3.0/ui.js` | `<smart-checkin-picker>`, self-contained |
+| `/client/lib/0.3.0/checkin.js` | `runCheckin`, `wallets`, `CheckinResponse`, and the rest of the root module |
+| `/client/lib/0.3.0/handoff.js` | The kiosk hand-off |
+| `/client/lib/0.3.0/wallet.js` | For building a web wallet |
+| `/client/lib/0.3.0/testing.js` | The mock wallet |
+| `/client/lib/0.3.0/fhir.js` | Turning a response into a FHIR transaction |
 
 All at `https://smart-health-checkin.org`. Drop the version for the latest.
 

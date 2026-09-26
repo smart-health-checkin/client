@@ -10,7 +10,7 @@ A wallet is anything that can answer a check-in request: the phone's own health 
 `<smart-checkin-picker>` shows the patient the health apps they can use, runs the check-in with the one they pick, and tells your page what came back.
 
 ```html
-<script type="module" src="https://smart-health-checkin.org/client/lib/0.2.2/ui.js"></script>
+<script type="module" src="https://smart-health-checkin.org/client/lib/0.3.0/ui.js"></script>
 
 <smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
 
