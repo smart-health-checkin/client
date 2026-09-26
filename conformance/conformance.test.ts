@@ -32,7 +32,7 @@ type Case = {
   capability: string;
   description: string;
   inputs: Record<string, string>;
-  expected: { valid: boolean; outputs?: Record<string, string>; artifacts?: Record<string, string> };
+  expected: { outcome: "accept" | "warn" | "reject" | "warn-or-reject"; warnings?: string[]; outputs?: Record<string, string> };
   status: "active" | "pending";
 };
 const manifest = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8")) as { cases: Case[] };
@@ -53,49 +53,65 @@ async function privateKey(jwkPath: string): Promise<{ key: CryptoKey; publicJwk:
   return { key, publicJwk: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y } };
 }
 
-/** Did this library reach the expected verdict (and outputs) for the case? */
+class Rejected extends Error {}
+const accepted = (ok: boolean) => { if (!ok) throw new Rejected(); };
+
+/**
+ * Did this library reach the expected outcome for the case? `attempt` throws
+ * when the library rejects the input; otherwise it returns whether the
+ * outputs match. accept and warn both require accepting (warnings are
+ * advisory, and this library doesn't report them yet).
+ */
+async function judge(c: Case, attempt: () => Promise<boolean> | boolean): Promise<boolean> {
+  let rejected = false;
+  let outputsOk = false;
+  try {
+    outputsOk = await attempt();
+  } catch {
+    rejected = true;
+  }
+  switch (c.expected.outcome) {
+    case "reject": return rejected;
+    case "warn-or-reject": return rejected || outputsOk;
+    default: return !rejected && outputsOk;
+  }
+}
+
 async function run(c: Case): Promise<boolean> {
   const i = c.inputs;
-  const verdict = async (f: () => Promise<boolean> | boolean) => {
-    try {
-      return (await f()) === c.expected.valid;
-    } catch {
-      return c.expected.valid === false;
-    }
-  };
+  const out = c.expected.outputs ?? {};
   switch (c.capability) {
     case "request-json":
-      return verdict(() => validateSmartCheckinRequest(JSON.parse(text(i.request!))).ok);
+      return judge(c, () => { accepted(validateSmartCheckinRequest(JSON.parse(text(i.request!))).ok); return true; });
     case "response-json":
-      return verdict(() => validateSmartCheckinResponse(JSON.parse(text(i.response!))).ok);
+      return judge(c, () => { accepted(validateSmartCheckinResponse(JSON.parse(text(i.response!))).ok); return true; });
     case "cross-validation":
-      return verdict(() => validateResponseAgainstRequest(jsonOf(i.request!), jsonOf(i.response!)).ok);
+      return judge(c, () => { accepted(validateResponseAgainstRequest(jsonOf(i.request!), jsonOf(i.response!)).ok); return true; });
     case "request-cbor":
-      return verdict(() => {
+      return judge(c, () => {
         const parsed = parseWalletRequest(jsonOf(i.navigatorArgument!));
-        if (!c.expected.valid) return true;
-        return Bun.deepEquals(parsed.smartRequest, jsonOf(c.expected.outputs!.smartRequest!));
+        return !out.smartRequest || Bun.deepEquals(parsed.smartRequest, jsonOf(out.smartRequest));
       });
     case "transcript": {
       const t = await buildDcapiSessionTranscript({ origin: trimmed(i.origin!), encryptionInfo: trimmed(i.encryptionInfo!) });
-      return bytesEqual(t, bytes(c.expected.outputs!.sessionTranscript!));
+      return bytesEqual(t, bytes(out.sessionTranscript!));
     }
     case "hpke-open":
-      return verdict(async () => {
+      return judge(c, async () => {
         const { key, publicJwk } = await privateKey(i.recipientPrivateJwk!);
         const sessionTranscript = await buildDcapiSessionTranscript({ origin: trimmed(i.origin!), encryptionInfo: trimmed(i.encryptionInfo!) });
         const opened = await openWalletResponse({ response: jsonOf(i.credential!), recipientPrivateKey: key, recipientPublicJwk: publicJwk, sessionTranscript });
-        if (!c.expected.valid) return true;
-        return bytesEqual(opened.deviceResponseBytes, bytes(c.expected.outputs!.deviceResponse!));
+        return !out.deviceResponse || bytesEqual(opened.deviceResponseBytes, bytes(out.deviceResponse));
       });
     case "mdoc-verify":
-      return verdict(async () => {
+      // The library's only mdoc check today: every signature and digest must verify.
+      return judge(c, async () => {
         const [v] = await verifyDeviceResponseSignatures({ deviceResponseBytes: bytes(i.deviceResponse!), sessionTranscript: bytes(i.sessionTranscript!) });
-        return !!v && !!v.issuerAuth.signatureValid && !!v.deviceSignature.signatureValid && v.digests.allMatch;
+        accepted(!!v && !!v.issuerAuth.signatureValid && !!v.deviceSignature.signatureValid && v.digests.allMatch);
+        return true;
       });
     case "wallet-response": {
-      const { smartRequest, encryptionInfoBytes } = parseWalletRequest(jsonOf(i.navigatorArgument!));
-      void smartRequest;
+      const { encryptionInfoBytes } = parseWalletRequest(jsonOf(i.navigatorArgument!));
       const credential = await sealWalletResponse({ smartResponse: jsonOf(i.smartResponse!), encryptionInfoBytes, verifierOrigin: trimmed(i.origin!) });
       return referenceVerifies(credential, c);
     }

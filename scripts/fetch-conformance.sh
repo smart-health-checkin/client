@@ -6,7 +6,7 @@
 #   scripts/fetch-conformance.sh
 #   SPEC_CONFORMANCE_DIR=../spec/conformance scripts/fetch-conformance.sh   # use a local spec checkout instead
 set -euo pipefail
-SPEC_CONFORMANCE_REF="${SPEC_CONFORMANCE_REF:-2f2d06b6620db4efa3afdcb7a1a2819ba660e8ba}"
+SPEC_CONFORMANCE_REF="${SPEC_CONFORMANCE_REF:-faf90484d59fea67e05a8d9322f7f248a0e517fd}"
 cd "$(dirname "$0")/.."
 
 if [ -n "${SPEC_CONFORMANCE_DIR:-}" ]; then
