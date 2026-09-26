@@ -228,7 +228,7 @@ const STYLE = `
 .xp-matrix th, .xp-matrix td { padding:6px 8px; vertical-align:middle; white-space:nowrap; }
 .xp-matrix th:first-child, .xp-matrix td:first-child { white-space:normal; max-width:12rem; padding-right:12px; line-height:1.3; }
 .xp-matrix thead th { vertical-align:bottom; }
-.xp-matrix th.art { text-align:center; font-family:var(--font-mono); font-size:11px; line-height:1.25; white-space:normal; overflow-wrap:anywhere; max-width:7rem; text-transform:none; letter-spacing:0; }
+.xp-matrix th.art { text-align:center; font-family:var(--font-mono); font-size:11px; line-height:1.25; white-space:normal; overflow-wrap:anywhere; max-width:7rem; }
 .xp-matrix th.art small { display:block; font-family:var(--font-sans); font-weight:400; font-size:11px; color:var(--fg-3); white-space:nowrap; margin-top:2px; }
 .xp-status { display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-sm); color:var(--fg-2); }
 .xp-status::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--fg-3); flex:none; }

@@ -13,7 +13,6 @@
   /* This demo simulates a clinic's own page, drawn on the site's design
      system so the whole domain reads as one product family. */
   * { box-sizing: border-box; }
-  [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg-alt); font-family: var(--font-sans); line-height: 1.5; }
   .content > * { max-width: 44rem; }
   .content { padding-top: 1.75rem; padding-bottom: 4rem; display: flex; flex-direction: column; gap: 1rem; }
@@ -38,8 +37,6 @@
   .row-actions { display: inline-flex; align-items: baseline; gap: var(--space-3); margin-left: auto; }
   .state { font-size: var(--fs-xs); color: var(--fg-3); white-space: nowrap; }
   li.gap .state { color: var(--brand); font-weight: 500; }
-  /* "change" and "remove" are .smart-btn.link.sm, kept to the line's height */
-  .row-actions .smart-btn { padding: 0 2px; }
   .ask { font-size: 0.84rem; margin-top: 0.45rem; }
   li.gap .ask { color: var(--fg-1); font-weight: 500; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
