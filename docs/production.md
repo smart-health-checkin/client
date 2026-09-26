@@ -117,4 +117,4 @@ Log each failed result's `error.code`, and watch the counts.
 
 Log `result.warnings` from completed check-ins too: a steady stream from one wallet usually means a bug there. `unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
 
-Next: [Building a wallet](build-a-wallet.md)
+Next: [Wallet guide](build-a-wallet.md)

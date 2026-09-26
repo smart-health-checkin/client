@@ -1,4 +1,4 @@
-# Asking for data
+# Requests
 
 A request is a list of items. Each item tells the patient what you're asking for, tells their wallet which data that means, and says which formats you can accept.
 
@@ -87,7 +87,7 @@ accept: ["application/smart-health-card", "application/fhir+json"] // a signed c
 ```
 
 - List only formats you can process. A response in a format the item didn't accept fails validation.
-- A card's signature tells you who issued the record, which plain FHIR can't. [Using the answer](responses.md#smart-health-cards) covers how cards are checked.
+- A card's signature tells you who issued the record, which plain FHIR can't. [Responses](responses.md#smart-health-cards) covers how cards are checked.
 
 ## Building a request
 
@@ -107,4 +107,4 @@ const full = checkinRequest({ purpose, items }); // throws if it's malformed
 
 `purpose`, `title`, and `summary` are text for the patient. A wallet must not treat them as evidence of anything.
 
-Next: [Offering wallets](wallets.md)
+Next: [Wallet picker](wallets.md)

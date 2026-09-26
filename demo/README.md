@@ -1,4 +1,4 @@
-# Demo options
+# Clinic demo options
 
 The sample pages for `@smart-health-checkin/client`, served at `/client/demo/`. Each page shows one way to use the library, running the real flow. Responses stay in the page unless you say where to post them.
 

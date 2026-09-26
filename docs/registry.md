@@ -1,6 +1,6 @@
 # Registry format
 
-A wallet registry is a `wallets.json` file listing the web wallets an EHR page offers. [Offering wallets](wallets.md#registries-and-icons) explains how pages use one.
+A wallet registry is a `wallets.json` file listing the web wallets an EHR page offers. [Wallet picker](wallets.md#registries-and-icons) explains how pages use one.
 
 ```json
 {

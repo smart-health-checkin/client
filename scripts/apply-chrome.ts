@@ -30,7 +30,7 @@ if (existsSync(tutorial)) {
   #main { max-width: 40rem; margin: 2rem auto; padding: 0 1rem; min-height: 100vh; }
 </style>\n</head>`)
       .replace(/<body>\s*/, `<body>
-<div data-smart-topbar="tool" data-tool-title="Tutorial page" data-back-href="../docs/tutorial.html" data-back-label="Tutorial"></div>
+<div data-smart-topbar="tool" data-tool-title="Tutorial's finished page" data-back-href="../docs/tutorial.html" data-back-label="Tutorial"></div>
 <main id="main">
 `)
       .replace(/\s*<\/body>/, `\n</main>\n<div data-smart-footer></div>\n</body>`);

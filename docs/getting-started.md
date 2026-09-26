@@ -50,7 +50,7 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
 | Drop a picker into a page you have | [The picker](wallets.md#the-picker), below |
 | Call it from your own code | [`wallet.start`](#call-it-yourself), below, or [`runCheckin`](wallets.md#starting-inside-the-click) |
 
-Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic demo](demo/), the [picker](demo/picker.html), the [allergy form](demo/autofill.html), the [kiosk](demo/kiosk.html).
+Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic demo](demo/), the [picker](demo/picker.html), the [form autofill demo](demo/autofill.html), the [kiosk](demo/kiosk.html).
 
 ## Drop in the picker
 
@@ -113,7 +113,7 @@ Grouped as in the Developers menu:
 
 | Group | Guides |
 | --- | --- |
-| Build a check-in page | [Tutorial](tutorial.md) · [Asking for data](requests.md) · [Offering wallets](wallets.md) · [Using the answer](responses.md) · [Native apps](native-apps.md) |
-| Build a wallet | [Building a wallet](build-a-wallet.md) · [Web wallet hand-off](web-wallet-handoff.md) |
-| Testing and production | [Going to production](production.md) · [Testing](testing.md) · [Demo options](../demo/README.md) |
-| Reference | [API reference](api/index.md) · [Registry format](registry.md) |
+| Build a check-in page | [Tutorial](tutorial.md) · [Requests](requests.md) · [Wallet picker](wallets.md) · [Responses](responses.md) · [Native Verifier apps](native-apps.md) |
+| Build a wallet | [Wallet guide](build-a-wallet.md) · [Web wallets](web-wallets.md) |
+| Testing and production | [Going to production](production.md) · [Testing](testing.md) |
+| Reference | [API reference](api/index.md) · [Registry format](registry.md) · [Clinic demo options](../demo/README.md) |

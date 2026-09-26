@@ -1,4 +1,4 @@
-# Web wallet hand-off
+# Web wallets
 
 How an EHR's check-in page and a web wallet exchange a SMART Health Check-in request and response when the wallet is a website instead of an app on the phone.
 
@@ -12,7 +12,7 @@ You only need the rest of this page to implement the hand-off yourself, or to de
 | --- | --- |
 | EHR page | `wallets({ registry: "/wallets.json" })`, or `webWallet(entry)` for one wallet, then `wallet.start(request)` inside the click |
 | EHR page, no code | `<smart-checkin-picker registry="/wallets.json">` from `/ui` |
-| Web wallet | `serveWebWallet({ onRequest })` from `/wallet`; see [Build a wallet](build-a-wallet.md) |
+| Web wallet | `serveWebWallet({ onRequest })` from `/wallet`; see the [Wallet guide](build-a-wallet.md) |
 
 Web wallets are listed for EHRs in a [wallet registry](registry.md).
 

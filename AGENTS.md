@@ -27,7 +27,7 @@ Deploys to smart-health-checkin.org/client/.
 - Page chrome follows "The shared site" in MAINTAINING.md: bar, breadcrumb, `<main id="main">`,
   one `<h1>` worded as the menu entry, footer. Docs pages get it from `render-docs.ts`; demo pages
   carry it in their HTML (`scripts/apply-chrome.ts` checks them and wraps the generated tutorial
-  page). The demo wallet, the kiosk hand-off, and the tutorial page use the tool bar;
+  page). The demo wallet, the kiosk hand-off, and the tutorial's finished page use the tool bar;
   `native-bridge.html` has no chrome on purpose. `demo/demo.css` holds the demos' shared layout.
 - `scripts/check-links.ts` also fails the build on a `{{` left in a page outside code.
 - Docs are for developers using the library: keep install lines and pinned

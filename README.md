@@ -53,10 +53,10 @@ the site's Developers menu:
 
 | Group | Pages |
 | --- | --- |
-| Build a check-in page | [Tutorial](docs/tutorial.md) · [Asking for data](docs/requests.md) · [Offering wallets](docs/wallets.md) · [Using the answer](docs/responses.md) · [Native apps](docs/native-apps.md) |
-| Build a wallet | [Building a wallet](docs/build-a-wallet.md) · [Web wallet hand-off](docs/web-wallet-handoff.md) |
-| Testing and production | [Going to production](docs/production.md) · [Testing](docs/testing.md) · [Demo options](demo/README.md) |
-| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) |
+| Build a check-in page | [Tutorial](docs/tutorial.md) · [Requests](docs/requests.md) · [Wallet picker](docs/wallets.md) · [Responses](docs/responses.md) · [Native Verifier apps](docs/native-apps.md) |
+| Build a wallet | [Wallet guide](docs/build-a-wallet.md) · [Web wallets](docs/web-wallets.md) |
+| Testing and production | [Going to production](docs/production.md) · [Testing](docs/testing.md) |
+| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) · [Clinic demo options](demo/README.md) |
 
 ## Install
 
@@ -80,7 +80,7 @@ Or with no build step, from the hosted ES modules at `/client/lib/`, each self-c
 | `/ui` | `ui.js` | `<smart-checkin-picker>` |
 | `/react` | (package only) | `<CheckinPicker>`, `useCheckin` |
 | `/picker` | (package only) | Picker logic for your own UI |
-| `/wallet` | `wallet.js` | Building a wallet: `serveWebWallet`, matching, sealing |
+| `/wallet` | `wallet.js` | For wallets: `serveWebWallet`, matching, sealing |
 | `/handoff` | `handoff.js` | Kiosks: `handoffWallet` |
 | `/fhir` | `fhir.js` | Optional: response to a FHIR transaction |
 | `/testing` | `testing.js` | `mockWallet` for demos and tests |
@@ -89,8 +89,8 @@ Or with no build step, from the hosted ES modules at `/client/lib/`, each self-c
 ## Try it
 
 - [Clinic demo](https://smart-health-checkin.org/client/demo/): a fictional clinic running the real protocol. It opens this project's demo wallet in a tab, with a real consent screen and no phone needed. It can also use the device's own wallet or a mock, and shows every wire artifact under *Developer detail*.
-- [Tutorial page](https://smart-health-checkin.org/client/demo/tutorial.html): the finished page from the tutorial.
-- [Allergy example](https://smart-health-checkin.org/client/demo/autofill.html): prefill from the app, then ask only for what the shared record didn't include.
+- [Tutorial's finished page](https://smart-health-checkin.org/client/demo/tutorial.html): what you build in the tutorial.
+- [Form autofill](https://smart-health-checkin.org/client/demo/autofill.html): prefill from the app, then ask only for what the shared record didn't include.
 
 ## What's in here
 

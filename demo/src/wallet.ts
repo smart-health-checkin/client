@@ -1,6 +1,6 @@
 /**
  * Demo wallet — a wallet **web app** that answers SMART Health
- * Check-in requests over the web-wallet hand-off, using `serveWebWallet`.
+ * Check-in requests from an EHR page (docs: Web wallets), using `serveWebWallet`.
  *
  * The library does the protocol: it accepts one request from the opener,
  * takes the EHR's origin from the browser, and seals the answer to it. This

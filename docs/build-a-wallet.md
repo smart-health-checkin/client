@@ -1,10 +1,10 @@
-# Building a wallet
+# Wallet guide
 
 A wallet answers a clinic's check-in request with records and form answers the patient chose to share. `@smart-health-checkin/client/wallet` has the protocol and the matching rules; the consent screen is yours.
 
 ## What a wallet does
 
-1. Receives a request, from the Digital Credentials API (native) or the [web-wallet hand-off](web-wallet-handoff.md) (web).
+1. Receives a request, from the Digital Credentials API (native) or, for a [web wallet](web-wallets.md), from the EHR page that opened it.
 2. Shows the patient who is asking (the EHR page's origin) and what for.
 3. Lets the patient choose, item by item.
 4. Builds a SMART Health Check-in response: one status per item, plus artifacts.
@@ -56,7 +56,7 @@ const served = serveWebWallet({
 if (!served.opened) showLandingPage(); // opened directly, not by an EHR
 ```
 
-What happens under it, the [web wallet hand-off](web-wallet-handoff.md):
+What happens under it ([Web wallets](web-wallets.md) has the details):
 
 | Step | Message |
 | --- | --- |
@@ -160,7 +160,7 @@ The [SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing
 
 Test your wallet against the [Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/): it sends every connectathon scenario and checks your answer against the spec. See [Testing](testing.md).
 
-To check your bytes offline, the spec publishes conformance fixtures: real captured requests and responses, with every layer decoded. They're in the [spec repository](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.1/fixtures) at tag `v1.0.0-draft.1`, along with small [conformance cases](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.1/conformance) your implementation can run in CI, and the [capture inspector](https://smart-health-checkin.org/spec/wire-protocol-inspector.html) walks them byte by byte.
+To check your bytes offline, the spec publishes conformance fixtures: real captured requests and responses, with every layer decoded. They're in the [spec repository](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.1/fixtures) at tag `v1.0.0-draft.1`, along with small [conformance cases](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.1/conformance) your implementation can run in CI, and the [capture inspector](https://smart-health-checkin.org/spec/inspector.html) walks them byte by byte.
 
 ## Getting listed
 

@@ -201,12 +201,12 @@ Each demo page runs the real flow and shows one way to use the library. Source i
 | Page | What it shows |
 | --- | --- |
 | [Clinic check-in](../demo/) | The reference EHR: `wallets()` for a menu, `wallet.start` in the click, the raw response, the optional FHIR helper |
-| [Tutorial page](../demo/tutorial.html) | The finished page from [the tutorial](tutorial.md): the picker, a request, and a form filled from the answer |
+| [Tutorial's finished page](../demo/tutorial.html) | The finished page from [the tutorial](tutorial.md): the picker, a request, and a form filled from the answer |
 | [Wallet picker](../demo/picker.html) | The picker in canned situations and styles, pick mode, and reskinning |
 | [React](../demo/react.html) | `<CheckinPicker>` and `response.resources("meds", { type: "MedicationRequest" })` |
 | [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |
-| [Allergy autofill](../demo/autofill.html) | Prefill from `response.resources`, then ask only for what's missing |
+| [Form autofill](../demo/autofill.html) | Prefill from `response.resources`, then ask only for what's missing |
 | [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | `handoffWallet()` and `answerHandoff` |
 | [Demo wallet](../demo/wallet.html) | A web wallet built on `serveWebWallet` |
 
-The clinic demo takes options in the URL fragment, such as `#wallet=mock` or `#wallet=platform`. [`demo/README.md`](https://github.com/smart-health-checkin/client/blob/main/demo/README.md) lists them.
+The clinic demo takes options in the URL fragment, such as `#wallet=mock` or `#wallet=platform`. [Clinic demo options](../demo/README.md) lists them.

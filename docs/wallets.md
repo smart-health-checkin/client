@@ -1,4 +1,4 @@
-# Offering wallets
+# Wallet picker
 
 A wallet is anything that can answer a check-in request: the phone's own wallet, a wallet on the web, a kiosk hand-off, or a mock. Your page decides which to offer; the patient picks one.
 
@@ -349,6 +349,6 @@ const myWallet = customWallet({
 
 - `open` runs inside the click; do anything that needs the click there.
 - Throw `WalletDeclinedError` when the patient says no, and `CheckinError` with a code for failures.
-- Web wallets use a documented hand-off between two pages. [Web wallet hand-off](web-wallet-handoff.md) describes it.
+- Web wallets use a documented hand-off between two pages. [Web wallets](web-wallets.md) describes it.
 
-Next: [Using the answer](responses.md)
+Next: [Responses](responses.md)

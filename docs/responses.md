@@ -1,4 +1,4 @@
-# Using the answer
+# Responses
 
 A completed check-in gives you a `CheckinResponse`: the full response as received, plus lookups by the item ids in your request.
 
@@ -123,7 +123,7 @@ const needsDetail = rows.filter(
 - **Keep the manual path.** The patient can always type it in, and it lands in the same review as prefilled data.
 - **Keep the provenance.** "From the app", "typed by the patient", and "from the app, confirmed" are different facts.
 
-The [allergy example](../demo/autofill.html) does this end to end.
+The [form autofill demo](../demo/autofill.html) does this end to end.
 
 ## Storing it
 
@@ -168,6 +168,6 @@ What the mapping does:
 | `mode: "individual"` | One `POST` per resource, then the Provenance with the server's locations, for servers that handle transactions poorly |
 | `fetchImpl` | Your own `fetch`, with your credentials, retries, and tracing |
 
-Writing into your own data model is often the better choice. The [allergy example](../demo/autofill.html) shows the same data both ways.
+Writing into your own data model is often the better choice. The [form autofill demo](../demo/autofill.html) shows the same data both ways.
 
 Next: [Going to production](production.md)

@@ -121,7 +121,7 @@ What each item asks for:
 | `insurance` | Any `Coverage` record | `accept` lists a SMART Health Card first: a card signed by the insurer, if the app has one, otherwise plain FHIR |
 | `phq2` | A form, sent inline | The answers don't exist yet; the patient fills them in |
 
-[Asking for data](requests.md) covers every kind of item.
+[Requests](requests.md) covers every kind of item.
 
 ## Step 4: Fill the form from the answer
 
@@ -166,7 +166,7 @@ The lookups you just used:
 | `response.form("phq2")` | The item's QuestionnaireResponse |
 | `response.items()` | Every item with its status: `fulfilled`, `declined`, `unavailable`, and so on |
 
-[Using the answer](responses.md) covers the rest, including `response.json`, the full response to send to your server.
+[Responses](responses.md) covers the rest, including `response.json`, the full response to send to your server.
 
 ## Step 5: Handle what doesn't complete
 
@@ -214,7 +214,7 @@ The Testing Wallet signs insurance cards with a test issuer that no one trusts i
 picker.checkinOptions = { healthCards: { accept: "any-valid" } };
 ```
 
-With the default setting, an untrusted card still arrives, but `resources("insurance")` leaves it out. [Using the answer](responses.md#smart-health-cards) explains card trust.
+With the default setting, an untrusted card still arrives, but `resources("insurance")` leaves it out. [Responses](responses.md#smart-health-cards) explains card trust.
 
 ## Before real patients
 

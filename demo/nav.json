@@ -7,14 +7,14 @@
       "items": [
         { "title": "Clinic check-in", "href": "./", "note": "Check in at a clinic website" },
         { "title": "Kiosk check-in", "href": "kiosk.html", "note": "Hand off to the phone" },
-        { "title": "Allergy autofill", "href": "autofill.html#wallet=demo", "note": "Fill a form from your records" },
+        { "title": "Form autofill", "href": "autofill.html#wallet=demo", "note": "Fill a form from your records" },
         { "title": "Demo wallet", "href": "wallet.html", "note": "The Wallet side" }
       ]
     },
     {
       "title": "For developers",
       "items": [
-        { "title": "Tutorial page", "href": "tutorial.html", "note": "The tutorial, finished" },
+        { "title": "Tutorial's finished page", "href": "tutorial.html", "note": "The tutorial, finished" },
         { "title": "Wallet picker", "href": "picker.html", "note": "The drop-in element, skinned" },
         { "title": "React example", "href": "react.html" },
         { "title": "Angular example", "href": "angular.html" }

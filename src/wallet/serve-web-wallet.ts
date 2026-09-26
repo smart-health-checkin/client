@@ -1,5 +1,5 @@
 /**
- * The web wallet's side of the hand-off (docs: web-wallet hand-off).
+ * The web wallet's side of the hand-off (docs: Web wallets).
  *
  *   serveWebWallet({
  *     async onRequest({ request, origin }) {

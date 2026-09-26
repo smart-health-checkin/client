@@ -1,4 +1,4 @@
-# Native apps
+# Native Verifier apps
 
 A native app asks for a SMART Health Check-in by running the web flow. It opens a page on its own domain in
 a browser surface, the page runs the client library like any web page, and the page hands the checked
@@ -182,7 +182,7 @@ response with it. About 11 seconds from tap to result, including the platform's 
 consent screen.
 
 A web wallet opened from the bridge page inside the Custom Tab keeps `window.opener`, so the
-[web wallet protocol](web-wallet-handoff.md) works unchanged. The test is
+[web wallet protocol](web-wallets.md) works unchanged. The test is
 [`tools/verifier-app-e2e/run.ts`](https://github.com/smart-health-checkin/android-wallet/blob/main/tools/verifier-app-e2e/run.ts)
 in the android-wallet repository.
 
