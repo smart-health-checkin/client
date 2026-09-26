@@ -30,29 +30,37 @@ bun build demo/src/main.ts demo/src/autofill.ts demo/src/wallet.ts demo/src/kios
 bun build demo/src/frameworks/react.tsx --outdir $OUT/demo --format esm --minify
 bun build demo/src/frameworks/angular.ts --outdir $OUT/demo --format esm --minify
 # hosted builds under /lib/ so the URL space stays organized
-mkdir -p $OUT/lib
-bun build src/index.ts --outdir $OUT/lib --format esm --minify
-mv $OUT/lib/index.js $OUT/lib/checkin.js
-bun build src/fhir/index.ts --outdir $OUT/lib --format esm --minify
-mv $OUT/lib/index.js $OUT/lib/fhir.js
-# Each entry point as one self-contained file: <smart-checkin-picker> in ui.js,
-# wallet builders' wallet.js, kiosks' handoff.js, and testing.js for demos.
-for entry in ui wallet handoff testing; do
-  bun build src/$entry/index.ts --outdir $OUT/lib --format esm --minify
-  mv $OUT/lib/index.js $OUT/lib/$entry.js
-done
+scripts/build-lib.sh "$OUT/lib"
 # docs: narrative guides + generated API reference, all from repo markdown
 bun run docs >/dev/null
 bun scripts/render-docs.ts
 bun scripts/apply-chrome.ts
 
-# pinned copies of the hosted modules, so links can outlive a rebuild
+# Pinned copies: /lib/<version>/ must keep serving the same bytes forever, so
+# every released version's bundles are committed under releases/<version>/
+# (scripts/freeze-release.sh) and all of them are published on every build.
+# Rebuilding an old tag isn't an option: minifier output changes across Bun
+# versions, and old tags may not build at all.
 VERSION=$(bun -e 'console.log(require("./package.json").version)')
-mkdir -p "$OUT/lib/$VERSION"
-cp $OUT/lib/checkin.js "$OUT/lib/$VERSION/checkin.js"
-cp $OUT/lib/fhir.js "$OUT/lib/$VERSION/fhir.js"
-for entry in ui wallet handoff testing; do cp $OUT/lib/$entry.js "$OUT/lib/$VERSION/$entry.js"; done
+for dir in releases/*/; do
+  v=$(basename "$dir")
+  mkdir -p "$OUT/lib/$v"
+  cp "$dir"*.js "$OUT/lib/$v/"
+done
+if [ ! -d "releases/$VERSION" ]; then
+  # An unreleased version: publish today's build under its number as a preview.
+  echo "warning: releases/$VERSION is not frozen; publishing /lib/$VERSION/ from source" >&2
+  mkdir -p "$OUT/lib/$VERSION"
+  for entry in checkin fhir ui wallet handoff testing; do cp "$OUT/lib/$entry.js" "$OUT/lib/$VERSION/$entry.js"; done
+fi
 printf '{"version":"%s"}\n' "$VERSION" > $OUT/lib/version.json
+
+# Every pinned URL the docs and demos mention has to exist in this build.
+missing=0
+for v in $(grep -rhoE '/lib/[0-9]+\.[0-9]+\.[0-9]+/' docs demo README.md | sort -u | cut -d/ -f3); do
+  if [ ! -d "$OUT/lib/$v" ]; then echo "error: docs pin /lib/$v/ but no releases/$v/ is committed" >&2; missing=1; fi
+done
+[ "$missing" = 0 ] || exit 1
 
 touch $OUT/.nojekyll
 

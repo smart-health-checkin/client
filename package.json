@@ -72,7 +72,8 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "docs": "bun scripts/build-api-docs.ts",
-    "build:pages": "scripts/build-pages.sh"
+    "build:pages": "scripts/build-pages.sh",
+    "release:freeze": "scripts/freeze-release.sh"
   },
   "devDependencies": {
     "@angular/common": "^22.1.3",
