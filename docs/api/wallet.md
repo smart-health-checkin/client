@@ -499,11 +499,12 @@ zeros — nothing verifies it, and nothing should.
 
 #### Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `input` | \{ `sessionTranscript`: `Uint8Array`; `smartResponseJson`: `string`; \} |
-| `input.sessionTranscript` | `Uint8Array` |
-| `input.smartResponseJson` | `string` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `input` | \{ `now?`: `Date`; `sessionTranscript`: `Uint8Array`; `smartResponseJson`: `string`; \} | - |
+| `input.now?` | `Date` | Signing time for the MSO's validityInfo; defaults to now. |
+| `input.sessionTranscript` | `Uint8Array` | - |
+| `input.smartResponseJson` | `string` | - |
 
 #### Returns
 

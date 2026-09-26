@@ -1,5 +1,14 @@
 # Upgrading
 
+## 0.2.1 to 0.2.2
+
+No API changes. Two fixes on the wire:
+
+- `verifyDeviceResponseSignatures` no longer trusts a device signature's attached payload. ISO 18013-5 detaches that payload; an attached one now verifies only if it is exactly this session's DeviceAuthentication. Before, a signature made for another session passed.
+- The mdoc built by the wallet-side code (`buildSignedDeviceResponse`, and so `serveWebWallet` and the mock wallet) now includes the MSO `validityInfo` that ISO 18013-5 requires. Strict verifiers, such as the Swift package's, rejected it without.
+
+Move hosted URLs from `/client/lib/0.2.1/` to `/client/lib/0.2.2/`, or install the [0.2.2 release](https://github.com/smart-health-checkin/client/releases/tag/v0.2.2).
+
 ## 0.2.0 to 0.2.1
 
 No API changes. Two fixes:

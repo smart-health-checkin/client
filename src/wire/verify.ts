@@ -196,7 +196,18 @@ async function verifyDeviceSignature(input: {
       docType: input.docType,
       deviceNameSpaces,
     });
-    const signatureValid = await verifyCoseSign1(cose, publicKey, detachedPayload);
+    // ISO 18013-5 detaches this payload (null). An attached one is accepted
+    // only if it is exactly this session's DeviceAuthentication; otherwise a
+    // signature made for another session or origin would verify.
+    const attached = cose[2];
+    if (attached !== null && !bytesEqual(attached, detachedPayload)) {
+      return {
+        present: true,
+        signatureValid: false,
+        error: "deviceSignature carries an attached payload that is not this session's DeviceAuthentication",
+      };
+    }
+    const signatureValid = await verifyCoseSign1([cose[0], cose[1], null, cose[3]], publicKey, detachedPayload);
     return { present: true, signatureValid };
   } catch (e) {
     return {

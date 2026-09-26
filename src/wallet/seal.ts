@@ -132,6 +132,8 @@ export function recipientJwkFromEncryptionInfo(encryptionInfoBytes: Uint8Array):
 export async function buildSignedDeviceResponse(input: {
   smartResponseJson: string;
   sessionTranscript: Uint8Array;
+  /** Signing time for the MSO's validityInfo; defaults to now. */
+  now?: Date;
 }): Promise<Uint8Array> {
   // Ephemeral issuer identity (self-signed cert) and device key.
   const issuer = await createEphemeralReaderIdentity("SMART Health Check-in Mock Wallet");
@@ -157,6 +159,7 @@ export async function buildSignedDeviceResponse(input: {
     ["valueDigests", new Map([[MDOC_NAMESPACE, new Map([[0, digest]])]])],
     ["deviceKeyInfo", new Map([["deviceKey", publicJwkToCoseKey(deviceJwk)]])],
     ["docType", MDOC_DOC_TYPE],
+    ["validityInfo", validityInfo(input.now ?? new Date())],
   ]);
   const msoTag24Bytes = cborEncode(new CborTag(24, cborEncode(mso)));
 
@@ -204,6 +207,21 @@ export async function buildSignedDeviceResponse(input: {
     ["status", 0],
   ]);
   return cborEncode(deviceResponse);
+}
+
+/**
+ * ISO 18013-5 validityInfo: tag-0 tdate strings in UTC with whole seconds
+ * (no fractional part, which some verifiers reject), valid for one day from
+ * signing, as the Android reference wallet does.
+ */
+function validityInfo(now: Date): Map<string, CborTag> {
+  const tdate = (ms: number) => new CborTag(0, new Date(Math.floor(ms / 1000) * 1000).toISOString().replace(".000Z", "Z"));
+  const signed = now.getTime();
+  return new Map([
+    ["signed", tdate(signed)],
+    ["validFrom", tdate(signed)],
+    ["validUntil", tdate(signed + 86_400_000)],
+  ]);
 }
 
 async function coseSign1(input: {
