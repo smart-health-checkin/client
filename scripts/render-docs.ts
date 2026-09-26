@@ -11,7 +11,7 @@ import { createHighlighter } from "shiki";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { API_GROUPS, CHECKED_MODULES, anchorFor } from "./api-index.ts";
-import { GUIDES, LEVELS } from "./site-nav.ts";
+import { MENU_GROUPS, GUIDES, LEVELS } from "./site-nav.ts";
 import { CHROME_ASSETS, footer, header } from "./site-chrome.ts";
 import { BASE, OUT_ROOT } from "./site-base.ts";
 
@@ -362,32 +362,23 @@ ${groupsHtml}
   ),
 );
 
-// nav.json: the "Developers" menu, read by the site chrome at runtime. Guides
-// with a menuGroup are listed together under that group's label, in reading
-// order; the API reference leads the Reference group.
+// nav.json: the "Developers" menu, read by the site chrome at runtime. Every
+// entry sits in a named group (MENU_GROUPS order); within a group, reading
+// order. The API reference leads the Reference group.
 type NavLink = { title: string; href: string; note?: string };
-type NavEntry = NavLink | { title: string; items: NavLink[] };
-const navEntries: NavEntry[] = [];
-const groups = new Map<string, NavLink[]>();
-const addLink = (group: string | undefined, link: NavLink) => {
-  if (!group) return navEntries.push(link);
-  if (!groups.has(group)) {
-    const items: NavLink[] = [];
-    groups.set(group, items);
-    navEntries.push({ title: group, items });
-  }
-  groups.get(group)!.push(link);
-};
+const grouped = new Map<string, NavLink[]>(MENU_GROUPS.map((g) => [g, []]));
+grouped.get("Reference")!.push({ title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" });
 for (const g of GUIDES.filter((g) => g.menuNote && existsSync(g.file))) {
-  if (g.menuGroup === "Reference" && !groups.has("Reference")) {
-    addLink("Reference", { title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" });
-  }
-  addLink(g.menuGroup, { title: g.title, href: hrefFor(g.slug), note: g.menuNote });
+  if (!g.menuGroup) throw new Error(`${g.slug} has a menuNote but no menuGroup; every menu entry needs a named group`);
+  grouped.get(g.menuGroup)!.push({ title: g.title, href: hrefFor(g.slug), note: g.menuNote });
 }
-if (!groups.has("Reference")) addLink("Reference", { title: "API reference", href: `${BASE}/docs/api/`, note: "Every export, by module" });
 writeFileSync(
   join(OUT_ROOT, "nav.json"),
-  JSON.stringify({ label: "Developers", href: `${BASE}/`, items: navEntries }, null, 2) + "\n",
+  JSON.stringify({
+    label: "Developers",
+    href: `${BASE}/`,
+    items: [...grouped].filter(([, items]) => items.length).map(([title, items]) => ({ title, items })),
+  }, null, 2) + "\n",
 );
 
 console.log(
