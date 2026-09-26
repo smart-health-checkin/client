@@ -25,6 +25,10 @@ for (const [page, text] of html) {
   for (const m of text.matchAll(/\shref="([^"]+)"/g)) {
     const href = m[1]!.replace(/&amp;/g, "&");
     if (/^(?:[a-z]+:|\/\/)/i.test(href)) continue;
+    if (/\.md(?:#|$)/.test(href) && /<a\b[^>]*$/.test(text.slice(Math.max(0, m.index! - 300), m.index!))) {
+      broken.push(`${page}: ${href} (a link to markdown source; render-docs.ts should rewrite it to .html)`);
+      continue;
+    }
     let [path = "", frag] = href.split("#");
     path = path.split("?")[0]!;
     let target: string;

@@ -206,7 +206,7 @@ function rewriteLinks(html: string): string {
     .replace(/<table>/g, '<div class="smart-table-wrap"><table>')
     .replace(/<\/table>/g, "</table></div>")
     .replace(/href="(?:\.\.\/)?api\/index\.md"/g, `href="${BASE}/docs/api/"`)
-    .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md"/g, `href="${BASE}/docs/api/$1.html"`)
+    .replace(/href="(?:\.\.\/)?api\/([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/api/$1.html$2"`)
     .replace(/href="\.\.\/demo\/README\.md"/g, `href="${BASE}/docs/demo.html"`)
     .replace(/href="\.\.\/docs\/([a-z-]+)\.md(#[^"]*)?"/g, `href="${BASE}/docs/$1.html$2"`)
     .replace(/href="(?:\.\.\/)?getting-started\.md(#[^"]*)?"/g, `href="${BASE}/$1"`)
@@ -247,7 +247,10 @@ const baseSlug = (text: string): string =>
     .replace(/\s/g, "-");
 const slugFor = (text: string, depth = 0): string => {
   const base = baseSlug(text);
-  if (depth === 3 && reservedSlugs.delete(base)) return base;
+  if (depth === 3 && reservedSlugs.delete(base)) {
+    usedSlugs.set(base, Math.max(usedSlugs.get(base) ?? 0, 1));
+    return base;
+  }
   const n = usedSlugs.get(base) ?? (reservedSlugs.has(base) ? 1 : 0);
   usedSlugs.set(base, n + 1);
   return n ? `${base}-${n}` : base;
