@@ -44,6 +44,57 @@ import { CheckinPicker } from "@smart-health-checkin/client/react";
 
 `<CheckinPicker>` renders the same element. React is needed only for this module.
 
+### In Angular, Vue, and others
+
+Import `@smart-health-checkin/client/ui` once, allow the element, and set `request` as a property, not an attribute.
+
+Angular (standalone component):
+
+```ts
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import type { CheckinResponse } from "@smart-health-checkin/client";
+import "@smart-health-checkin/client/ui";
+
+@Component({
+  selector: "app-checkin",
+  standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: `<smart-checkin-picker registry="/wallets.json" [request]="request"
+               (smart-checkin-response)="onResponse($event)"></smart-checkin-picker>`,
+})
+export class CheckinComponent {
+  request = myRequest;
+  onResponse(e: Event) {
+    const { response } = (e as CustomEvent<{ response: CheckinResponse }>).detail;
+    prefillMyForm(response);
+  }
+}
+```
+
+Vue: tell the compiler the tag is a custom element (`isCustomElement: (tag) => tag === "smart-checkin-picker"` in the Vue plugin's `template.compilerOptions`), then:
+
+```html
+<smart-checkin-picker registry="/wallets.json" :request.prop="request"
+  @smart-checkin-response="(e) => prefillMyForm(e.detail.response)" />
+```
+
+### TypeScript and the element
+
+TypeScript doesn't yet know the tag. Type lookups yourself, and cast events:
+
+```ts
+import type { CheckinResponse } from "@smart-health-checkin/client";
+import type { SmartCheckinPicker } from "@smart-health-checkin/client/ui";
+
+const picker = document.querySelector<SmartCheckinPicker & HTMLElement>("smart-checkin-picker")!;
+picker.request = myRequest;
+picker.addEventListener("smart-checkin-response", (e) => {
+  const { response } = (e as CustomEvent<{ response: CheckinResponse }>).detail;
+});
+```
+
+In React, `<CheckinPicker>` is fully typed; writing `<smart-checkin-picker>` in JSX isn't.
+
 ### Attributes
 
 | Attribute | What it does |

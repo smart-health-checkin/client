@@ -74,7 +74,7 @@ import { wallets } from "@smart-health-checkin/client";
 const [wallet] = await wallets({ registry: "/wallets.json" });
 button.onclick = async () => {
   const result = await wallet.start(myRequest); // inside the click
-  if (result.status === "completed") prefillMyForm(result.response);
+  if (result.status === "completed" && result.response) prefillMyForm(result.response);
   else showMyOrdinaryForm();
 };
 ```
@@ -86,6 +86,13 @@ From the GitHub release (the library isn't on the npm registry):
 ```sh
 npm install https://github.com/smart-health-checkin/client/releases/download/v0.2.1/smart-health-checkin-client-0.2.1.tgz
 ```
+
+What you get:
+
+- **JavaScript and types.** Every entry point (`@smart-health-checkin/client`, `/ui`, `/react`, `/picker`, `/wallet`, `/handoff`, `/fhir`, `/testing`, `/model`, `/wire`) ships as an ES module with `.d.ts` types, plus the TypeScript sources and source maps, so "go to definition" lands in real code. No runtime dependencies. React is an optional peer, needed only for `/react`.
+- **TypeScript settings.** Use `"moduleResolution": "bundler"` (Vite, webpack, esbuild) or `"node16"`/`"nodenext"`. The types mention WebCrypto (`CryptoKey`), so a server-only project needs `"DOM"` in `lib` or `"skipLibCheck": true`.
+- **ES modules only.** There's no CommonJS build. `require()` works on Node 20.19+ and 22.12+, which can load ES modules.
+- **Frameworks.** React has [its own component](wallets.md#in-react). Angular, Vue, and anything else use the element; see [other frameworks](wallets.md#in-angular-vue-and-others).
 
 Or with no build step, from a hosted file:
 
