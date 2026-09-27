@@ -153,6 +153,45 @@ origin for an app, so the transcript's origin is `android:apk-key-hash:` followe
 of the app's signing certificate ([spec TR-2](https://smart-health-checkin.org/spec/#TR-2)). The example
 app's second button does this.
 
+## How wallets name your app
+
+When your app calls a wallet directly, the wallet has no web origin to show the patient, and it shouldn't
+show your package name or your app's label either: any app can choose those, and nothing checks them
+against something the patient knows. Wallets that follow
+[Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#app-callers) name the app by a
+website that vouches for it, and they check that in both directions. Publish both halves, and a wallet can
+show a name patients recognize:
+
+1. On your site, list the app in `/.well-known/assetlinks.json`, as shown in
+   [assetlinks.json](#assetlinksjson) above. The `use_as_origin` relation that the browser path needs is
+   one the wallet's check accepts; `handle_all_urls` and `get_login_creds` count too. The file has to be at
+   exactly the host you declare, served over HTTPS without redirects.
+2. In the app, declare the site with an `asset_statements` resource:
+
+```xml
+<!-- AndroidManifest.xml, inside <application> -->
+<meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
+```
+
+```xml
+<!-- res/values/strings.xml -->
+<string name="asset_statements" translatable="false">
+[{
+  \"relation\": [\"delegate_permission/common.use_as_origin\"],
+  \"target\": { \"namespace\": \"web\", \"site\": \"https://smart-health-checkin.org\" }
+}]
+</string>
+```
+
+The wallet reads the declaration from your installed app, fetches the site's `assetlinks.json`, and
+names your app by the site only if the file lists your package with the fingerprint of the certificate
+your app is actually signed with. With both halves in place, the
+[reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest) (0.4.6
+and later) says "An app linked to **smart-health-checkin.org** is asking". Without them, it says that an
+app that isn't linked to any website is asking and tells the patient to share only if they opened the
+request from an app they trust. The example app declares smart-health-checkin.org this way. None of this
+changes the transcript's origin, which stays the `android:apk-key-hash:` string.
+
 ## Your own backend instead
 
 If the app already has a backend, the page can post the result to it under the patient's existing

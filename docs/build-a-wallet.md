@@ -5,7 +5,7 @@ A wallet answers a clinic's check-in request with records and form answers the p
 ## What a wallet does
 
 1. Receives a request, from the Digital Credentials API (native) or, for a [web wallet](web-wallets.md), from the EHR page that opened it.
-2. Shows the patient who is asking (the EHR page's origin) and what for.
+2. Shows the patient who is asking (the EHR page's origin, or for a native app, [a website verified for it](#naming-an-app-that-calls-directly)) and what for.
 3. Lets the patient choose, item by item.
 4. Builds a SMART Health Check-in response: one status per item, plus artifacts.
 5. Signs and encrypts the response for the EHR's origin, and sends it back.
@@ -21,6 +21,15 @@ A native wallet registers with Android's Credential Manager and answers requests
 - **Registration:** the app registers a credential entry and a small matcher (WebAssembly) that decides whether a request is a SMART Health Check-in request.
 - **Parsing and sealing:** done in Kotlin in that app. This library is JavaScript, for web wallets and for tests.
 - **The origin to bind:** for a browser, the origin Credential Manager reports for an allowlisted browser (`getOrigin`). For a native app calling directly, Android reports no origin, so use `android:apk-key-hash:` plus the base64url SHA-256 of the app's signing certificate ([TR-2](https://smart-health-checkin.org/spec/#TR-2)).
+
+### Naming an app that calls directly
+
+The `android:apk-key-hash:` origin binds the response to the app, but a patient can't recognize it. Don't show the app's package name or label as who is asking either: the app chose both itself, and neither Android nor Google Play turns them into anything a patient can rely on. What a patient can rely on is a website they recognize vouching for this exact app, meaning its signing key. So name an app caller only by a website that passes a two-way Digital Asset Links check:
+
+1. **The app declares the website.** Its manifest has `<meta-data android:name="asset_statements" android:resource="@string/asset_statements"/>`, a JSON array of statements, and one of them has the target `{"namespace": "web", "site": "https://…"}`. Read it with `PackageManager` (`getApplicationInfo` with `GET_META_DATA`, then `getResourcesForApplication`). On Android 11 and later that needs the `QUERY_ALL_PACKAGES` permission, since the calling app isn't known in advance.
+2. **The website vouches for the app.** Fetch `https://<site>/.well-known/assetlinks.json` over HTTPS, without following redirects and with a short timeout. It must have a statement whose target is the app's package name with the SHA-256 fingerprint of the certificate the app is actually signed with, and whose relation is `delegate_permission/common.use_as_origin`, `delegate_permission/common.handle_all_urls`, or `delegate_permission/common.get_login_creds`.
+
+Only when both match is the site verified for the app. Run the check off the main thread while the consent screen loads, show that it's checking, and cache answers for a limited time (the reference wallet keeps them for an hour, keyed by package, certificate, and site). A failed fetch, including being offline, counts as not verified. When no site passes, say that an app that isn't linked to any website is asking (or, if it declared sites that failed, that it's linked to no verified website), and add a caution to share only if the patient opened the request from an app they trust. Put the package name, the app's own label (marked as unverified), and the `android:apk-key-hash:` origin in a collapsed technical section, never in the headline. The check changes only what the patient sees; the transcript keeps the `android:apk-key-hash:` origin. [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#app-callers) describes the check, the reference wallet implements it in [`AssetLinks.kt`](https://github.com/smart-health-checkin/android-wallet/blob/main/app/src/main/java/org/smarthealthit/checkin/wallet/AssetLinks.kt), and [Native Verifier apps](native-apps.md#how-wallets-name-your-app) shows what an app publishes.
 
 ## Native wallets on iOS
 
