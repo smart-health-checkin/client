@@ -57,7 +57,7 @@ the site's Developers menu:
 | Build a check-in page | [Tutorial](docs/tutorial.md) · [Requests](docs/requests.md) · [Wallet picker](docs/wallets.md) · [Responses](docs/responses.md) · [Native Verifier apps](docs/native-apps.md) |
 | Build a wallet | [Wallet guide](docs/build-a-wallet.md) · [Web wallets](docs/web-wallets.md) |
 | Testing and production | [Going to production](docs/production.md) · [Testing](docs/testing.md) |
-| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) · [Clinic demo options](demo/README.md) |
+| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) · [Clinic check-in demo options](demo/README.md) |
 
 ## Install
 
@@ -89,7 +89,7 @@ Or with no build step, from the hosted ES modules at `/client/lib/`, each self-c
 
 ## Try it
 
-- [Clinic demo](https://smart-health-checkin.org/client/demo/): a fictional clinic running the real protocol. It opens this project's demo wallet in a tab, with a real consent screen and no phone needed. It can also use the device's own wallet or a mock, and shows every wire artifact under *Developer detail*.
+- [Clinic check-in demo](https://smart-health-checkin.org/client/demo/): a fictional clinic running the real protocol. It opens this project's demo wallet in a tab, with a real consent screen and no phone needed. It can also use the device's own wallet or a mock, and shows every wire artifact under *Developer detail*.
 - [Tutorial's finished page](https://smart-health-checkin.org/client/demo/tutorial.html): what you build in the tutorial.
 - [Form autofill](https://smart-health-checkin.org/client/demo/autofill.html): prefill from the app, then ask only for what the shared record didn't include.
 
@@ -105,7 +105,7 @@ Or with no build step, from the hosted ES modules at `/client/lib/`, each self-c
 | `src/ui`, `src/react`, `src/picker` | The picker element, its React wrapper, and its logic. |
 | `src/wallet`, `src/handoff`, `src/testing` | Entry points for wallet builders, kiosks, and tests. |
 | `src/fhir` | **Optional companion**, never imported by the rest: response → transaction Bundle, plus a posting helper. |
-| `demo/` | The clinic demo, the demo wallet app, the autofill and kiosk hand-off examples, React and Angular examples. |
+| `demo/` | The clinic check-in demo, the demo wallet app, the autofill and kiosk hand-off examples, React and Angular examples. |
 
 ## Development
 

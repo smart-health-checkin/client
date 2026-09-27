@@ -1,10 +1,10 @@
-# Clinic demo options
+# Clinic check-in demo options
 
 The sample pages for `@smart-health-checkin/client`, served at `/client/demo/`. Each page shows one way to use the library, running the real flow. Responses stay in the page unless you say where to post them.
 
 What each page shows is in [Testing: the demos](../docs/testing.md#the-demos). The requests the demos send are plain objects in `src/requests.ts`.
 
-## URL options for the reference EHR
+## URL options for the clinic check-in demo
 
 Every option goes in the URL fragment, after `#`. Fragments aren't sent to servers, so patient identifiers and requests never reach a server log.
 

@@ -54,9 +54,9 @@ export const GUIDES: Guide[] = [
     blurb: "The protocol between an EHR page and a web wallet: three messages and the origin rules.", menuNote: "Wallets that run in a browser tab", menuGroup: "Build a wallet" },
   { file: "docs/registry.md", slug: "registry", title: "Registry format",
     blurb: "The wallets.json format and its validators.", menuNote: "The wallets.json format", menuGroup: "Reference" },
-  { file: "demo/README.md", slug: "demo", title: "Clinic demo options",
-    blurb: "The demo pages and the URL options of the clinic demo.",
-    menuNote: "The clinic demo's URL options", menuGroup: "Reference" },
+  { file: "demo/README.md", slug: "demo", title: "Clinic check-in demo options",
+    blurb: "The demo pages and the URL options of the clinic check-in demo.",
+    menuNote: "The clinic check-in demo's URL options", menuGroup: "Reference" },
 ];
 
 

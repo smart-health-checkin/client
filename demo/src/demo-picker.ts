@@ -1,5 +1,5 @@
 /**
- * The demos' `<smart-checkin-picker>` setup, shared by the clinic demo, the
+ * The demos' `<smart-checkin-picker>` setup, shared by the clinic check-in demo, the
  * form autofill demo, and the kiosk's phone page.
  *
  * By default the picker offers the phone's own wallet (where this browser can
