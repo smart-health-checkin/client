@@ -324,7 +324,7 @@ function withExamples(html: string): { html: string; head: string[]; scripts: st
 
 // --- narrative guides -------------------------------------------------
 // Every page is also published as the markdown it came from, at the same
-// path with .md — the primitive the site's llms.txt files are built on.
+// path with .md.
 for (const guide of GUIDES) {
   if (!existsSync(guide.file)) continue;
   const md = readFileSync(guide.file, "utf8");

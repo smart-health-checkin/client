@@ -1,14 +1,12 @@
 #!/usr/bin/env bun
 /**
- * Writes this section's llms.txt and llms-full.txt from the built site.
+ * Writes this section's llms.txt from the built site.
  *
  *   bun scripts/llms.ts _site      (run by scripts/build-pages.sh)
  *
- * llms.txt follows llmstxt.org: an H1, a one-paragraph summary, a pointer to
- * the shared background, then every page grouped as in nav.json, with a link
- * to llms-full.txt and to the other sections' files. llms-full.txt is the
- * shared background followed by the full text of every page, converted from
- * the built HTML to Markdown, each under a "Source:" line.
+ * llms.txt is one file per section: an H1, a one-paragraph summary, the
+ * shared background, then the full text of every page in the section,
+ * converted from the built HTML to Markdown, each under a "Source:" line.
  *
  * The shared background is written once, in the apex repo
  * (smart-health-checkin.github.io, llms-background.md), and published at
@@ -16,9 +14,8 @@
  * and fails if it can't. LLMS_BACKGROUND=<file or URL> reads another copy, for
  * example ../smart-health-checkin.github.io/llms-background.md offline.
  *
- * The build fails if a page in the site is neither listed nor skipped below,
- * or if a link in llms.txt into this section names a file the build didn't
- * produce.
+ * The build fails if a page in the site is neither included nor skipped
+ * below, or if a file named below is missing.
  */
 // @ts-ignore: @mixmark-io/domino ships no types.
 import domino from "@mixmark-io/domino";
@@ -26,7 +23,6 @@ import TurndownService from "turndown";
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { API_GROUPS } from "./api-index.ts";
-import { GUIDES } from "./site-nav.ts";
 
 // ---------------------------------------------------------------- this section
 const ORIGIN = "https://smart-health-checkin.org";
@@ -34,16 +30,19 @@ const BASE: string = "/client/";
 const TITLE = "SMART Health Check-in: Developers and Demos";
 const SUMMARY =
   "The JavaScript client library for SMART Health Check-in, its guides, and its demos. A clinic's page (the Verifier) adds check-in with the <smart-checkin-picker> element, a React component, or one call, runCheckin, which asks the patient's health app for what the visit needs and returns the decrypted response, checked against the request. Other modules build a web wallet, hand a kiosk's check-in to the patient's phone, turn a response into FHIR, and test against a mock wallet. The demos check in a made-up patient at a pretend clinic.";
-// Pages published but not in llms-full.txt, with the reason. A key ending in
-// "/" skips everything under that folder.
+// Pages published but not in llms.txt, with the reason. A key ending in "/"
+// skips everything under that folder.
 const SKIP: Record<string, string> = {
-  "docs/api/": "one generated page per module; llms.txt links each module's Markdown, and llms-full.txt has the API index (docs/api/index.html, in the menu)",
+  "docs/api/": "one generated page per module; llms.txt has the API index (docs/api/index.html, in the menu) and each module's Markdown (TEXTS)",
   "demo/handoff.html": "the kiosk demo's phone page, opened from the kiosk's QR code",
   "demo/native-bridge.html": "the page native apps open in a Custom Tab; nothing on it to read",
   "assets/": "the apex's shared look, copied in only for a standalone preview",
 };
-// Links in llms.txt beyond the menu: each module's generated API reference, as Markdown.
-// In the API index's order, then any module it doesn't group.
+// Pages in llms.txt that no menu lists, after the menu's pages.
+const PAGES: string[] = [];
+// Published Markdown or text files llms.txt includes as they are, after the
+// pages: each module's generated API reference, in the API index's order,
+// then any module it doesn't group.
 const API_MODULES = readdirSync(join(process.argv[2] ?? "_site", "docs/api"))
   .filter((f) => f.endsWith(".md") && f !== "index.md")
   .map((f) => f.replace(/\.md$/, ""))
@@ -51,26 +50,15 @@ const API_MODULES = readdirSync(join(process.argv[2] ?? "_site", "docs/api"))
     const rank = (m: string) => { const i = API_GROUPS.findIndex((g) => g.module === m); return i < 0 ? API_GROUPS.length : i; };
     return rank(x) - rank(y) || x.localeCompare(y);
   });
-const EXTRA: { group: string; title: string; href: string; note: string; full?: boolean }[] = API_MODULES.map((m) => {
-  const topics = API_GROUPS.filter((g) => g.module === m);
-  const importPath = topics[0]?.importPath ?? `@smart-health-checkin/client/${m}`;
-  return {
-    group: "API reference by module",
-    title: m,
-    href: `docs/api/${m}.md`,
-    note: `Every export of ${importPath}, with signatures${topics.length ? `. Covers: ${topics.map((g) => g.title).join("; ")}` : ""}`,
-  };
-});
+const TEXTS: { title: string; href: string }[] = API_MODULES.map((m) => ({
+  title: `API reference: ${API_GROUPS.find((g) => g.module === m)?.importPath ?? `@smart-health-checkin/client/${m}`}`,
+  href: `docs/api/${m}.md`,
+}));
 // Elements inside <main> that are page furniture, not content: the docs'
 // rail, the phone's "In this section", and the previous and next links.
 const DROP = ["nav", ".rail", "details.rail-phone", ".pager"];
-// The menus, which order and group llms.txt: Developers, then Demos.
-const NAV: string | object | object[] = [{ file: "nav.json" }, { file: "demo/nav.json", prefix: "Demos: " }];
-// One-line descriptions that replace the menu's notes, by page URL: each
-// guide's blurb from scripts/site-nav.ts.
-const NOTES: Record<string, string> = Object.fromEntries(
-  GUIDES.map((g) => [`${ORIGIN}${BASE}${g.slug === "getting-started" ? "" : `docs/${g.slug}.html`}`, g.blurb]),
-);
+// The menus, which order the pages: Developers, then Demos.
+const NAV: string | object | object[] = [{ file: "nav.json" }, { file: "demo/nav.json" }];
 // Where the shared background comes from: the apex's published copy.
 const BACKGROUND_FROM = "https://smart-health-checkin.org/llms-background.md";
 // Section-specific changes to a page's <main> before conversion: the API
@@ -92,12 +80,8 @@ const PREPARE = (main: any, doc: any): void => {
 // ---------------------------------------------------------------- shared
 // Everything below is the same in every repo's scripts/llms.ts (apex, spec,
 // client, connectathon). Change it in all four together.
-const SECTIONS = [
-  { title: "Home", base: "/", note: "The shared background and the home page" },
-  { title: "Spec", base: "/spec/", note: "The draft specification and its explainers" },
-  { title: "Developers and Demos", base: "/client/", note: "The JavaScript library: guides, API reference, demos" },
-  { title: "Connectathon", base: "/connectathon/", note: "The testing event: pages for each participant, scenarios, test tools, prompts" },
-];
+// Every section's base; each publishes its own llms.txt.
+const SECTIONS = ["/", "/spec/", "/client/", "/connectathon/"];
 const BACKGROUND_URL = `${ORIGIN}/llms-background.md`;
 
 const OUT = process.argv[2] ?? "_site";
@@ -233,14 +217,14 @@ function pageToMarkdown(html: string, url: string): { title: string; markdown: s
 }
 
 // ---------------------------------------------------------------- the pages
-type NavItem = { title: string; href?: string; note?: string; items?: NavItem[] };
-type NavSource = { file: string; prefix?: string } | { nav: NavItem; prefix?: string };
+type NavItem = { title: string; href?: string; items?: NavItem[] };
+type NavSource = { file: string } | { nav: NavItem };
 
 /** The built file a URL in this section is served from, or undefined outside it. */
 function fileFor(url: string): string | undefined {
   const u = new URL(url);
   if (u.origin !== ORIGIN || !u.pathname.startsWith(BASE)) return undefined;
-  if (SECTIONS.some((s) => s.base !== BASE && s.base.startsWith(BASE) && u.pathname.startsWith(s.base))) return undefined;
+  if (SECTIONS.some((s) => s !== BASE && s.startsWith(BASE) && u.pathname.startsWith(s))) return undefined;
   const rel = decodeURIComponent(u.pathname.slice(BASE.length));
   return !rel || rel.endsWith("/") ? join(OUT, rel, "index.html") : join(OUT, rel);
 }
@@ -254,40 +238,8 @@ const pageKey = (url: string): string => {
 const navUrl = (href: string, navFileUrl: string): string =>
   href.startsWith("/") && !href.startsWith(BASE) ? new URL(href.slice(1), SITE).href : new URL(href, navFileUrl).href;
 
-// Menu order, one group per menu group. As in the chrome, a menu that doesn't
-// list its front page gets "Overview" first.
-const groups: { title: string; entries: { title: string; url: string; note: string }[] }[] = [];
-const add = (group: string, entry: { title: string; url: string; note: string }) => {
-  let g = groups.find((x) => x.title === group);
-  if (!g) groups.push((g = { title: group, entries: [] }));
-  g.entries.push({ ...entry, note: NOTES[pageKey(entry.url)] ?? entry.note });
-};
-const navSources = (typeof NAV === "string" ? [{ file: NAV }] : Array.isArray(NAV) ? NAV : [{ nav: NAV }]) as NavSource[];
-for (const source of navSources) {
-  const nav: NavItem = "file" in source ? JSON.parse(readFileSync(join(OUT, source.file), "utf8")) : source.nav;
-  const navFileUrl = "file" in source ? new URL(source.file, SITE).href : SITE;
-  const prefix = source.prefix ?? "";
-  const hrefs = (items: NavItem[]): string[] => items.flatMap((i) => (i.items ? hrefs(i.items) : i.href ? [navUrl(i.href, navFileUrl)] : []));
-  const front = navUrl(nav.href ?? "./", navFileUrl);
-  if (!hrefs(nav.items ?? []).some((u) => pageKey(u) === pageKey(front))) add(`${prefix}Overview`, { title: "Overview", url: front, note: "" });
-  const walk = (items: NavItem[], group: string) => {
-    for (const item of items) {
-      if (item.items) walk(item.items, `${prefix}${item.title}`);
-      else if (item.href) add(group, { title: item.title, url: navUrl(item.href, navFileUrl), note: item.note ?? "" });
-    }
-  };
-  walk(nav.items ?? [], `${prefix}Overview`);
-}
-for (const e of EXTRA) add(e.group, { title: e.title, url: new URL(e.href, SITE).href, note: e.note });
-// Published Markdown or text files that llms-full.txt includes as they are.
-const texts = EXTRA.filter((e) => e.full).map((e) => new URL(e.href, SITE).href);
-for (const url of texts) if (!existsSync(fileFor(url) ?? "")) die(`EXTRA names ${url} for llms-full.txt, but the build has no such file`);
-
-const htmlFiles = (dir: string): string[] =>
-  readdirSync(dir).flatMap((f) => {
-    const p = join(dir, f);
-    return statSync(p).isDirectory() ? htmlFiles(p) : p.endsWith(".html") ? [p] : [];
-  });
+// The pages in order: the section's front page, then each menu's front page
+// and its entries in menu order.
 const pageUrls: string[] = [];
 const seen = new Set<string>();
 const addPage = (url: string) => {
@@ -296,61 +248,58 @@ const addPage = (url: string) => {
   seen.add(pageKey(url));
   pageUrls.push(pageKey(url));
 };
-// llms-full.txt: the section's front page first, then the menu's order.
 addPage(SITE);
-for (const g of groups) for (const e of g.entries) addPage(e.url);
+const navSources = (typeof NAV === "string" ? [{ file: NAV }] : Array.isArray(NAV) ? NAV : [{ nav: NAV }]) as NavSource[];
+for (const source of navSources) {
+  const nav: NavItem = "file" in source ? JSON.parse(readFileSync(join(OUT, source.file), "utf8")) : source.nav;
+  const navFileUrl = "file" in source ? new URL(source.file, SITE).href : SITE;
+  addPage(navUrl(nav.href ?? "./", navFileUrl));
+  const walk = (items: NavItem[]): void => items.forEach((i) => (i.items ? walk(i.items) : i.href && addPage(navUrl(i.href, navFileUrl))));
+  walk(nav.items ?? []);
+}
+for (const href of PAGES) {
+  const url = new URL(href, SITE).href;
+  if (!existsSync(fileFor(url) ?? "")) die(`PAGES names ${url}, but the build has no such file`);
+  addPage(url);
+}
+// Published Markdown or text files included as they are, after the pages.
+const texts = TEXTS.map((t) => ({ ...t, url: new URL(t.href, SITE).href }));
+for (const t of texts) if (!existsSync(fileFor(t.url) ?? "")) die(`TEXTS names ${t.url}, but the build has no such file`);
+
+const htmlFiles = (dir: string): string[] =>
+  readdirSync(dir).flatMap((f) => {
+    const p = join(dir, f);
+    return statSync(p).isDirectory() ? htmlFiles(p) : p.endsWith(".html") ? [p] : [];
+  });
 const unlisted: string[] = [];
 for (const file of htmlFiles(OUT).sort()) {
   const rel = relative(OUT, file);
   if (rel === "404.html" || Object.keys(SKIP).some((k) => (k.endsWith("/") ? rel.startsWith(k) : rel === k))) continue;
-  const url = `${SITE}${rel}`;
-  if (!seen.has(pageKey(url))) unlisted.push(rel);
+  if (!seen.has(pageKey(`${SITE}${rel}`))) unlisted.push(rel);
 }
-if (unlisted.length) die(`these pages are in the site but not in the menu, EXTRA, or SKIP in scripts/llms.ts: ${unlisted.join(", ")}`);
+if (unlisted.length) die(`these pages are in the site but not in the menu, PAGES, or SKIP in scripts/llms.ts: ${unlisted.join(", ")}`);
 
 // ---------------------------------------------------------------- write
 const background = await loadBackground();
 const sectionTitle = TITLE.replace(/^SMART Health Check-in: /, "");
-const others = SECTIONS.filter((s) => s.base !== BASE);
-
-const sectionList = [
-  `## ${BASE === "/" ? "Sections" : "Other sections"}`,
-  "",
-  ...others.map((s) => `- [${s.title}](${ORIGIN}${s.base}llms.txt): ${s.note}. In one file: ${ORIGIN}${s.base}llms-full.txt`),
-  "",
-];
-const index = [
-  `# ${TITLE}`,
-  "",
-  `> ${SUMMARY}`,
-  "",
-  `What SMART Health Check-in is, its roles and transports, and a map of every section are in the shared background: ${BACKGROUND_URL}`,
-  "",
-  // The site's root lists the sections first; a section lists its own pages first.
-  ...(BASE === "/" ? sectionList : []),
-  ...groups.flatMap((g) => [`## ${g.title}`, "", ...g.entries.map((e) => `- [${e.title}](${e.url})${e.note ? `: ${e.note}` : ""}`), ""]),
-  "## This section in one file",
-  "",
-  `- [llms-full.txt](${SITE}llms-full.txt): the shared background and the full text of every page in this section, as Markdown`,
-  "",
-  ...(BASE === "/" ? [] : sectionList),
-].join("\n");
 
 const pages = pageUrls.map((url) => {
   const { title, markdown } = pageToMarkdown(readFileSync(fileFor(url)!, "utf8"), url);
   return `# ${title}\n\nSource: ${url}\n\n${markdown}`;
 });
-for (const url of texts) {
-  const text = readFileSync(fileFor(url)!, "utf8").trim();
-  const title = text.match(/^# (.+)/)?.[1] ?? EXTRA.find((e) => new URL(e.href, SITE).href === url)!.title;
-  pages.push(`# ${title}\n\nSource: ${url}\n\n${text.replace(/^# .+\n*/, "")}`);
+for (const t of texts) {
+  // Relative links become absolute, as in the pages.
+  const text = readFileSync(fileFor(t.url)!, "utf8").trim()
+    .replace(/\]\((?![a-z][a-z0-9+.-]*:|#)([^)\s]+)\)/gi, (m, href) => { try { return `](${new URL(href, t.url).href})`; } catch { return m; } });
+  const title = text.match(/^# (.+)/)?.[1] ?? t.title;
+  pages.push(`# ${title}\n\nSource: ${t.url}\n\n${text.replace(/^# .+\n*/, "")}`);
 }
-const full = [
-  `# ${TITLE}: llms-full.txt`,
+const llms = [
+  `# ${TITLE}`,
   "",
   `> ${SUMMARY}`,
   "",
-  `This file is the shared background (${BACKGROUND_URL}) followed by the full text of the ${pages.length} pages of this section (${sectionTitle}), converted to Markdown. Its index is ${SITE}llms.txt.`,
+  `This file is the shared background (${BACKGROUND_URL}) followed by the full text of the ${pages.length} pages of this section (${sectionTitle}), converted to Markdown. The other sections' llms.txt files are listed under "The site" in the background.`,
   "",
   "---",
   "",
@@ -359,16 +308,5 @@ const full = [
   "",
 ].join("\n");
 
-writeFileSync(join(OUT, "llms.txt"), index);
-writeFileSync(join(OUT, "llms-full.txt"), full);
-
-// Every link in llms.txt into this section names a file this build produced.
-const broken = [...index.matchAll(/\]\((https?:[^)\s]+)\)/g)]
-  .map((m) => m[1]!)
-  .filter((url) => {
-    const file = fileFor(url.replace(/#.*$/, ""));
-    return file !== undefined && !existsSync(file);
-  });
-if (broken.length) die(`llms.txt links to pages this build doesn't have: ${broken.join(", ")}`);
-
-console.log(`llms.txt (${(index.length / 1024).toFixed(1)} KB) and llms-full.txt (${pages.length} pages, ${(Buffer.byteLength(full) / 1024).toFixed(1)} KB)`);
+writeFileSync(join(OUT, "llms.txt"), llms);
+console.log(`llms.txt: ${pages.length} pages, ${(Buffer.byteLength(llms) / 1024).toFixed(1)} KB`);
