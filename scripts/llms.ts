@@ -30,7 +30,7 @@ import { GUIDES } from "./site-nav.ts";
 
 // ---------------------------------------------------------------- this section
 const ORIGIN = "https://smart-health-checkin.org";
-const BASE = "/client/";
+const BASE: string = "/client/";
 const TITLE = "SMART Health Check-in: Developers and Demos";
 const SUMMARY =
   "The JavaScript client library for SMART Health Check-in, its guides, and its demos. A clinic's page (the Verifier) adds check-in with the <smart-checkin-picker> element, a React component, or one call, runCheckin, which asks the patient's health app for what the visit needs and returns the decrypted response, checked against the request. Other modules build a web wallet, hand a kiosk's check-in to the patient's phone, turn a response into FHIR, and test against a mock wallet. The demos check in a made-up patient at a pretend clinic.";
@@ -51,7 +51,7 @@ const API_MODULES = readdirSync(join(process.argv[2] ?? "_site", "docs/api"))
     const rank = (m: string) => { const i = API_GROUPS.findIndex((g) => g.module === m); return i < 0 ? API_GROUPS.length : i; };
     return rank(x) - rank(y) || x.localeCompare(y);
   });
-const EXTRA: { group: string; title: string; href: string; note: string }[] = API_MODULES.map((m) => {
+const EXTRA: { group: string; title: string; href: string; note: string; full?: boolean }[] = API_MODULES.map((m) => {
   const topics = API_GROUPS.filter((g) => g.module === m);
   const importPath = topics[0]?.importPath ?? `@smart-health-checkin/client/${m}`;
   return {
@@ -279,6 +279,9 @@ for (const source of navSources) {
   walk(nav.items ?? [], `${prefix}Overview`);
 }
 for (const e of EXTRA) add(e.group, { title: e.title, url: new URL(e.href, SITE).href, note: e.note });
+// Published Markdown or text files that llms-full.txt includes as they are.
+const texts = EXTRA.filter((e) => e.full).map((e) => new URL(e.href, SITE).href);
+for (const url of texts) if (!existsSync(fileFor(url) ?? "")) die(`EXTRA names ${url} for llms-full.txt, but the build has no such file`);
 
 const htmlFiles = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {
@@ -337,6 +340,11 @@ const pages = pageUrls.map((url) => {
   const { title, markdown } = pageToMarkdown(readFileSync(fileFor(url)!, "utf8"), url);
   return `# ${title}\n\nSource: ${url}\n\n${markdown}`;
 });
+for (const url of texts) {
+  const text = readFileSync(fileFor(url)!, "utf8").trim();
+  const title = text.match(/^# (.+)/)?.[1] ?? EXTRA.find((e) => new URL(e.href, SITE).href === url)!.title;
+  pages.push(`# ${title}\n\nSource: ${url}\n\n${text.replace(/^# .+\n*/, "")}`);
+}
 const full = [
   `# ${TITLE}: llms-full.txt`,
   "",
