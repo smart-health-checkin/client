@@ -9,7 +9,7 @@ What you'll build:
 - Code that fills the form from the answer, and falls back to typing when nothing comes back.
 - A page you can test with made-up data, then with a real test wallet.
 
-You need a text editor and a local web server (`npx serve`, `python3 -m http.server`, or similar). No build step, no install. [The finished page](#the-whole-page) is at the end, and you can [try it running](../demo/tutorial.html).
+You need a text editor and a local web server (`npx serve`, `python3 -m http.server`, or similar). There's no build step: the page loads the library from a hosted file. [The finished page](#the-whole-page) is at the end, and you can [try it running](../demo/tutorial.html).
 
 ## Step 1: Start with your form
 
@@ -48,7 +48,7 @@ Load the picker and put it above the form.
 <p id="note"></p>
 ```
 
-- `ui.js` is self-contained and pinned to version 0.4.4.
+- `ui.js` is self-contained and pinned to version 0.4.4. [Install](install.md#hosted-files) lists the other hosted files and explains the versions, and how to install the package instead.
 - With no other attributes, the picker offers the phone's own wallet, when the browser can reach one.
 - `#note` is where the page will tell the patient what happened.
 

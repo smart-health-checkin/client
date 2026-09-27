@@ -40,6 +40,8 @@ export const GUIDES: Guide[] = [
 
   { file: "docs/web-wallets.md", slug: "web-wallets", title: "Web wallets",
     menuNote: "Wallets that run in a browser tab", menuGroup: "Build a wallet" },
+  { file: "docs/install.md", slug: "install", title: "Install",
+    menuNote: "The package, entry points, hosted files", menuGroup: "Reference" },
   { file: "docs/registry.md", slug: "registry", title: "Registry format",
     menuNote: "The wallets.json format", menuGroup: "Reference" },
   { file: "demo/README.md", slug: "demo", title: "Clinic check-in demo options",

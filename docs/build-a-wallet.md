@@ -1,6 +1,6 @@
 # Wallet guide
 
-A wallet answers a clinic's check-in request with records and form answers the patient chose to share. [`@smart-health-checkin/client/wallet`](api/wallet.md) has the protocol and the matching rules; the consent screen is yours.
+A wallet answers a clinic's check-in request with records and form answers the patient chose to share. [`@smart-health-checkin/client/wallet`](api/wallet.md) has the protocol and the matching rules; the consent screen is yours. [Install](install.md) the package, or load the hosted [`wallet.js`](install.md#hosted-files).
 
 ## What a wallet does
 

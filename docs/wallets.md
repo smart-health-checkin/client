@@ -21,7 +21,7 @@ A wallet is anything that can answer a check-in request: the phone's own wallet,
 </script>
 ```
 
-In a bundled app, `import "@smart-health-checkin/client/ui"` registers the element instead of the script tag.
+In a bundled app, `import "@smart-health-checkin/client/ui"` registers the element instead of the script tag. [Install](install.md) covers both ways of loading the library.
 
 What it does:
 

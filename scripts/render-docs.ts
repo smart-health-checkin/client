@@ -83,11 +83,6 @@ const DOCS_STYLE = `
   .pager { display:flex; justify-content:space-between; gap:var(--space-4); margin-top:var(--space-7); padding-top:var(--space-4); border-top:1px solid var(--border); font-size:var(--fs-sm); }
   .pager span { color:var(--fg-3); }
   .lede { font-family:var(--font-serif); color:var(--fg-2); font-size:var(--fs-md); line-height:1.55; }
-  figure.flow { margin:var(--space-5) 0 0; }
-  figure.flow svg { max-width:100%; height:auto; color:var(--fg-1); display:block; }
-  figure.flow .mono { font-family:var(--font-mono); }
-  figure.flow .sans { font-family:var(--font-sans); }
-  figure.flow figcaption { font-size:var(--fs-sm); color:var(--fg-3); margin-top:var(--space-3); max-width:62ch; }
   .api-group { margin:var(--space-7) 0 0; }
   .api-group h2 { margin:0 0 var(--space-1); }
   .api-group p.blurb { color:var(--fg-3); font-size:var(--fs-sm); margin:0 0 var(--space-3); }

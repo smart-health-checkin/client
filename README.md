@@ -57,35 +57,17 @@ the site's Developers menu:
 | Build a check-in page | [Tutorial](docs/tutorial.md) · [Requests](docs/requests.md) · [Wallet picker](docs/wallets.md) · [Responses](docs/responses.md) · [Native Verifier apps](docs/native-apps.md) |
 | Build a wallet | [Wallet guide](docs/build-a-wallet.md) · [Web wallets](docs/web-wallets.md) |
 | Testing and production | [Going to production](docs/production.md) · [Testing](docs/testing.md) |
-| Reference | [API reference](docs/api/index.md) · [Registry format](docs/registry.md) · [Clinic check-in demo options](demo/README.md) |
+| Reference | [API reference](docs/api/index.md) · [Install](docs/install.md) · [Registry format](docs/registry.md) · [Clinic check-in demo options](demo/README.md) |
 
 ## Install
 
-The library isn't on the npm registry. Each [GitHub release](https://github.com/smart-health-checkin/client/releases)
-has a built package; install it by URL (npm, pnpm, yarn, and Bun all accept this):
+The library isn't on the npm registry. Install a [GitHub release](https://github.com/smart-health-checkin/client/releases) by its URL:
 
 ```sh
 npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.4/smart-health-checkin-client-0.4.4.tgz
 ```
 
-The release notes for each version start with its install line. Watch the
-repository's releases to hear about new ones. Installing straight from git
-(`npm install github:smart-health-checkin/client#v0.4.4`) also works, but
-builds the package on your machine.
-
-Or with no build step, from the hosted ES modules at `/client/lib/`, each self-contained, with pinned copies at `/client/lib/<version>/`:
-
-| Entry point | Hosted file | For |
-| --- | --- | --- |
-| `@smart-health-checkin/client` | `checkin.js` | EHR pages: `runCheckin`, `wallets`, `CheckinResponse` |
-| `/ui` | `ui.js` | `<smart-checkin-picker>` |
-| `/react` | (package only) | `<CheckinPicker>`, `useCheckin` |
-| `/picker` | (package only) | Picker logic for your own UI |
-| `/wallet` | `wallet.js` | For wallets: `serveWebWallet`, matching, sealing |
-| `/handoff` | `handoff.js` | Kiosks: `handoffWallet` |
-| `/fhir` | `fhir.js` | Optional: response to a FHIR transaction |
-| `/testing` | `testing.js` | `mockWallet` for demos and tests |
-| `/model`, `/wire` | (package only) | Types, validators, and the protocol bytes |
+[Install](docs/install.md) explains the entry points, the TypeScript settings, and the hosted files for pages with no build step.
 
 ## Try it
 

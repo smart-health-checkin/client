@@ -99,7 +99,7 @@ The Digital Credentials API isn't in every browser. The patient may decline. The
 
 ## Pinning versions
 
-- Install a release by its URL, which never changes: `npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.4/smart-health-checkin-client-0.4.4.tgz`. Each [release](https://github.com/smart-health-checkin/client/releases) lists its own.
+- Install a release by its URL, which always serves the same package: `npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.4/smart-health-checkin-client-0.4.4.tgz` ([From a release](install.md#from-a-release)).
 - Use versioned hosted files: `/client/lib/0.4.4/ui.js`, not `/client/lib/ui.js`.
 - Better still, build and host your own copy.
 

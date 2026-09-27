@@ -36,7 +36,7 @@ and signed with the key this site's `assetlinks.json` lists, so both buttons wor
 
 ## The bridge page
 
-A static page on your domain that loads the client library. The complete example is
+A static page on your domain that loads the client library ([Install](install.md)). The complete example is
 [`demo/src/native-bridge.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/native-bridge.ts);
 its core:
 

@@ -1,119 +1,47 @@
 # SMART Health Check-in for JavaScript
 
-Add SMART Health Check-in to a page you own: a patient portal, a kiosk, or a link you text before a visit. The patient answers from a health app of their choice that already has their records and can help with your questions, and the answer comes back to your page.
+`@smart-health-checkin/client` is the JavaScript library for both sides of SMART Health Check-in. A clinic's page, the Verifier, asks for what a visit needs. The patient's health app, the Wallet, shows the patient the request and answers with the records and form answers they chose to share. The library carries the request and response between the two and does the encryption and the checks the spec requires, so your code works only with the request and response as JSON. [Request and response](https://smart-health-checkin.org/spec/request-response.html#overview) explains both with one running example.
 
-<figure class="flow">
-      <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the response arrives in your own code, where you prefill forms, write FHIR, or ask follow-up questions.">
-        <defs>
-          <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
-            <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
-          </marker>
-        </defs>
-        <g fill="none" stroke="currentColor" stroke-width="1.2">
-          <rect x="4" y="20" width="150" height="38" rx="6"/>
-          <rect x="245" y="20" width="150" height="38" rx="6"/>
-          <line x1="154" y1="39" x2="239" y2="39" marker-end="url(#arr)"/>
-          <line x1="395" y1="39" x2="470" y2="39" marker-end="url(#arr)"/>
-          <path d="M470 39 H 560 V 78" marker-end="url(#arr)"/>
-        </g>
-        <g class="mono" fill="currentColor" font-size="12" text-anchor="middle">
-          <text x="79" y="43">your page asks</text>
-          <text x="320" y="43">wallet answers</text>
-        </g>
-        <g class="sans" fill="currentColor" font-size="10" text-anchor="middle" opacity="0.65">
-          <text x="79" y="72">a check-in request</text>
-          <text x="320" y="72">patient consents per item</text>
-        </g>
-        <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 3">
-          <rect x="4" y="88" width="632" height="70" rx="8"/>
-        </g>
-        <g class="mono" fill="currentColor" font-size="12">
-          <text x="20" y="110">result.response → the data, in your own code</text>
-        </g>
-        <g class="sans" fill="currentColor" font-size="10.5" opacity="0.75">
-          <text x="20" y="132">prefill your forms · write FHIR · ask follow-up questions</text>
-          <text x="20" y="148">The patient stays on your page the whole time.</text>
-        </g>
-      </svg>
-      <figcaption>
-        Your page asks, the patient's wallet answers, and the decrypted,
-        checked response arrives in your own code. On a desktop the browser offers a QR
-        code, so the phone answers and the data still arrives in the desktop page.
-      </figcaption>
-    </figure>
+This page is for developers building either side. [Install](install.md) covers adding the library to a project, or loading it in a page with no build step.
 
-## Three ways in
+## Building a check-in page
 
-| If you want to | Start with |
-| --- | --- |
-| Build a check-in page step by step | [Tutorial](tutorial.md): an intake form that fills itself in, in one HTML page |
-| Drop a picker into a page you have | [Drop in the picker](#drop-in-the-picker), below, then the [Wallet picker](wallets.md#the-picker) guide |
-| Call it from your own code | [`wallet.start`](#call-it-yourself), below, or [`runCheckin`](wallets.md#starting-inside-the-click) |
-
-Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic check-in demo](demo/), the [picker](wallets.md#the-picker), the [form autofill demo](demo/autofill.html), the [kiosk](demo/kiosk.html).
-
-## Drop in the picker
-
-```html
-<script type="module" src="https://smart-health-checkin.org/client/lib/0.4.4/ui.js"></script>
-
-<smart-checkin-picker registry="/wallets.json"></smart-checkin-picker>
-
-<script type="module">
-  const picker = document.querySelector("smart-checkin-picker");
-  picker.request = myRequest;
-  picker.addEventListener("smart-checkin-response", (e) => prefillMyForm(e.detail.response));
-</script>
-```
-
-## Call it yourself
+A check-in page is a Verifier: a patient portal, a kiosk, or a page you text to a patient before a visit. It sends a request, and the library hands your code a response it has already decrypted and checked against that request. Your code decides what to do with the data, such as prefilling the form the page already has. That form stays as the fallback for a patient who has no wallet or shares nothing.
 
 ```ts
-import { wallets } from "@smart-health-checkin/client";
+import { runCheckin } from "@smart-health-checkin/client";
 
-const [wallet] = await wallets({ registry: "/wallets.json" });
 button.onclick = async () => {
-  const result = await wallet.start(myRequest); // inside the click
+  const result = await runCheckin(myRequest); // the phone's own wallet, started inside the click
   if (result.status === "completed") prefillMyForm(result.response);
-  else showMyOrdinaryForm();
 };
 ```
 
-## Install
+1. The [Tutorial](tutorial.md) builds a whole check-in page in one HTML file: an intake form that fills itself in. Start there if this is your first one.
+2. The [Wallet picker](wallets.md#the-picker) is an element that lists the wallets this browser can use and runs the check-in with the one the patient picks. To draw your own buttons instead, see [Without the picker](wallets.md#without-the-picker).
+3. [Requests](requests.md) explains what a page can ask for: records by FHIR profile or type, forms, and SMART Health Cards.
+4. [Responses](responses.md) explains how to read what comes back, prefill a form and ask only for what's missing, and write FHIR.
 
-From the GitHub release (the library isn't on the npm registry):
+A native Android or iOS app runs the same flow through a page on its own domain; see [Native Verifier apps](native-apps.md). Before real patients use your page, [Testing](testing.md) covers the mock wallet and the connectathon's testing tools, and [Going to production](production.md) covers keys, trust settings, fallback, and privacy.
 
-```sh
-npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.4/smart-health-checkin-client-0.4.4.tgz
+## Building a wallet
+
+A wallet receives a request, shows the patient who is asking and what for, lets them choose item by item, and sends back a response signed and encrypted for the page that asked. This library builds web wallets, which a check-in page opens in a browser tab; [`serveWebWallet`](api/wallet.md#servewebwallet) handles the exchange with that page, and your code shows the consent screen. Native wallets on Android and iOS are written in Kotlin or Swift instead, and follow the same rules for matching records, forms, and statuses.
+
+```ts
+import { serveWebWallet } from "@smart-health-checkin/client/wallet";
+
+serveWebWallet({
+  async onRequest({ request, origin }) {
+    const response = await showConsentScreen(request, origin); // your UI
+    return { response }; // checked, signed, and encrypted for origin
+  },
+});
 ```
 
-What you get:
+- The [Wallet guide](build-a-wallet.md) covers what a wallet does, [native wallets](build-a-wallet.md#native-wallets-on-android), [matching records to items](build-a-wallet.md#matching-records-to-items), forms, statuses, health cards, and [getting listed](build-a-wallet.md#getting-listed) in a clinic's registry.
+- [Web wallets](web-wallets.md) describes the messages between a check-in page and a web wallet, for implementing that exchange yourself or debugging it.
 
-- **JavaScript and types.** Every entry point (`@smart-health-checkin/client`, `/ui`, `/react`, `/picker`, `/wallet`, `/handoff`, `/fhir`, `/testing`, `/model`, `/wire`) ships as an ES module with `.d.ts` types, plus the TypeScript sources and source maps, so "go to definition" lands in real code. No runtime dependencies. React is an optional peer, needed only for `/react`.
-- **TypeScript settings.** Use `"moduleResolution": "bundler"` (Vite, webpack, esbuild) or `"node16"`/`"nodenext"`. The types mention WebCrypto (`CryptoKey`), so a server-only project needs `"DOM"` in `lib` or `"skipLibCheck": true`.
-- **ES modules only.** There's no CommonJS build. `require()` works on Node 20.19+ and 22.12+, which can load ES modules.
-- **Frameworks.** React has [its own component](wallets.md#in-react). Angular, Vue, and anything else use the element; see [other frameworks](wallets.md#in-angular-vue-and-others).
+## Demos
 
-Or with no build step, from a hosted file:
-
-| File | What it gives you |
-| --- | --- |
-| `/client/lib/0.4.4/ui.js` | `<smart-checkin-picker>`, self-contained |
-| `/client/lib/0.4.4/checkin.js` | `runCheckin`, `wallets`, `CheckinResponse`, and the rest of the root module |
-| `/client/lib/0.4.4/handoff.js` | The kiosk hand-off |
-| `/client/lib/0.4.4/wallet.js` | For building a web wallet |
-| `/client/lib/0.4.4/testing.js` | The mock wallet |
-| `/client/lib/0.4.4/fhir.js` | Turning a response into a FHIR transaction |
-
-All at `https://smart-health-checkin.org`. Drop the version for the latest.
-
-## The guides
-
-Grouped as in the Developers menu:
-
-| Group | Guides |
-| --- | --- |
-| Build a check-in page | [Tutorial](tutorial.md) · [Requests](requests.md) · [Wallet picker](wallets.md) · [Responses](responses.md) · [Native Verifier apps](native-apps.md) |
-| Build a wallet | [Wallet guide](build-a-wallet.md) · [Web wallets](web-wallets.md) |
-| Testing and production | [Going to production](production.md) · [Testing](testing.md) |
-| Reference | [API reference](api/index.md) · [Registry format](registry.md) · [Clinic check-in demo options](../demo/README.md) |
+The [Demos](demo/) run the real protocol with a made-up patient at a pretend clinic. [The demos](testing.md#the-demos) in the Testing guide lists what each one shows and where its source is.
