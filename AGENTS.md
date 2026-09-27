@@ -17,7 +17,7 @@ Deploys to smart-health-checkin.org/client/.
   (`scripts/fetch-releases.sh`, needs `gh`).
 - **Releasing:** set `version` in `package.json`, move the docs' pinned
   versions, push `main`, then push tag `vX.Y.Z`. `release.yml` does the rest.
-  Then bump the tarball URL in connectathon, spec, and android-wallet.
+  Then bump the tarball URL in connectathon, spec, android-wallet (`package.json`), and swift (`.github/workflows/test.yml`).
   Releases are immutable; never re-tag.
 - Hosted bundles are self-contained per entry point. State that must be
   shared across bundles (health-card trust) lives on a `globalThis` registry.
