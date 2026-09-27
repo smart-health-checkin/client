@@ -942,7 +942,7 @@ type HealthCard = {
 };
 ```
 
-Defined in: [src/core/health-cards.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L36)
+Defined in: [src/core/health-cards.ts:39](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L39)
 
 A SMART Health Card from a response, with the result of checking it.
 
@@ -954,7 +954,7 @@ A SMART Health Card from a response, with the result of checking it.
 accepted: boolean;
 ```
 
-Defined in: [src/core/health-cards.ts:50](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L50)
+Defined in: [src/core/health-cards.ts:57](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L57)
 
 Included by `resources()` under the configured `accept`.
 
@@ -970,7 +970,7 @@ optional bundle?: {
 };
 ```
 
-Defined in: [src/core/health-cards.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L44)
+Defined in: [src/core/health-cards.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L47)
 
 The card's FHIR Bundle (`vc.credentialSubject.fhirBundle`), when it could be decoded.
 
@@ -995,7 +995,7 @@ resourceType: "Bundle";
 fulfills: ReadonlyArray<string>;
 ```
 
-Defined in: [src/core/health-cards.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L38)
+Defined in: [src/core/health-cards.ts:41](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L41)
 
 The item ids the card's artifact fulfills.
 
@@ -1005,7 +1005,7 @@ The item ids the card's artifact fulfills.
 optional issuer?: string;
 ```
 
-Defined in: [src/core/health-cards.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L42)
+Defined in: [src/core/health-cards.ts:45](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L45)
 
 The issuer URL from the payload, when it could be decoded.
 
@@ -1015,7 +1015,7 @@ The issuer URL from the payload, when it could be decoded.
 jws: string;
 ```
 
-Defined in: [src/core/health-cards.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L40)
+Defined in: [src/core/health-cards.ts:43](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L43)
 
 The compact JWS as received.
 
@@ -1025,7 +1025,7 @@ The compact JWS as received.
 optional reason?: string;
 ```
 
-Defined in: [src/core/health-cards.ts:52](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L52)
+Defined in: [src/core/health-cards.ts:59](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L59)
 
 Why it isn't valid or trusted, when it isn't.
 
@@ -1035,7 +1035,7 @@ Why it isn't valid or trusted, when it isn't.
 trusted: boolean;
 ```
 
-Defined in: [src/core/health-cards.ts:48](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L48)
+Defined in: [src/core/health-cards.ts:55](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L55)
 
 The issuer is trusted by the configuration.
 
@@ -1045,9 +1045,11 @@ The issuer is trusted by the configuration.
 valid: boolean;
 ```
 
-Defined in: [src/core/health-cards.ts:46](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L46)
+Defined in: [src/core/health-cards.ts:53](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L53)
 
-The signature verified against the issuer's key.
+The signature verified against the issuer's key. False when it didn't, and
+also when it wasn't checked: under `accept: "trusted"` an untrusted
+issuer's keys aren't fetched.
 
 ***
 
@@ -1078,12 +1080,15 @@ Which SMART Health Card issuers to trust, and which cards `resources()` includes
 optional accept?: "trusted" | "any-valid" | "everything";
 ```
 
-Defined in: [src/core/health-cards.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L32)
+Defined in: [src/core/health-cards.ts:35](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L35)
 
 Which cards `resources()` includes: "trusted" (default) only cards from a
 trusted issuer with a valid signature; "any-valid" any card whose
 signature verifies against its own issuer's published keys; "everything"
 invalid cards too. Every card is always listed by `healthCards()`.
+Under "trusted", an untrusted issuer's keys are never fetched, so its
+cards are reported with `valid: false` and a reason saying the issuer
+isn't trusted.
 
 ##### directory?
 
@@ -2207,7 +2212,7 @@ Build and validate a request. `type` and `version` are fixed by the spec,
 function configureHealthCardTrust(trust): void;
 ```
 
-Defined in: [src/core/health-cards.ts:72](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L72)
+Defined in: [src/core/health-cards.ts:79](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L79)
 
 Set the trust used for every check-in that doesn't pass its own.
 
@@ -2276,7 +2281,7 @@ Whether this browser can reach the phone's own wallet through the Digital Creden
 function healthCardTrust(): HealthCardTrust;
 ```
 
-Defined in: [src/core/health-cards.ts:77](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L77)
+Defined in: [src/core/health-cards.ts:84](https://github.com/smart-health-checkin/client/blob/main/src/core/health-cards.ts#L84)
 
 The trust currently configured.
 

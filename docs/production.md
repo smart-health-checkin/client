@@ -71,7 +71,7 @@ The built-in client sends your session cookie (`credentials: "include"`). For a 
 
 The library checks that a response is internally sound. Which wallets and issuers you believe is policy. Write it down.
 
-- **Health cards:** trust a directory or named issuers, and leave [`accept`](api/checkin.md#accept) at `"trusted"`. See [SMART Health Cards](responses.md#smart-health-cards).
+- **Health cards:** trust a directory or named issuers, and leave [`accept`](api/checkin.md#accept) at `"trusted"`. Then the library fetches keys only from issuers you trust. See [SMART Health Cards](responses.md#smart-health-cards).
 - **Web wallets:** offer only wallets you recognize, in your own `wallets.json`. See [Registries](wallets.md#registries-and-icons).
 - **Wallet signatures:** every wallet signs its own response, so a valid signature doesn't tell you which app sent it or where its data came from. See [Security and limits](https://smart-health-checkin.org/spec/trust-and-limits.html#signatures).
 

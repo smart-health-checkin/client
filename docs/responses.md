@@ -100,6 +100,7 @@ configureHealthCardTrust({ keys: { "https://issuer.example": jwks } }); // keys 
 | `"everything"` (debugging) | Included | Included | Included |
 
 - Every card appears in [`healthCards()`](api/checkin.md#healthcards) and [`entries()`](api/checkin.md#entries), whatever `accept` says, with [`valid`](api/checkin.md#valid), [`trusted`](api/checkin.md#trusted), [`accepted`](api/checkin.md#accepted), and a [`reason`](api/checkin.md#reason) when it isn't.
+- Under `"trusted"`, the library doesn't fetch an untrusted issuer's keys. Its cards are listed with `trusted: false`, `valid: false` (the signature wasn't checked), and a `reason` saying the issuer isn't trusted. `"any-valid"` and `"everything"` fetch the issuer's keys from `<iss>/.well-known/jwks.json` and check the signature.
 - Set trust for one check-in with [`runCheckin(request, { healthCards: { accept: "any-valid" } })`](api/checkin.md#healthcards-1), or the picker's [`checkinOptions`](api/ui.md#checkinoptions).
 - [`configureHealthCardTrust`](api/checkin.md#configurehealthcardtrust) applies to every copy of the library on the page. Trust set through the hosted `checkin.js` also reaches the picker in `ui.js`.
 - If you store a card, store the JWS as received ([`card.jws`](api/checkin.md#jws)). The signature is in the token; unpacked FHIR loses it.

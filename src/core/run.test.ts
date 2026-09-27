@@ -164,18 +164,42 @@ describe("health card trust", () => {
     expect(result.response.entries("coverage")[0]?.source).toBe("health-card");
   });
 
-  test("valid but untrusted: out of resources() by default, in with any-valid", async () => {
+  test("untrusted issuer: reported, out of resources(), and its keys not fetched", async () => {
     const { jws, jwks } = await mintCard("https://other.example");
-    const fetchKeys = (async () => new Response(JSON.stringify(jwks))) as unknown as typeof fetch;
+    const fetched: string[] = [];
+    const fetchKeys = (async (url: string) => { fetched.push(String(url)); return new Response(JSON.stringify(jwks)); }) as unknown as typeof fetch;
     const strict = await runCheckin(request, { wallet: withCard(jws), fetch: fetchKeys, healthCards: { issuers: ["https://issuer.example"] } });
     if (strict.status !== "completed" || !strict.response) throw new Error(strict.status);
+    expect(fetched).toEqual([]);
     expect(strict.response.resources("coverage")).toHaveLength(0);
-    expect(strict.response.healthCards("coverage")[0]).toMatchObject({ valid: true, trusted: false, accepted: false });
+    const card = strict.response.healthCards("coverage")[0];
+    expect(card).toMatchObject({ issuer: "https://other.example", valid: false, trusted: false, accepted: false });
+    expect(card?.reason).toMatch(/https:\/\/other\.example is not a trusted issuer/);
+    expect(card?.bundle?.entry).toHaveLength(1);
     expect(strict.response.entries("coverage")).toHaveLength(1);
+  });
 
+  test("untrusted issuer, default trust: no fetch at all", async () => {
+    const { jws } = await mintCard("https://wallet.example/demo");
+    const fetchNothing = (async (url: string) => { throw new Error(`unexpected fetch ${url}`); }) as unknown as typeof fetch;
+    const result = await runCheckin(request, { wallet: withCard(jws), fetch: fetchNothing, healthCards: {} });
+    if (result.status !== "completed" || !result.response) throw new Error(result.status);
+    expect(result.response.healthCards("coverage")[0]).toMatchObject({ trusted: false, accepted: false, reason: "https://wallet.example/demo is not a trusted issuer; its signature wasn't checked" });
+  });
+
+  test("untrusted issuer, any-valid or everything: keys fetched and the signature checked", async () => {
+    const { jws, jwks } = await mintCard("https://other.example");
+    const fetched: string[] = [];
+    const fetchKeys = (async (url: string) => { fetched.push(String(url)); return new Response(JSON.stringify(jwks)); }) as unknown as typeof fetch;
     const open = await runCheckin(request, { wallet: withCard(jws), fetch: fetchKeys, healthCards: { accept: "any-valid" } });
     if (open.status !== "completed" || !open.response) throw new Error(open.status);
+    expect(fetched).toContain("https://other.example/.well-known/jwks.json");
     expect(open.response.resources("coverage")).toHaveLength(1);
+    expect(open.response.healthCards("coverage")[0]).toMatchObject({ valid: true, trusted: false, accepted: true, reason: "https://other.example is not a trusted issuer" });
+
+    const everything = await runCheckin(request, { wallet: withCard(jws), fetch: fetchKeys, healthCards: { accept: "everything" } });
+    if (everything.status !== "completed" || !everything.response) throw new Error(everything.status);
+    expect(everything.response.healthCards("coverage")[0]).toMatchObject({ valid: true, trusted: false, accepted: true });
   });
 
   test("invalid signature: only with accept everything", async () => {

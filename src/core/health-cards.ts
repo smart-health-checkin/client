@@ -28,6 +28,9 @@ export type HealthCardTrust = {
    * trusted issuer with a valid signature; "any-valid" any card whose
    * signature verifies against its own issuer's published keys; "everything"
    * invalid cards too. Every card is always listed by `healthCards()`.
+   * Under "trusted", an untrusted issuer's keys are never fetched, so its
+   * cards are reported with `valid: false` and a reason saying the issuer
+   * isn't trusted.
    */
   accept?: "trusted" | "any-valid" | "everything";
 };
@@ -42,7 +45,11 @@ export type HealthCard = {
   issuer?: string;
   /** The card's FHIR Bundle (`vc.credentialSubject.fhirBundle`), when it could be decoded. */
   bundle?: { resourceType: "Bundle"; entry?: Array<{ fullUrl?: string; resource?: Record<string, unknown> }> };
-  /** The signature verified against the issuer's key. */
+  /**
+   * The signature verified against the issuer's key. False when it didn't, and
+   * also when it wasn't checked: under `accept: "trusted"` an untrusted
+   * issuer's keys aren't fetched.
+   */
   valid: boolean;
   /** The issuer is trusted by the configuration. */
   trusted: boolean;
@@ -154,6 +161,9 @@ export async function checkHealthCard(
     if (header.alg !== "ES256" || header.zip !== "DEF") return finish(`header must have alg ES256 and zip DEF`);
     if (!payload.iss) return finish("the payload has no issuer (iss)");
     card.trusted = await isTrusted(payload.iss, trust, fetchImpl);
+    // A card that can't be accepted doesn't need its signature checked: don't
+    // fetch keys from an issuer the page doesn't trust.
+    if (!card.trusted && accept === "trusted") return finish(`${payload.iss} is not a trusted issuer; its signature wasn't checked`);
     const jwks = trust.keys?.[payload.iss] ?? (await fetchJwks(payload.iss, fetchImpl));
     const jwk = jwks.keys.find((k) => k.kid === header.kid);
     if (!jwk) return finish(`no key with kid ${header.kid} for ${payload.iss}`);
