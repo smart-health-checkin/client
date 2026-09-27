@@ -7,8 +7,7 @@
       "items": [
         { "title": "Clinic check-in", "href": "./", "note": "Check in at a clinic website" },
         { "title": "Kiosk check-in", "href": "kiosk.html", "note": "Hand off to the phone" },
-        { "title": "Form autofill", "href": "autofill.html#wallet=demo", "note": "Fill a form from your records" },
-        { "title": "Demo wallet", "href": "wallet.html", "note": "The Wallet side" }
+        { "title": "Form autofill", "href": "autofill.html#wallet=demo", "note": "Fill a form from your records" }
       ]
     },
     {

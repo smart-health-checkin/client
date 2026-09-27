@@ -209,6 +209,6 @@ Each demo page runs the real flow and shows one way to use the library. Source i
 | [Angular](../demo/angular.html) | A small service over `wallets()` and `wallet.start` |
 | [Form autofill](../demo/autofill.html) | [The picker](wallets.md#the-picker), then prefill from [`response.resources`](api/checkin.md#resources) and ask only for what's missing |
 | [Kiosk](../demo/kiosk.html) and its [phone page](../demo/handoff.html) | [`handoffWallet()`](api/handoff.md#handoffwallet), and the picker in [pick mode](wallets.md#pick-only) with [`answerHandoff`](api/handoff.md#answerhandoff) |
-| [Demo wallet](../demo/wallet.html) | A web wallet built on [`serveWebWallet`](api/wallet.md#servewebwallet) |
+| Demo wallet ([source](https://github.com/smart-health-checkin/client/blob/main/demo/src/wallet.ts)) | A web wallet built on [`serveWebWallet`](api/wallet.md#servewebwallet) |
 
 The clinic check-in demo takes options in the URL fragment, such as `#wallet=mock` to offer only the simulated response or `#wallet=platform` to offer only the device's own wallet. [Clinic check-in demo options](../demo/README.md) lists them.

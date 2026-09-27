@@ -37,6 +37,7 @@ const SKIP: Record<string, string> = {
   "docs/api/": "one generated page per module; llms.txt has the API index (docs/api/index.html, in the menu) and each module's Markdown (TEXTS)",
   "demo/handoff.html": "the kiosk demo's phone page, opened from the kiosk's QR code",
   "demo/native-bridge.html": "the page native apps open in a Custom Tab; nothing on it to read",
+  "demo/wallet.html": "the demo web wallet, opened by check-in pages; nothing on it to read on its own",
   "assets/": "the apex's shared look, copied in only for a standalone preview",
 };
 // Pages in llms.txt that no menu lists, after the menu's pages.
