@@ -150,7 +150,9 @@ Two hosted tools let you test against a known-good counterpart.
 
 <https://smart-health-checkin.org/connectathon/testing-wallet/>
 
-A web wallet with synthetic patients. Its testing panel can send a deliberately broken response, so you can check your EHR's error handling. Pick faults in the [Testing EHR](#testing-ehr), or open the wallet with `#faults=…`.
+A web wallet with synthetic patients. It can send a deliberately broken or very large response, so you can check your EHR's error handling.
+
+To test your own page: open the wallet, set faults or a response size in its testing panel, choose "Copy wallet URL for these settings", and add that URL to your page's wallet list as a web wallet, for example with [`webWallet()`](api/checkin.md#webwallet). Then run check-ins from your page as usual; each one gets those options, and the wallet's approval screen shows them. For example, [bad signature](https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsiYmFkLXNpZ25hdHVyZSJdfQ/) and [5 MB response](https://smart-health-checkin.org/connectathon/testing-wallet/eyJzaXplIjoiNW0ifQ/). These [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls) are the Testing Wallet's own format, not part of SMART Health Check-in: your page opens them like any wallet URL. The [Testing EHR](#testing-ehr) can build them too, under "Testing Wallet options".
 
 | Fault | What the wallet sends |
 | --- | --- |
@@ -174,7 +176,7 @@ What this library does with each, and what your EHR should do (spec [§6.4](http
 - **`missing-status` and `duplicate-status`:** complete it; that item has no status ([`response.status(id)`](api/checkin.md#status) is `undefined`).
 - **`wrong-request-id`, `bad-encryption`, and `wrong-origin`:** fail with `invalid-response`.
 
-The testing panel's response size setting makes a valid response of about 512 KB, 1 MB, 2 MB, or 5 MB, so you can check that your EHR takes large responses the way it takes small ones. The wallet adds earlier records of one kind, such as past lab results or prescriptions, to one shared item's Bundle, and shows the size before you share. Set it on the wallet's testing panel, or open the wallet with `#size=512k`, `1m`, `2m`, or `5m`.
+The response size setting makes a valid response of about 512 KB, 1 MB, 2 MB, or 5 MB, so you can check that your EHR takes large responses the way it takes small ones. The wallet adds earlier records of one kind, such as past lab results or prescriptions, to one shared item's Bundle, and shows the size before you share. Set it in the wallet's testing panel and copy its config URL, as above.
 
 ## Reading a failed result
 
