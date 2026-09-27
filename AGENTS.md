@@ -30,6 +30,15 @@ Deploys to smart-health-checkin.org/client/.
   page). The demo wallet, the kiosk hand-off, and the tutorial's finished page use the tool bar;
   `native-bridge.html` has no chrome on purpose. `demo/demo.css` holds the demos' shared layout.
 - `scripts/check-links.ts` also fails the build on a `{{` left in a page outside code.
+- `scripts/llms.ts` writes `llms.txt` and `llms-full.txt` at the end of the build, for the
+  Developers and Demos menus together: pages grouped as in both `nav.json` files, each guide's
+  `blurb` as its description, each API module's Markdown linked, and the apex's shared background
+  (fetched from `https://smart-health-checkin.org/llms-background.md`;
+  `LLMS_BACKGROUND=../smart-health-checkin.github.io/llms-background.md` builds offline) followed by
+  every page as Markdown. The per-module API pages are linked, not inlined; the API index is inlined.
+  A new page must be in a menu or the script's `SKIP`, or the build fails. See
+  [llms.txt](https://github.com/smart-health-checkin/smart-health-checkin.github.io/blob/main/MAINTAINING.md#llmstxt)
+  in MAINTAINING.md.
 - Docs are for developers using the library: keep install lines and pinned
   URLs on the current release.
 - Receivers are permissive, producers strict (spec §2, RCV-0..2): the verifier

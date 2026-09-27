@@ -70,6 +70,10 @@ touch $OUT/.nojekyll
 bun scripts/verify-lib.ts
 # Every link inside the site reaches a page, and an anchor on it.
 bun scripts/check-links.ts "$OUT" "${SITE_BASE:-}"
+# llms.txt (the menus' pages) and llms-full.txt (the apex's shared background,
+# then every page as Markdown). Fails if a page is missing from them or
+# llms.txt links to a file the build didn't make.
+bun scripts/llms.ts "$OUT"
 
 echo "Built $OUT:"
 find "$OUT" -type f | sort
