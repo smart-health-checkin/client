@@ -347,9 +347,10 @@ for (const { module, source } of CHECKED_MODULES) {
 const apiPages = readdirSync("docs/api")
   .filter((file) => file.endsWith(".md") && file !== "index.md")
   .map((file) => {
-    const md = readFileSync(join("docs/api", file), "utf8");
-    // TypeDoc's own "API / module" line is dropped: the breadcrumb and rail cover it.
-    const html = renderApi(md.replace(/^\[[^\n]*\]\(index\.md\) \/ [^\n]*\n/, "")).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
+    // TypeDoc's own "API / module" line is dropped: the breadcrumb and rail
+    // cover it, and the index.md it links isn't published.
+    const md = readFileSync(join("docs/api", file), "utf8").replace(/^\[[^\n]*\]\(index\.md\) \/ [^\n]*\n+/, "");
+    const html = renderApi(md).replace(/href="([^"]*)\/docs\/api\/index\.html"/g, `href="$1/docs/api/"`);
     const name = basename(file, ".md");
     const ids = new Map<string, string>();
     for (const m of html.matchAll(/<h3 id="([^"]+)">(?:<code>)?([^<]+)(?:<\/code>)?<\/h3>/g)) ids.set(m[2]!.trim().replace(/\(\)$/, ""), m[1]!);
