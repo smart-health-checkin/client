@@ -165,7 +165,7 @@ To test your own page: open the wallet, set faults or a response size in its tes
 | `bad-encryption` | A corrupted HPKE ciphertext |
 | `wrong-origin` | A transcript bound to a different origin |
 | `bad-shc-signature` | A SMART Health Card with a broken signature |
-| `combine-allergies-meds` | Allergies and medications in one shared Bundle. A valid response, for scenario [O7](https://smart-health-checkin.org/connectathon/advanced.html#o7). |
+| `combine-allergies-meds` | Allergies and medications in one shared Bundle. A valid response, for scenario [shared-artifact](https://smart-health-checkin.org/connectathon/scenarios.html#shared-artifact). |
 
 What this library does with each, and what your EHR should do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) and [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
 
