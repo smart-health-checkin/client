@@ -88,7 +88,7 @@ The wallet learns who is asking from the browser, never from the message.
 - Accept a request only when `event.source === window.opener`.
 - Use `event.origin` as the EHR's origin. The message has no origin field, and a wallet must never trust one written inside a message.
 - Reject the opaque origin `"null"`. There is no way to reply to it.
-- Show that origin to the patient during consent.
+- Show that origin to the patient during consent, prominently, as a website: "A website is asking for your health information", then the origin. Don't call it a practice or clinic; the origin is all the wallet knows.
 - Bind the `SessionTranscript` to it ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript)).
 - Reply only to that origin.
 

@@ -20,9 +20,9 @@
   .wallet-name { font-weight: 600; font-size: 1rem; margin: 0; letter-spacing: 0; }
   .wallet-tag { color: var(--fg-3); font-size: 0.8rem; }
   .verifier { padding: 0.85rem 1rem; }
-  .verifier .origin { font-family: var(--font-mono); font-size: 0.85rem; word-break: break-all; }
+  .verifier .origin { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; color: var(--fg-1); word-break: break-all; }
   .verifier .label { color: var(--fg-3); font-size: 0.8rem; }
-  .consent-title { font-size: 1.1rem; margin: 0.5rem 0 0; }
+  .consent-title { font-size: 1.1rem; margin: 0.5rem 0 0.75rem; }
   .purpose { color: var(--fg-3); font-size: 0.92rem; margin: 0.15rem 0 0; }
   ul.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
   ul.items li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.8rem 0.95rem; }
@@ -60,12 +60,11 @@
   <div id="waiting" class="note">Waiting for a request…</div>
 
   <div id="consent" hidden>
+    <h2 class="consent-title" data-testid="consent-heading">A website is asking for your health information</h2>
     <div class="verifier smart-panel">
-      <div class="label">Requested by</div>
+      <div class="label">Website</div>
       <div class="origin" id="verifier-origin"></div>
     </div>
-
-    <h2 class="consent-title">Share health information?</h2>
     <p class="purpose" id="purpose"></p>
 
     <ul class="items" id="items"></ul>

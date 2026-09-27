@@ -427,7 +427,7 @@ function renderConsent(request: Pending, answer: (a: WebWalletAnswer) => void): 
   el("consent").hidden = false;
   el("verifier-origin").textContent = request.verifierOrigin;
   el("purpose").textContent =
-    request.smartRequest.purpose ?? "This site is asking for health information.";
+    request.smartRequest.purpose ?? "The website didn't say why.";
 
   // Preview what this wallet would actually return, per item.
   const preview = respond(request.smartRequest);
