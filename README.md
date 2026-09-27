@@ -45,7 +45,7 @@ has to audit and configure.
 
 ## Documentation
 
-The docs site is at [smart-health-checkin.org/client/docs](https://smart-health-checkin.org/client/docs/);
+The docs site is at [smart-health-checkin.org/client](https://smart-health-checkin.org/client/);
 the same pages live in this repo, so they read here too.
 
 Start with the [Overview](docs/getting-started.md). The rest is grouped as in
