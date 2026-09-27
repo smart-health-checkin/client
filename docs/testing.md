@@ -159,7 +159,7 @@ A web wallet with synthetic patients. Its testing panel can send a deliberately 
 | `duplicate-status` | One item with two statuses |
 | `wrong-request-id` | A `requestId` that doesn't match |
 | `unaccepted-media-type` | An artifact in a type the item didn't accept |
-| `oversized` | A response padded past 3 MB |
+| `oversized` | A response padded with a large block of filler |
 | `bad-signature` | A corrupted issuer signature |
 | `bad-encryption` | A corrupted HPKE ciphertext |
 | `wrong-origin` | A transcript bound to a different origin |

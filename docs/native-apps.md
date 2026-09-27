@@ -31,9 +31,8 @@ and signed with the key this site's `assetlinks.json` lists, so both buttons wor
    the app in `/.well-known/assetlinks.json`, so the page knows its messages come from that app.
 3. The app sends the SMART request. The page answers `started`, shows the picker, runs the check-in, and
    decrypts and validates the response with [`runCheckin`](api/checkin.md#runcheckin).
-4. The page sends the response back in parts, because each message crosses Android's inter-process
-   channel, which caps one message at about 1 MB. The app reassembles the parts and checks a SHA-256 hash.
-   There's no limit on the total size.
+4. The page sends the response back in parts, so a response of any size gets through the channel. The app
+   reassembles the parts and checks a SHA-256 hash.
 
 ## The bridge page
 
@@ -64,7 +63,7 @@ function start(data: string) {
 
 picker.addEventListener("smart-checkin-response", async (e) => {
   const text = JSON.stringify({ response: e.detail.response.json, wallet: e.detail.wallet.id });
-  const PART = 200_000; // characters; keeps each message well under 1 MB
+  const PART = 200_000; // characters per message
   const total = Math.ceil(text.length / PART);
   port!.postMessage(JSON.stringify({ type: "result-begin", total, chars: text.length, sha256: await sha256Hex(text) }));
   for (let i = 0; i < total; i++) port!.postMessage(JSON.stringify({ type: "result-part", i, data: text.slice(i * PART, (i + 1) * PART) }));

@@ -16,14 +16,13 @@
 //   {"type":"declined"}
 //   {"type":"failed","code":"…","message":"…"}
 // The result JSON is {"response": <the checked SMART response>, "wallet": "<wallet id>"}.
-// It goes in parts because each channel message crosses Android IPC, which caps
-// a single message at about 1 MB; parts keep the whole response unlimited.
+// It goes in parts, so a response of any size crosses the channel.
 import "../../src/ui/index.js";
 import type { SmartCheckinPicker } from "../../src/ui/index.js";
 import type { SmartCheckinRequest } from "../../src/model/index.js";
 import { followPageTheme } from "./site.js";
 
-/** Characters per part: 200k UTF-16 chars stays well under the ~1 MB IPC limit. */
+/** Characters per part. */
 const PART_CHARS = 200_000;
 
 const picker = document.getElementById("picker") as SmartCheckinPicker & HTMLElement;
