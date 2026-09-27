@@ -24,7 +24,7 @@ Each check-in encrypts the response to a key your page makes for that one reques
 | `{ server: "/checkin-api" }` | Your server, behind two HTTP calls | Policy says health data may only be decrypted on a server, or you need an audit point outside the browser |
 | Your own [`KeyCustody`](api/checkin.md#keycustody) | Wherever you implement it | Your server needs a header instead of a cookie, or a different API |
 
-Keeping the key in the page is the design, not a shortcut:
+Keeping the key in the page is safe:
 
 - The response is bound to your page's origin and this one request. It can't be read in transit or replayed elsewhere.
 - The page was going to read the data anyway. The key in memory doesn't widen what it can see.
@@ -73,7 +73,7 @@ The library checks that a response is internally sound. Which wallets and issuer
 
 - **Health cards:** trust a directory or named issuers, and leave [`accept`](api/checkin.md#accept) at `"trusted"`. See [SMART Health Cards](responses.md#smart-health-cards).
 - **Web wallets:** offer only wallets you recognize, in your own `wallets.json`. See [Registries](wallets.md#registries-and-icons).
-- **Self-vouching apps:** decide whether to reject them, or accept and flag for review.
+- **Wallet signatures:** every wallet signs its own response, so a valid signature doesn't tell you which app sent it or where its data came from. See [Security and limits](https://smart-health-checkin.org/spec/trust-and-limits.html#signatures).
 
 ## Fallback
 
@@ -116,5 +116,3 @@ Log each failed result's [`error.code`](api/checkin.md#checkinerrorcode), and wa
 | `server` | Your key server |
 
 Log [`result.warnings`](api/checkin.md#checkinresult) from completed check-ins too: a steady stream from one wallet usually means a bug there. `unsupported` and `declined` are normal and don't need alerts. [Testing](testing.md#reading-a-failed-result) explains each code.
-
-Next: [Wallet guide](build-a-wallet.md)

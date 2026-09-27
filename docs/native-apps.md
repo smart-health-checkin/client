@@ -176,7 +176,7 @@ Wallet (a web wallet) answering, twice in a row:
 | 4,382 characters | 1 | 0.6 s |
 | 1,927,289 characters (a large patient record) | 10 | 0.6–2.8 s |
 
-The direct path, on the same emulator, with the [reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest) v0.4.0 answering: the wallet
+The direct path, on the same emulator, with the [reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest) answering: the wallet
 binds the transcript to the app's `android:apk-key-hash:` origin, and the app decrypts a 4,595-character
 response with it. About 11 seconds from tap to result, including the platform's sheet and the wallet's
 consent screen.
@@ -185,7 +185,3 @@ A web wallet opened from the bridge page inside the Custom Tab keeps `window.ope
 [web wallet protocol](web-wallets.md) works unchanged. The test is
 [`tools/verifier-app-e2e/run.ts`](https://github.com/smart-health-checkin/android-wallet/blob/main/tools/verifier-app-e2e/run.ts)
 in the android-wallet repository.
-
-Chrome keeps a copy of the site's Digital Asset Links statements in its HTTP cache. If you change
-`assetlinks.json` while testing, clear Chrome's cache (or wait up to an hour) before verification sees
-the change.

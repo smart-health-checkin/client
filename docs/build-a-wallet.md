@@ -24,7 +24,7 @@ A native wallet registers with Android's Credential Manager and answers requests
 
 ## Native wallets on iOS
 
-On iOS 26, a wallet answers Safari through an Identity Document Provider extension. Apple has to approve the `org.smarthealthit.checkin.1` document type for the app's entitlement. The extension can read the SMART request (`requestInfo`) only once the patient interacts, inside `sendResponse`; it can hold that callback open while it shows its own item-by-item screens, then answer. The [Swift package](https://github.com/smart-health-checkin/swift) implements both sides, and the [platform notes](https://smart-health-checkin.org/spec/platform-notes.html#ios) have the details, including stripping the trailing slash from the origin Safari reports.
+On iOS 26, a wallet answers Safari through an Identity Document Provider extension. Apple has to approve the `org.smarthealthit.checkin.1` document type for the app's entitlement. The extension can read the SMART request (`requestInfo`) only once the patient interacts, inside `sendResponse`; it can hold that callback open while it shows its own item-by-item screens, then answer. The [Swift package](https://github.com/smart-health-checkin/swift) implements both sides, and [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#ios) has the details, including stripping the trailing slash from the origin Safari reports.
 
 The rest of this page applies to both kinds: the matching rules, forms, statuses, and health cards are the same.
 
@@ -135,11 +135,11 @@ One artifact can fulfill several items: list them all in its `fulfills` ([§6.3]
 
 ## SMART Health Cards
 
-Return a SMART Health Card when an item lists `application/smart-health-card` first in `accept` ([§5.6](https://smart-health-checkin.org/spec/#5-6-accepted-media-types)).
+When an item lists `application/smart-health-card` first in `accept` and the patient has a card for it, return the card ([§5.6](https://smart-health-checkin.org/spec/#5-6-accepted-media-types)).
 
 - The artifact's `mediaType` is `application/smart-health-card`.
 - Its `value` is `{ verifiableCredential: [jws, …] }`.
-- EHRs verify the card's signature against its issuer's published keys, so sign with a key your issuer publishes.
+- Send each card's JWS exactly as its issuer signed it. EHRs verify the signature against the issuer's published keys, so a card changed after issue fails.
 
 ## Lower-level pieces
 
@@ -169,5 +169,3 @@ EHR pages offer web wallets from a registry, a `wallets.json` file. To appear in
 - **The connectathon registry:** fill in the [registration form](https://smart-health-checkin.org/connectathon/register/). It opens a pull request with your entry; once merged, the registry rebuilds within minutes.
 - **A clinic's registry:** send them your entry. [Registry format](registry.md) lists the fields.
 - **Your icon:** a small square SVG or PNG, with no scripts or external references. Registries should inline it as a `data:` URL.
-
-Next: [Testing](testing.md)

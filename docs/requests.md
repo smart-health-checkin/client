@@ -86,7 +86,7 @@ The [tutorial](tutorial.md#step-3-ask-for-what-the-visit-needs) has a complete i
 accept: ["application/smart-health-card", "application/fhir+json"] // a signed card if you have one, else FHIR
 ```
 
-- List only formats you can process. A response in a format the item didn't accept fails validation.
+- List only formats you can process. The library sets aside a record in a format its item didn't accept, and the rest of the response still counts.
 - A card's signature tells you who issued the record, which plain FHIR can't. [Responses](responses.md#smart-health-cards) covers how cards are checked.
 
 ## Building a request
@@ -106,5 +106,3 @@ const full = checkinRequest({ purpose, items }); // throws if it's malformed
 - **No patient identifiers.** The app knows its patient; your page ties the answer to a chart.
 
 `purpose`, `title`, and `summary` are text for the patient. A wallet must not treat them as evidence of anything.
-
-Next: [Wallet picker](wallets.md)

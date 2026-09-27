@@ -1,6 +1,6 @@
 # SMART Health Check-in for JavaScript
 
-Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link you text before a visit. The patient's wallet fills in what the visit needs, and the patient never leaves your page.
+Add SMART Health Check-in to a page you own: a patient portal, a kiosk, or a link you text before a visit. The patient answers from a health app of their choice that already has their records and can help with your questions, and the answer comes back to your page.
 
 <figure class="flow">
       <svg viewBox="0 0 640 168" role="img" aria-label="Your page asks; the patient's wallet answers; the response arrives in your own code, where you prefill forms, write FHIR, or ask follow-up questions.">
@@ -36,8 +36,8 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
         </g>
       </svg>
       <figcaption>
-        Your page asks, the patient's wallet answers, and the verified
-        response lands in your own code. On a desktop the browser offers a QR
+        Your page asks, the patient's wallet answers, and the decrypted,
+        checked response arrives in your own code. On a desktop the browser offers a QR
         code, so the phone answers and the data still arrives in the desktop page.
       </figcaption>
     </figure>
@@ -46,8 +46,8 @@ Add SMART Health Check-in to a page you own: a patient portal, a kiosk, a link y
 
 | If you want to | Start with |
 | --- | --- |
-| Build a check-in page step by step | [The tutorial](tutorial.md): an intake form that fills itself in, in one HTML page |
-| Drop a picker into a page you have | [The picker](wallets.md#the-picker), below |
+| Build a check-in page step by step | [Tutorial](tutorial.md): an intake form that fills itself in, in one HTML page |
+| Drop a picker into a page you have | [Drop in the picker](#drop-in-the-picker), below, then the [Wallet picker](wallets.md#the-picker) guide |
 | Call it from your own code | [`wallet.start`](#call-it-yourself), below, or [`runCheckin`](wallets.md#starting-inside-the-click) |
 
 Or try it first: the [tutorial's finished page](demo/tutorial.html), the [clinic demo](demo/), the [picker](wallets.md#the-picker), the [form autofill demo](demo/autofill.html), the [kiosk](demo/kiosk.html).

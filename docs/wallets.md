@@ -395,7 +395,7 @@ button.onclick = () => wallet.start(myRequest).then(handleResult);
 
 ## Kiosk hand-off
 
-A kiosk or front-desk screen has no wallet. The patient's phone does. The screen shows a QR code; the phone opens a small page, asks its wallet, and sends the sealed answer back. Only the screen can read it.
+A kiosk or front-desk screen has no wallet, but the patient's phone does. The screen shows a QR code; the phone opens a small page, asks its wallet, and sends the sealed answer back. Only the screen can read it.
 
 <!-- example: kiosk-handoff -->
 1. **Start**, on the kiosk: `phone.start(request)` makes the request and a key pair, keeps the private key, and posts the request with the public key to your mailbox under a random session id.
@@ -465,7 +465,7 @@ type HandoffMailbox = {
 - **Session ids are secrets.** Whoever has one can read the request and post an answer. The library makes 192 random bits; don't shorten them.
 - **An answer is written once.** The first one wins.
 - **Sessions expire.** `fetchHandoff` refuses a session older than the kiosk's [`ttlMs`](api/handoff.md#ttlms), ten minutes unless you change it. The mailbox should delete sessions after the same time.
-- **Nothing in it is secret**, so it needs no keys. Serve the hand-off page from an origin you control.
+- **The mailbox needs no keys of its own.** It carries the request, the kiosk's public key, and the sealed answer, and it can't open the answer. Serve the hand-off page from an origin you control.
 
 The demo's mailbox uses InstantDB: [`mailbox-instant.ts`](https://github.com/smart-health-checkin/client/blob/main/demo/src/mailbox-instant.ts). Try it: [the kiosk demo](../demo/kiosk.html).
 
@@ -489,5 +489,3 @@ const myWallet = customWallet({
 - `open` runs inside the click and returns a [`WalletSession`](api/checkin.md#walletsession); do anything that needs the click there.
 - Throw [`WalletDeclinedError`](api/checkin.md#walletdeclinederror) when the patient says no, and [`CheckinError`](api/checkin.md#checkinerror) with a [`code`](api/checkin.md#checkinerrorcode) for failures.
 - Web wallets use a documented hand-off between two pages. [Web wallets](web-wallets.md) describes it.
-
-Next: [Responses](responses.md)

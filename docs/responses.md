@@ -169,5 +169,3 @@ What the mapping does:
 | [`fetchImpl`](api/fhir.md#postcheckinbundle) | Your own `fetch`, with your credentials, retries, and tracing |
 
 Writing into your own data model is often the better choice. The [form autofill demo](../demo/autofill.html) shows the same data both ways.
-
-Next: [Going to production](production.md)

@@ -19,7 +19,7 @@
 
 Generated from the source by TypeDoc, one page per entry point, so it
 can't drift from the code. For explanation rather than signatures, start
-with [Getting started](../getting-started.md).
+with the [Overview](../getting-started.md).
 
 Most EHR pages use `<smart-checkin-picker>` from `/ui`, or `runCheckin`
 and `CheckinResponse` from the root module.

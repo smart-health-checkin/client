@@ -1,7 +1,8 @@
 # @smart-health-checkin/client
 
-Ask the patient's wallet for what your visit needs, and get a verified
-answer back in your own page.
+The JavaScript library for SMART Health Check-in. A clinic's page asks the
+patient's health app for what the visit needs, and gets the decrypted,
+checked response back in the same page.
 
 Drop in the picker:
 
@@ -33,15 +34,15 @@ if (result.status === "completed") {
 }
 ```
 
-The patient interaction rides the W3C Digital Credentials API (direct
-`org-iso-mdoc`, per the [SMART Health Check-in 1.0 draft
-spec](https://smart-health-checkin.org/spec/)) — CBOR, COSE, HPKE, MSO digests
-and all. This library exists so you never touch that.
+The request and response travel over the W3C Digital Credentials API as a
+direct `org-iso-mdoc` presentation, as the [SMART Health Check-in 1.0 draft
+spec](https://smart-health-checkin.org/spec/) defines. The library handles the
+CBOR, COSE, HPKE, and MSO digests, so your code works only with the JSON
+request and response.
 
-It stops when your code has the response. Writing FHIR, taking payment,
-routing the patient are your application's business, and deliberately not
-this library's: every concern a protocol library owns is one an adopting EHR
-has to audit and configure.
+The library stops when your code has the response. Writing FHIR, taking
+payment, and routing the patient are left to your application, which keeps
+what an adopting EHR has to audit and configure small.
 
 ## Documentation
 
@@ -123,8 +124,8 @@ The tests read the spec's [fixtures](https://github.com/smart-health-checkin/spe
 fetches them into the gitignored `fixtures/` and `spec-conformance/`; set
 `SPEC_DIR=../spec` to test against a local spec checkout.
 
-`scripts/build-pages.sh` refuses to finish if the hosted bundles don't
-actually run — see `scripts/verify-lib.ts` for why that check exists.
+`scripts/build-pages.sh` fails if the hosted bundles don't run;
+`scripts/verify-lib.ts` explains why that check exists.
 
 This repo builds and deploys its own GitHub Pages site on pushes to `main`
 (`.github/workflows/pages.yml`), and GitHub serves it beneath the apex site
@@ -133,16 +134,16 @@ at smart-health-checkin.org/client/. The
 the home page and the shared `/assets/` — and deploys separately; nothing
 there rebuilds when this repo changes.
 
-Apache-2.0. Related: [spec](https://github.com/smart-health-checkin/spec) ·
-[KTC materials](https://github.com/smart-health-checkin/ktc)
+Apache-2.0. Related: [spec](https://github.com/smart-health-checkin/spec).
 
 ## Releasing
 
 1. Set `version` in `package.json` and move any `/client/lib/<version>/` pins in the docs.
-2. Commit, then tag and push: `git tag vX.Y.Z && git push origin main vX.Y.Z`.
+2. Commit, push `main`, then tag and push: `git tag -a vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z`.
 
 The release workflow checks the tag against `package.json`, runs the tests,
 attaches the npm tarball and the hosted bundles to a GitHub release, and
 redeploys the site, which serves every release's bundles at
 `/client/lib/<version>/` (`scripts/fetch-releases.sh`). A release's files never
-change after that.
+change after that. Then update the consumers, as in
+[MAINTAINING.md](https://github.com/smart-health-checkin/smart-health-checkin.github.io/blob/main/MAINTAINING.md#client-vxyz).
