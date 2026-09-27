@@ -160,7 +160,7 @@ The [SMART Testing Wallet](https://smart-health-checkin.org/connectathon/testing
 
 Test your wallet against the [Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/): it sends every connectathon scenario and checks your answer against the spec. See [Testing](testing.md).
 
-To check your bytes offline, the spec publishes conformance fixtures: real captured requests and responses, with every layer decoded. They're in the [spec repository](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.1/fixtures) at tag `v1.0.0-draft.1`, along with small [conformance cases](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.1/conformance) your implementation can run in CI, and the [capture inspector](https://smart-health-checkin.org/spec/inspector.html) walks them byte by byte.
+To check your bytes offline, the spec publishes conformance fixtures: real captured requests and responses, with every layer decoded. They're in the [spec repository](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.2/fixtures) at tag `v1.0.0-draft.2`, along with small [conformance cases](https://github.com/smart-health-checkin/spec/tree/v1.0.0-draft.2/conformance) your implementation can run in CI, and the [capture inspector](https://smart-health-checkin.org/spec/inspector.html) walks them byte by byte.
 
 ## Getting listed
 

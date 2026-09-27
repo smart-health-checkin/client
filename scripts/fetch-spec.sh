@@ -6,7 +6,7 @@
 #   scripts/fetch-spec.sh
 #   SPEC_DIR=../spec scripts/fetch-spec.sh   # use a local spec checkout instead
 set -euo pipefail
-SPEC_REF="${SPEC_REF:-v1.0.0-draft.1}"
+SPEC_REF="${SPEC_REF:-v1.0.0-draft.2}"
 cd "$(dirname "$0")/.."
 
 if [ -n "${SPEC_DIR:-}" ]; then

@@ -120,7 +120,7 @@ bunx instant-cli push all --app 9cc51106-8018-43b8-8a37-fd8f414fdde5   # the kio
 ```
 
 The tests read the spec's [fixtures](https://github.com/smart-health-checkin/spec/tree/main/fixtures) and [conformance cases](https://github.com/smart-health-checkin/spec/tree/main/conformance) at a pinned tag
-(`SPEC_REF` in `scripts/fetch-spec.sh`, currently `v1.0.0-draft.1`). `bun test`
+(`SPEC_REF` in `scripts/fetch-spec.sh`, currently `v1.0.0-draft.2`). `bun test`
 fetches them into the gitignored `fixtures/` and `spec-conformance/`; set
 `SPEC_DIR=../spec` to test against a local spec checkout.
 
