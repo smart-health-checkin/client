@@ -197,7 +197,7 @@ Open the page and pick **Simulated response**. The form fills in with made-up al
 
 ## Step 7: Try it with a test wallet
 
-Now offer real web wallets. Point the picker at the connectathon's [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry):
+Now offer real web wallets. Point the picker at the connectathon's [wallet registry](https://smart-health-checkin.org/connectathon/#wallet-registry):
 
 ```html
 <smart-checkin-picker
