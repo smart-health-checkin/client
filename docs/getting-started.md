@@ -22,7 +22,7 @@ button.onclick = async () => {
 3. [Requests](requests.md) explains what a page can ask for: records by FHIR profile or type, forms, and SMART Health Cards.
 4. [Responses](responses.md) explains how to read what comes back, prefill a form and ask only for what's missing, and write FHIR.
 
-A native Android or iOS app runs the same flow through a page on its own domain; see [Native Verifier apps](native-apps.md). Before real patients use your page, [Testing](testing.md) covers the mock wallet and the connectathon's testing tools, and [Going to production](production.md) covers keys, trust settings, fallback, and privacy.
+A native app can ask the wallets on its phone directly, or run this same web flow through a page on your own domain to reach web wallets too; [Native Verifier apps](native-apps.md) covers both. Before real patients use your page, [Testing](testing.md) covers the mock wallet and the connectathon's testing tools, and [Going to production](production.md) covers keys, trust settings, fallback, and privacy.
 
 ## Building a wallet
 
