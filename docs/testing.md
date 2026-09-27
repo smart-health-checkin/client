@@ -159,7 +159,6 @@ A web wallet with synthetic patients. Its testing panel can send a deliberately 
 | `duplicate-status` | One item with two statuses |
 | `wrong-request-id` | A `requestId` that doesn't match |
 | `unaccepted-media-type` | An artifact in a type the item didn't accept |
-| `oversized` | A response padded with a large block of filler |
 | `bad-signature` | A corrupted issuer signature |
 | `bad-encryption` | A corrupted HPKE ciphertext |
 | `wrong-origin` | A transcript bound to a different origin |
@@ -168,12 +167,14 @@ A web wallet with synthetic patients. Its testing panel can send a deliberately 
 
 What this library does with each, and what your EHR should do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) and [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
 
-- **`oversized` and `combine-allergies-meds`:** accept the response intact.
+- **`combine-allergies-meds`:** accept the response intact.
 - **`bad-shc-signature`:** accept the response. The card arrives with `valid: false` and is left out of `resources()`.
 - **`bad-signature`:** complete the check-in with a `device-signature` or `issuer-signature` warning in [`result.warnings`](api/checkin.md#checkinresult).
 - **`wrong-canonical` and `unaccepted-media-type`:** complete it with that record set aside; [`response.disregarded()`](api/checkin.md#disregarded) says why.
 - **`missing-status` and `duplicate-status`:** complete it; that item has no status ([`response.status(id)`](api/checkin.md#status) is `undefined`).
 - **`wrong-request-id`, `bad-encryption`, and `wrong-origin`:** fail with `invalid-response`.
+
+The testing panel's response size setting makes a valid response of about 512 KB, 1 MB, 2 MB, or 5 MB, so you can check that your EHR takes large responses the way it takes small ones. The wallet adds earlier records of one kind, such as past lab results or prescriptions, to one shared item's Bundle, and shows the size before you share. Set it on the wallet's testing panel, or open the wallet with `#size=512k`, `1m`, `2m`, or `5m`.
 
 ## Reading a failed result
 
