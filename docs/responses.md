@@ -110,7 +110,14 @@ configureHealthCardTrust({ keys: { "https://issuer.example": jwks } }); // keys 
 Records often arrive incomplete. US Core requires an allergy's substance and status, but not the reaction or severity, so many say only "Latex". Ask only for the missing parts:
 
 ```ts
-const rows = response.resources("allergies", { type: "AllergyIntolerance" }).map((a) => ({
+type Allergy = {
+  code?: { text?: string };
+  criticality?: string;
+  reaction?: Array<{ manifestation?: Array<{ text?: string }> }>;
+};
+
+const allergies = response.resources("allergies", { type: "AllergyIntolerance" }) as Allergy[];
+const rows = allergies.map((a) => ({
   name: a.code?.text,
   reactions: (a.reaction ?? []).flatMap((r) => r.manifestation ?? []).map((m) => m.text),
   criticality: a.criticality,
@@ -121,14 +128,13 @@ const needsDetail = rows.filter(
 );
 ```
 
-- **Keep the manual path.** The patient can always type it in, and it lands in the same review as prefilled data.
-- **Keep the provenance.** "From the app", "typed by the patient", and "from the app, confirmed" are different facts.
+Keep the manual path open: the patient can always type an answer instead, and typed answers go to the same review as prefilled ones. Record which values came from the app and which the patient typed or confirmed, because those are different facts for whoever reviews them.
 
 The [form autofill demo](../demo/autofill.html) does this end to end.
 
 ## Storing it
 
-The library doesn't store anything. Send [`response.json`](api/checkin.md#json) to your server, map it into your own data model, or write FHIR with the optional module below. Wherever it lands, mark it as supplied by the patient, and make sure someone reviews it before it reaches a chart.
+The library doesn't store anything. Send [`response.json`](api/checkin.md#json) to your server, map it into your own data model, or write FHIR with the optional module below. [Reviewing the data](production.md#reviewing-the-data) covers marking it as patient-supplied and deciding who reviews it.
 
 ## Writing FHIR
 
@@ -138,8 +144,8 @@ The library doesn't store anything. Send [`response.json`](api/checkin.md#json) 
 import { buildCheckinBundle, postCheckinBundle } from "@smart-health-checkin/client/fhir";
 
 const plan = buildCheckinBundle({
-  request: result.request,
-  response: result.response.json,
+  request: response.request,
+  response: response.json,
   context: { patient: "Patient/123", appointment: "Appointment/456" },
 });
 
@@ -156,10 +162,11 @@ What the mapping does:
 | Each FHIR artifact | One `POST` per resource, in one transaction |
 | Each SMART Health Card | A `DocumentReference` holding the signed token, whole |
 | The check-in itself | A `Provenance`: supplied by the patient, when, through which request, pointing at every created resource |
-| [`context`](api/fhir.md#checkinbundlecontext) | Patient and appointment, recorded as identifiers on the Provenance |
+| [`context`](api/fhir.md#checkinbundlecontext) | The patient as the Provenance's agent and each card's subject; the appointment as an identifier on the Provenance |
 
 - [`buildCheckinBundle`](api/fhir.md#buildcheckinbundle) makes no network calls. Test it, show it to a reviewer, or send it with your own client.
 - It never matches the patient. What you pass as `context` is what it writes.
+- It maps every artifact in the JSON you give it, including any that [`disregarded()`](api/checkin.md#disregarded) lists and cards whatever their trust result. Check both before writing.
 
 [`postCheckinBundle`](api/fhir.md#postcheckinbundle) options:
 
