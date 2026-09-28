@@ -1,14 +1,14 @@
 # Wallet guide
 
-A wallet answers a clinic's check-in request with records and form answers the patient chose to share. [`@smart-health-checkin/client/wallet`](api/wallet.md) has the protocol and the matching rules; the consent screen is yours. [Install](install.md) the package, or load the hosted [`wallet.js`](install.md#hosted-files).
+A wallet answers a check-in request with records and form answers the patient chose to share. [`@smart-health-checkin/client/wallet`](api/wallet.md) has the protocol and the matching rules; the consent screen is yours. [Install](install.md) the package, or load the hosted [`wallet.js`](install.md#hosted-files).
 
 ## What a wallet does
 
-1. Receives a request, from the Digital Credentials API (native) or, for a [web wallet](web-wallets.md), from the EHR page that opened it.
-2. Shows the patient who is asking and what for. Say only what the wallet knows: "A website is asking for your health information" with the EHR page's origin shown prominently, or, for a native app calling directly, "An app is asking for your health information". Never call the requester a practice, clinic, doctor, or provider: nothing in the request proves that.
+1. Receives a request, from the Digital Credentials API (native) or, for a [web wallet](web-wallets.md), from the check-in page that opened it.
+2. Shows the patient who is asking and what for. Say only what the wallet knows: "A website is asking for your health information" with the requesting page's origin shown prominently, or, for a native app calling directly, "An app is asking for your health information". Never call the requester a practice, clinic, doctor, or provider: nothing in the request proves that.
 3. Lets the patient choose, item by item.
 4. Builds a SMART Health Check-in response: one status per item, plus artifacts.
-5. Signs and encrypts the response for the EHR's origin, and sends it back.
+5. Signs and encrypts the response for the requesting page's origin, and sends it back.
 
 The spec covers each step: [request handling](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction), [the response model](https://smart-health-checkin.org/spec/#6-clinical-response-model), and [encryption](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing).
 
@@ -22,8 +22,6 @@ A native wallet registers with Android's Credential Manager and answers requests
 - **Parsing and sealing:** done in Kotlin in that app. This library is JavaScript, for web wallets and for tests.
 - **The origin to bind:** for a browser, the origin Credential Manager reports for an allowlisted browser (`getOrigin`). For a native app calling directly, Android reports no origin, so use `android:apk-key-hash:` plus the base64url SHA-256 of the app's signing certificate ([TR-2](https://smart-health-checkin.org/spec/#TR-2)).
 
-A wallet can't yet name a native app that calls it directly, so it says "An app is asking for your health information"; how wallets should identify native app callers is still open.
-
 ## Native wallets on iOS
 
 On iOS 26, a wallet answers Safari through an Identity Document Provider extension. Apple has to approve the `org.smarthealthit.checkin.1` document type for the app's entitlement. The extension can read the SMART request (`requestInfo`) only once the patient interacts, inside `sendResponse`; it can hold that callback open while it shows its own item-by-item screens, then answer. The [Swift package](https://github.com/smart-health-checkin/swift) implements both sides, and [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#ios) has the details, including stripping the trailing slash from the origin Safari reports.
@@ -32,11 +30,11 @@ The rest of this page applies to both kinds: the matching rules, forms, statuses
 
 ## Web wallets
 
-A web wallet is a page the EHR opens in a tab. [`serveWebWallet`](api/wallet.md#servewebwallet) handles the hand-off:
+A web wallet is a page that the check-in page, the Verifier, opens in a tab. [`serveWebWallet`](api/wallet.md#servewebwallet) handles the hand-off:
 
 - posts `ready` to the page that opened it;
 - accepts one request, from that page only;
-- takes the EHR's origin from the browser, never from the message;
+- takes the Verifier's origin from the browser, never from the message;
 - seals your answer to that origin and replies.
 
 ```ts
@@ -55,23 +53,23 @@ const served = serveWebWallet({
   },
 });
 
-if (!served.opened) showLandingPage(); // opened directly, not by an EHR
+if (!served.opened) showLandingPage(); // opened directly, not by a check-in page
 ```
 
 What happens under it ([Web wallets](web-wallets.md) has the details):
 
 | Step | Message |
 | --- | --- |
-| The EHR opens your page in a tab | none |
+| The Verifier opens your page in a tab | none |
 | Your page says it's ready | `ready`, to the opener |
-| The EHR sends the request | `request`, with the Digital Credentials API argument |
+| The Verifier sends the request | `request`, with the Digital Credentials API argument |
 | You answer | `response`: approved with a credential, declined, or an error |
 
 [`onRequest`](api/wallet.md#onrequest) returns one of [four answers](api/wallet.md#webwalletanswer):
 
-| Answer | What the EHR gets |
+| Answer | What the Verifier gets |
 | --- | --- |
-| `{ response }` | Your SMART response, signed and encrypted for the EHR's origin. It's checked against the request first; a response a Verifier would set aside (a status missing, a record in a type the item doesn't accept) becomes an error reply instead. |
+| `{ response }` | Your SMART response, signed and encrypted for the Verifier's origin. It's checked against the request first; a response a Verifier would set aside (a status missing, a record in a type the item doesn't accept) becomes an error reply instead. |
 | `{ declined: true }` | The patient closed the wallet without reviewing. If they reviewed and declined everything, send `{ response: declineAll(request) }` instead ([HOLD-4](https://smart-health-checkin.org/spec/#HOLD-4)). |
 | `{ error: "…" }` | An error with your message |
 | `{ credential }` | A credential you sealed yourself, sent as is. For test wallets that inject faults. |
@@ -81,7 +79,7 @@ Options:
 | Option | Default | What it does |
 | --- | --- | --- |
 | [`onRequest`](api/wallet.md#onrequest) | required | Show consent and return an answer |
-| [`onInvalidRequest`](api/wallet.md#oninvalidrequest) | none | Called when a request can't be read. The EHR also gets an error reply. |
+| [`onInvalidRequest`](api/wallet.md#oninvalidrequest) | none | Called when a request can't be read. The Verifier also gets an error reply. |
 | [`closeAfterReply`](api/wallet.md#closeafterreply) | `true` | Close the tab after replying |
 
 ## Matching records to items
@@ -141,7 +139,7 @@ When an item lists `application/smart-health-card` first in `accept` and the pat
 
 - The artifact's `mediaType` is `application/smart-health-card`.
 - Its `value` is `{ verifiableCredential: [jws, …] }`.
-- Send each card's JWS exactly as its issuer signed it. EHRs verify the signature against the issuer's published keys, so a card changed after issue fails.
+- Send each card's JWS exactly as its issuer signed it. Verifiers check the signature against the issuer's published keys, so a card changed after issue fails.
 
 ## Lower-level pieces
 
@@ -154,7 +152,7 @@ For wallets that seal their own responses, or run somewhere `serveWebWallet` doe
 | [`declineAll(request)`](api/wallet.md#declineall) | The response for a patient who reviewed and declined everything |
 | [`sealWalletResponse({ smartResponse, encryptionInfoBytes, verifierOrigin, request? })`](api/wallet.md#sealwalletresponse) | Sign and encrypt a response; returns the credential to send. With `request`, checks the response first. |
 | [`buildSignedDeviceResponse({ smartResponseJson, sessionTranscript })`](api/wallet.md#buildsigneddeviceresponse) | The signed mdoc DeviceResponse, before encryption |
-| [`recipientJwkFromEncryptionInfo(encryptionInfoBytes)`](api/wallet.md#recipientjwkfromencryptioninfo) | The EHR's public key |
+| [`recipientJwkFromEncryptionInfo(encryptionInfoBytes)`](api/wallet.md#recipientjwkfromencryptioninfo) | The Verifier's public key |
 
 ## A reference to compare against
 
@@ -166,7 +164,7 @@ To check your bytes offline, the spec publishes conformance fixtures: real captu
 
 ## Getting listed
 
-EHR pages offer web wallets from a registry, a `wallets.json` file. To appear in one:
+Check-in pages offer web wallets from a registry, a `wallets.json` file. To appear in one:
 
 - **The connectathon registry:** fill in the [registration form](https://smart-health-checkin.org/connectathon/register/). It opens a pull request with your entry; once merged, the registry rebuilds within minutes.
 - **A clinic's registry:** send them your entry. [Registry format](registry.md) lists the fields.

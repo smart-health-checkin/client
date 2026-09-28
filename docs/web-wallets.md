@@ -1,43 +1,43 @@
 # Web wallets
 
-How an EHR's check-in page and a web wallet exchange a SMART Health Check-in request and response when the wallet is a website instead of an app on the phone.
+This page describes how a check-in page, the Verifier, and a web wallet exchange a SMART Health Check-in request and response when the wallet is a website instead of an app on the phone.
 
-Only the transport differs from a native wallet. The EHR opens the wallet in a tab, and the two pages talk with `postMessage`. The SMART request and response, the mdoc wrapping, and the encryption are exactly what the Digital Credentials API carries ([spec §8](https://smart-health-checkin.org/spec/#8-same-device-presentation-flow)).
+Only the transport differs from a native wallet. The Verifier opens the wallet in a tab, and the two pages talk with `postMessage`. The SMART request and response, the mdoc wrapping, and the encryption are exactly what the Digital Credentials API carries ([spec §8](https://smart-health-checkin.org/spec/#8-same-device-presentation-flow)).
 
 ## The library does this for you
 
-You only need the rest of this page to implement the hand-off yourself, or to debug it.
+You need the rest of this page only to implement the exchange yourself, or to debug it.
 
 | Side | Use |
 | --- | --- |
-| EHR page | [`wallets({ registry: "/wallets.json" })`](api/checkin.md#wallets), or [`webWallet(entry)`](api/checkin.md#webwallet) for one wallet, then [`wallet.start(request)`](api/checkin.md#start) inside the click |
-| EHR page, no code | [`<smart-checkin-picker registry="/wallets.json">`](api/ui.md#smartcheckinpicker) from `/ui` |
-| Web wallet | [`serveWebWallet({ onRequest })`](api/wallet.md#servewebwallet) from `/wallet`; see the [Wallet guide](build-a-wallet.md) |
+| Verifier | [`wallets({ registry: "/wallets.json" })`](api/checkin.md#wallets), or [`webWallet(entry)`](api/checkin.md#webwallet) for one wallet, then [`wallet.start(request)`](api/checkin.md#start) inside the click |
+| Verifier, no code | [`<smart-checkin-picker registry="/wallets.json">`](api/ui.md#smartcheckinpicker) from `/ui` |
+| Web wallet | [`serveWebWallet({ onRequest })`](api/wallet.md#servewebwallet) from `/wallet`; see the [Wallet guide](build-a-wallet.md#web-wallets) |
 
-Web wallets are listed for EHRs in a [wallet registry](registry.md).
+Verifiers find web wallets in a [wallet registry](registry.md).
 
 ## Sequence
 
-1. The EHR opens the wallet in a new tab.
+1. The Verifier opens the wallet in a new tab.
 2. The wallet posts **ready**.
-3. The EHR posts the **request**.
+3. The Verifier posts the **request**.
 4. The patient reviews and chooses in the wallet.
 5. The wallet posts the **response** and may close itself.
-6. The EHR decrypts and checks the response, as it would a native wallet's.
+6. The Verifier decrypts and checks the response, as it would a native wallet's.
 
 ## Opening the wallet
 
-- Call `window.open(walletUrl)` inside the patient's click handler. Browsers block it otherwise.
-- `walletUrl` comes from the wallet's [registry entry](registry.md).
-- The default is a new tab. A registry entry with [`"target": "popup"`](api/checkin.md#target) asks for a popup window.
-- Keep the returned window reference. It is how the EHR recognizes the wallet's messages.
-- Open the tab first and build the request after. The wallet may post `ready` before the request exists; send the request once both have happened.
+Browsers let a page open a tab only while it handles the patient's click, so the Verifier calls `window.open(walletUrl)` in the click handler, before any `await`. `walletUrl` comes from the wallet's [registry entry](registry.md), and the wallet opens in a new tab unless the entry has [`"target": "popup"`](api/checkin.md#target).
+
+Building the request can take long enough for the browser to stop treating the page as handling a click, so open the tab first and build the request after. The wallet may then post `ready` before the request exists; send the request once both have happened.
+
+Keep the window reference that `window.open` returns. The Verifier accepts a message only when its `event.source` is that window, its `event.origin` is the wallet's origin, and, for a response, its `requestId` matches the request.
 
 ## The three messages
 
-### Ready: wallet → EHR
+### Ready: wallet to Verifier
 
-Sent by the wallet as soon as it loads.
+The wallet sends this as soon as it loads.
 
 ```js
 window.opener.postMessage({ type: "digital-credentials/web-wallet/ready" }, "*");
@@ -45,9 +45,9 @@ window.opener.postMessage({ type: "digital-credentials/web-wallet/ready" }, "*")
 
 It carries no data, so `"*"` is safe here.
 
-### Request: EHR → wallet
+### Request: Verifier to wallet
 
-Sent by the EHR after `ready`, to the wallet's origin only.
+The Verifier sends this after `ready`, to the wallet's origin only, never to `"*"`.
 
 ```js
 walletWindow.postMessage({
@@ -61,11 +61,11 @@ walletWindow.postMessage({
 }, walletOrigin);
 ```
 
-`credentialRequestOptions` is the same argument the EHR would pass to `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)).
+`credentialRequestOptions` is the same argument the Verifier would pass to `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)).
 
-### Response: wallet → EHR
+### Response: wallet to Verifier
 
-Sent once, to the EHR's origin only. One of three outcomes:
+The wallet sends this once, to the Verifier's origin only, with the request's `requestId`. It has one of three outcomes:
 
 ```js
 // The patient shared
@@ -79,22 +79,22 @@ Sent once, to the EHR's origin only. One of three outcomes:
 { type: "digital-credentials/web-wallet/response", requestId, outcome: "error", message: "<what went wrong>" }
 ```
 
-`response` is the base64url `dcapiResponse`, exactly what a native wallet returns ([HPKE-2](https://smart-health-checkin.org/spec/#HPKE-2)).
+`response` is the base64url `dcapiResponse`, exactly what a native wallet returns ([HPKE-2](https://smart-health-checkin.org/spec/#HPKE-2)). A wallet should send `declined` or `error` rather than closing without a reply, so the Verifier can tell the patient what happened at once.
 
-## The EHR's origin
+## The Verifier's origin
 
 The wallet learns who is asking from the browser, never from the message.
 
 - Accept a request only when `event.source === window.opener`.
-- Use `event.origin` as the EHR's origin. The message has no origin field, and a wallet must never trust one written inside a message.
-- Reject the opaque origin `"null"`. There is no way to reply to it.
-- Show that origin to the patient during consent, prominently, as a website: "A website is asking for your health information", then the origin. Don't call it a practice or clinic; the origin is all the wallet knows.
+- Use `event.origin` as the Verifier's origin. The message has no origin field, and a wallet must never trust one written inside a message.
+- Reject the opaque origin `"null"`, because there is no way to reply to it.
+- Show that origin to the patient during consent, prominently, as a website: "A website is asking for your health information", then the origin. Don't call it a practice or clinic, because the origin is all the wallet knows.
 - Bind the `SessionTranscript` to it ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript)).
 - Reply only to that origin.
 
 ## Processing in the wallet
 
-Same as a native wallet ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction)):
+A web wallet processes the request the same way a native wallet does ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction)):
 
 - Pick the entry in `digital.requests` whose `protocol` is `org-iso-mdoc`.
 - Validate the request.
@@ -103,22 +103,4 @@ Same as a native wallet ([§8.4](https://smart-health-checkin.org/spec/#8-4-wall
 
 ## Timeouts and closing
 
-- The EHR treats the wallet window closing before a response as a decline.
-- The EHR also gives up after a timeout. The library uses five minutes.
-- A wallet can't extend the timeout in this version, even for a long form.
-
-## Checklist
-
-For an EHR:
-
-- Open the wallet only during a user click, and keep the window reference.
-- Filter every incoming message by `event.source`, `event.origin`, and `requestId`.
-- Send the request only to the wallet's origin, never to `"*"`.
-- Validate an approved response as in [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing).
-
-For a web wallet:
-
-- Post `ready` to `window.opener` on load.
-- Take the EHR origin from `event.origin`, show it, and bind the transcript to it.
-- Reply only to that origin, with the same `requestId`.
-- Send `declined` or `error` rather than closing silently.
+The Verifier treats the wallet's window closing before a response as a decline. It also gives up after a timeout, which in this library is five minutes. A wallet can't extend the timeout, even for a long form.
