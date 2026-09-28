@@ -83,20 +83,19 @@ Vue: tell the compiler the tag is a custom element (`isCustomElement: (tag) => t
 
 ### TypeScript and the element
 
-TypeScript doesn't yet know the tag. Type lookups yourself with [`SmartCheckinPicker`](api/ui.md#smartcheckinpicker), and cast events:
+Importing `@smart-health-checkin/client/ui` also tells TypeScript about the tag. `document.querySelector("smart-checkin-picker")` returns a [`SmartCheckinPicker`](api/ui.md#smartcheckinpicker), and its `addEventListener` types each event's `detail` from [`SmartCheckinPickerEventMap`](api/ui.md#smartcheckinpickereventmap):
 
 ```ts
-import type { CheckinResponse } from "@smart-health-checkin/client";
-import type { SmartCheckinPicker } from "@smart-health-checkin/client/ui";
+import "@smart-health-checkin/client/ui";
 
-const picker = document.querySelector<SmartCheckinPicker & HTMLElement>("smart-checkin-picker")!;
+const picker = document.querySelector("smart-checkin-picker")!;
 picker.request = myRequest;
 picker.addEventListener("smart-checkin-response", (e) => {
-  const { response } = (e as CustomEvent<{ response: CheckinResponse }>).detail;
+  if (e.detail.response) prefillMyForm(e.detail.response);
 });
 ```
 
-In React, [`<CheckinPicker>`](api/react.md#checkinpicker) is fully typed; writing `<smart-checkin-picker>` in JSX isn't.
+`response` is optional in the type because a server that [keeps the data](production.md#keeping-the-key-on-a-server) sends none. Importing `@smart-health-checkin/client/react` types the element's attributes in JSX as well, though [`<CheckinPicker>`](api/react.md#checkinpicker) is simpler there.
 
 ### Attributes
 
@@ -129,7 +128,7 @@ All events bubble and cross shadow roots. [`SmartCheckinPickerEventMap`](api/ui.
 
 | Event | `detail` | When |
 | --- | --- | --- |
-| [`smart-checkin-response`](api/ui.md#smart-checkin-response) | `{ wallet, response, result }` | The check-in finished. `response` is a [`CheckinResponse`](responses.md). |
+| [`smart-checkin-response`](api/ui.md#smart-checkin-response) | `{ wallet, response?, result }` | The check-in finished. `response` is a [`CheckinResponse`](responses.md), absent only when a key server kept the data. |
 | [`smart-checkin-declined`](api/ui.md#smart-checkin-declined) | `{ wallet, result }` | The patient closed the app or said no. |
 | [`smart-checkin-error`](api/ui.md#smart-checkin-error) | `{ wallet?, code?, message, result? }` | Anything else went wrong, including a registry that wouldn't load. [Codes](testing.md#reading-a-failed-result). |
 | [`smart-checkin-choose`](api/ui.md#smart-checkin-choose) | `{ wallet, session? }` | The patient picked a wallet. In pick mode, `session` is the opened wallet. |
