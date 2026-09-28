@@ -43,6 +43,8 @@ its core:
 ```ts
 import "@smart-health-checkin/client/ui";
 
+const picker = document.querySelector("smart-checkin-picker")!;
+
 // Chrome delivers the app's first message on window, with the channel's port.
 // Later messages arrive on the port, and replies go out on it. A new channel replaces the old one.
 let port: MessagePort | undefined;
@@ -55,14 +57,17 @@ window.addEventListener("message", (event) => {
 });
 
 function start(data: string) {
-  const { request, registry } = JSON.parse(data);
+  const { type, request, registry } = JSON.parse(data);
+  if (type !== "checkin") return;
   port!.postMessage(JSON.stringify({ type: "started" }));
-  picker.setAttribute("registry", registry);
+  if (registry) picker.setAttribute("registry", registry);
   picker.request = request;
 }
 
 picker.addEventListener("smart-checkin-response", async (e) => {
-  const text = JSON.stringify({ response: e.detail.response.json, wallet: e.detail.wallet.id });
+  const { response, wallet } = e.detail;
+  if (!response) return;
+  const text = JSON.stringify({ response: response.json, wallet: wallet.id });
   const PART = 200_000; // characters per message
   const total = Math.ceil(text.length / PART);
   port!.postMessage(JSON.stringify({ type: "result-begin", total, chars: text.length, sha256: await sha256Hex(text) }));
@@ -168,22 +173,12 @@ backend route above is the way back to the app. What's unknown is which in-app b
 (`SFSafariViewController` or `ASWebAuthenticationSession`) offers the Digital Credentials API; Safari
 itself does.
 
-## What was tested
+## How it's tested
 
-The browser path, automated on an Android 17 (API 37) emulator with Chrome 145, with the SMART Testing
-Wallet (a web wallet) answering, twice in a row:
-
-| Response | Parts | Share to app |
-| --- | --- | --- |
-| 4,382 characters | 1 | 0.6 s |
-| 1,927,289 characters (a large patient record) | 10 | 0.6–2.8 s |
-
-The direct path, on the same emulator, with the [reference Android wallet](https://github.com/smart-health-checkin/android-wallet/releases/latest) answering: the wallet
-binds the transcript to the app's `android:apk-key-hash:` origin, and the app decrypts a 4,595-character
-response with it. About 11 seconds from tap to result, including the platform's sheet and the wallet's
-consent screen.
-
-A web wallet opened from the bridge page inside the Custom Tab keeps `window.opener`, so the
-[web wallet protocol](web-wallets.md) works unchanged. The test is
-[`tools/verifier-app-e2e/run.ts`](https://github.com/smart-health-checkin/android-wallet/blob/main/tools/verifier-app-e2e/run.ts)
-in the android-wallet repository.
+An automated test in the android-wallet repository,
+[`tools/verifier-app-e2e/run.ts`](https://github.com/smart-health-checkin/android-wallet/blob/main/tools/verifier-app-e2e/run.ts),
+runs both paths on an Android emulator with Chrome. On the browser path the SMART Testing Wallet answers
+from inside the Custom Tab: a web wallet opened there keeps `window.opener`, so the
+[web wallet protocol](web-wallets.md) works unchanged. On the direct path the reference Android wallet
+answers, binding the transcript to the app's `android:apk-key-hash:` origin, and the app decrypts the
+response with its own key.
