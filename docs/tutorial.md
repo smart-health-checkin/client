@@ -218,12 +218,7 @@ With the default setting, an untrusted card still arrives, but `resources("insur
 
 ## Before real patients
 
-Take out the mock and the test registry, then work through [Going to production](production.md):
-
-- Decide which health cards to trust, for example issuers in the VCI directory.
-- Offer the web wallets your clinic recognizes, in your own `wallets.json`.
-- Tie the page to a signed-in patient.
-- Keep the form working for everyone who doesn't use a wallet.
+The `mock` attribute, the connectathon's registry, and the `any-valid` setting are for testing only. Before real patients use the page, take them out and work through [Going to production](production.md), which covers what replaces them and the other decisions a live page needs.
 
 ## The whole page
 
