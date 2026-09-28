@@ -30,7 +30,7 @@ export const GUIDES: Guide[] = [
   { file: "docs/responses.md", slug: "responses", title: "Responses",
     menuNote: "Read results, health cards, prefill, FHIR", menuGroup: "Build a check-in page" },
   { file: "docs/production.md", slug: "production", title: "Going to production",
-    menuNote: "Keys, trust, fallback, privacy", menuGroup: "Testing and production" },
+    menuNote: "Fallback, review, trust, privacy", menuGroup: "Testing and production" },
   { file: "docs/native-apps.md", slug: "native-apps", title: "Native Verifier apps",
     menuNote: "Check-in from an Android or iOS app", menuGroup: "Build a check-in page" },
   { file: "docs/build-a-wallet.md", slug: "build-a-wallet", title: "Wallet guide",

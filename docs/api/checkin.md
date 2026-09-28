@@ -445,19 +445,9 @@ type CheckinOptions = {
 };
 ```
 
-Defined in: [src/core/run.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L32)
+Defined in: [src/core/run.ts:28](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L28)
 
-`@smart-health-checkin/client`: add SMART Health Check-in to an EHR page.
-
-  const result = await runCheckin(request);                     // the phone's own wallet
-  const options = await wallets({ registry: "/wallets.json" }); // or let the patient choose
-  button.onclick = () => options[1].start(request).then(show);
-
-  if (result.status === "completed") result.response.resources("allergies");
-
-Other entry points: `/ui` (the picker element), `/react`, `/picker`,
-`/wallet` (building a wallet), `/handoff` (kiosks), `/fhir`, `/testing`,
-`/model`, `/wire`.
+Options for `runCheckin` and `wallet.start`.
 
 #### Properties
 
@@ -467,7 +457,7 @@ Other entry points: `/ui` (the picker element), `/react`, `/picker`,
 optional fetch?: typeof fetch;
 ```
 
-Defined in: [src/core/run.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L44)
+Defined in: [src/core/run.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L40)
 
 Used to fetch health-card issuer keys and directories.
 
@@ -477,7 +467,7 @@ Used to fetch health-card issuer keys and directories.
 optional healthCards?: HealthCardTrust;
 ```
 
-Defined in: [src/core/run.ts:40](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L40)
+Defined in: [src/core/run.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L36)
 
 Trust for SMART Health Cards in the response; defaults to `configureHealthCardTrust`.
 
@@ -492,7 +482,7 @@ optional keys?:
   | KeyCustody;
 ```
 
-Defined in: [src/core/run.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L38)
+Defined in: [src/core/run.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L34)
 
 Where the key that opens the response lives: "browser" (default, a fresh key in the page), `{ server }` for server-held keys, or your own `KeyCustody`.
 
@@ -502,7 +492,7 @@ Where the key that opens the response lives: "browser" (default, a fresh key in 
 optional session?: WalletSession;
 ```
 
-Defined in: [src/core/run.ts:36](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L36)
+Defined in: [src/core/run.ts:32](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L32)
 
 A session already opened with `wallet.open()`, for example by the picker in pick mode.
 
@@ -512,7 +502,7 @@ A session already opened with `wallet.open()`, for example by the picker in pick
 optional signal?: AbortSignal;
 ```
 
-Defined in: [src/core/run.ts:42](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L42)
+Defined in: [src/core/run.ts:38](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L38)
 
 Abort to stop waiting (closes a web wallet's tab); the check-in ends as declined.
 
@@ -522,7 +512,7 @@ Abort to stop waiting (closes a web wallet's tab); the check-in ends as declined
 optional wallet?: Wallet;
 ```
 
-Defined in: [src/core/run.ts:34](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L34)
+Defined in: [src/core/run.ts:30](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L30)
 
 Which wallet to ask. Defaults to the phone's own wallet.
 
@@ -633,19 +623,9 @@ type CheckinResult =
 };
 ```
 
-Defined in: [src/core/run.ts:47](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L47)
+Defined in: [src/core/run.ts:44](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L44)
 
-`@smart-health-checkin/client`: add SMART Health Check-in to an EHR page.
-
-  const result = await runCheckin(request);                     // the phone's own wallet
-  const options = await wallets({ registry: "/wallets.json" }); // or let the patient choose
-  button.onclick = () => options[1].start(request).then(show);
-
-  if (result.status === "completed") result.response.resources("allergies");
-
-Other entry points: `/ui` (the picker element), `/react`, `/picker`,
-`/wallet` (building a wallet), `/handoff` (kiosks), `/fhir`, `/testing`,
-`/model`, `/wire`.
+How a check-in ended: `completed`, `kept-on-server`, `declined`, or `failed`.
 
 #### Union Members
 
@@ -1148,17 +1128,54 @@ type KeyCustody = {
 };
 ```
 
-Defined in: [src/browser/index.ts:99](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L99)
+Defined in: [src/browser/index.ts:136](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L136)
 
-The key-custody seam.
+Where the key that opens a wallet's response lives: the `keys` option of
+`runCheckin`. The default, `"browser"`, makes a single-use key in the page
+for each check-in. `{ server: "/checkin-api" }` keeps it on your server,
+behind the two calls below (the "Going to production" guide explains when
+that's worth it). To call a different API, or to send a bearer token instead
+of the page's cookies, implement this type yourself.
 
-browser-local — the default — generates an ephemeral, single-use HPKE key
-in the page. That is the intended arrangement: the page must be able to
-read the response for prefill workflows, and keeping the client
-browser-only means no per-language server SDK has to exist.
+#### The server's two calls
 
-A server-owned implementation keeps the key behind two HTTP calls for
-deployments that specifically don't want the page to hold the response.
+Both are `POST` with JSON bodies, sent with the page's cookies
+(`credentials: "include"`). Nothing between the page and the wallet
+changes.
+
+**Prepare:** `POST {server}/credential-requests` with `{ "request": SmartCheckinRequest }`.
+The server:
+
+- decides what to ask for. It may build its own request and ignore the
+  page's, so a compromised page can't widen what is asked;
+- builds the wire request with a fresh key, using
+  `buildOrgIsoMdocRequest(request, { origin })` from `/wire` or the same
+  steps in its own language, with the page's origin taken from its own
+  configuration, never from the request body;
+- stores the key, the request, the origin, the user's session, and an
+  expiry under a handle of at least 128 random bits;
+- replies `{ "handle": string, "navigatorArgument": {...} }`.
+
+Rate-limit this call: each one makes a key and a record.
+
+**Complete:** `POST {server}/credential-requests/{handle}/complete` with
+`{ "credential": <what the wallet returned> }`. The server:
+
+- rejects a handle that is unknown, expired, already used, or from another
+  session;
+- opens and checks the credential with `openWalletCredential` and then
+  `checkDeviceResponse` from `/wire`, keeping their `warnings`;
+- checks the SMART response against the request it stored, with
+  `validateResponseAgainstRequest` from `/model`, never against anything
+  the page sent;
+- deletes the key;
+- replies with a `CredentialCompletion`: `{ smartResponse, presentation, warnings }`
+  to hand the data to the page, or `{ "handledByServer": true, "reference"?: string }`
+  to keep it, in which case `runCheckin` resolves with status `"kept-on-server"`.
+
+Any HTTP error from either call ends the check-in as failed with code
+`server`. For a server in another language, the spec's conformance
+fixtures include a real capture with a published test key.
 
 #### Properties
 
@@ -1168,7 +1185,7 @@ deployments that specifically don't want the page to hold the response.
 kind: string;
 ```
 
-Defined in: [src/browser/index.ts:100](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L100)
+Defined in: [src/browser/index.ts:137](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L137)
 
 #### Methods
 
@@ -1178,7 +1195,7 @@ Defined in: [src/browser/index.ts:100](https://github.com/smart-health-checkin/c
 completeCredentialRequest(input): Promise<CredentialCompletion>;
 ```
 
-Defined in: [src/browser/index.ts:102](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L102)
+Defined in: [src/browser/index.ts:139](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L139)
 
 ###### Parameters
 
@@ -1198,7 +1215,7 @@ Defined in: [src/browser/index.ts:102](https://github.com/smart-health-checkin/c
 prepareCredentialRequest(input): Promise<PreparedCredentialRequest>;
 ```
 
-Defined in: [src/browser/index.ts:101](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L101)
+Defined in: [src/browser/index.ts:138](https://github.com/smart-health-checkin/client/blob/main/src/browser/index.ts#L138)
 
 ###### Parameters
 
@@ -2313,7 +2330,7 @@ The phone's own wallet, through the browser's Digital Credentials API.
 function runCheckin(input, options?): Promise<CheckinResult>;
 ```
 
-Defined in: [src/core/run.ts:81](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L81)
+Defined in: [src/core/run.ts:78](https://github.com/smart-health-checkin/client/blob/main/src/core/run.ts#L78)
 
 Run a check-in and report what happened. Never throws for an ordinary
 outcome (declined, failed); throws only for a malformed request.

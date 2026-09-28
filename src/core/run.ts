@@ -22,13 +22,9 @@ import { toRequest, type CheckinRequestInput } from "./request.js";
 import { CheckinResponse } from "./response.js";
 import { platformWallet, type Wallet, type WalletSession } from "./wallets.js";
 
-/**
- * Where the verifier's private key lives. "browser" (default): a fresh key in
- * the page for each check-in. `{ server }`: your server holds it, behind two
- * HTTP calls (see the server-held keys guide). Or your own implementation.
- */
 export type { KeyCustody };
 
+/** Options for `runCheckin` and `wallet.start`. */
 export type CheckinOptions = {
   /** Which wallet to ask. Defaults to the phone's own wallet. */
   wallet?: Wallet;
@@ -44,6 +40,7 @@ export type CheckinOptions = {
   fetch?: typeof fetch;
 };
 
+/** How a check-in ended: `completed`, `kept-on-server`, `declined`, or `failed`. */
 export type CheckinResult =
   | {
       status: "completed";

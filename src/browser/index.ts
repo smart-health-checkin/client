@@ -86,15 +86,52 @@ export type CredentialCompletion =
     };
 
 /**
- * The key-custody seam.
+ * Where the key that opens a wallet's response lives: the `keys` option of
+ * `runCheckin`. The default, `"browser"`, makes a single-use key in the page
+ * for each check-in. `{ server: "/checkin-api" }` keeps it on your server,
+ * behind the two calls below (the "Going to production" guide explains when
+ * that's worth it). To call a different API, or to send a bearer token instead
+ * of the page's cookies, implement this type yourself.
  *
- * browser-local — the default — generates an ephemeral, single-use HPKE key
- * in the page. That is the intended arrangement: the page must be able to
- * read the response for prefill workflows, and keeping the client
- * browser-only means no per-language server SDK has to exist.
+ * #### The server's two calls
  *
- * A server-owned implementation keeps the key behind two HTTP calls for
- * deployments that specifically don't want the page to hold the response.
+ * Both are `POST` with JSON bodies, sent with the page's cookies
+ * (`credentials: "include"`). Nothing between the page and the wallet
+ * changes.
+ *
+ * **Prepare:** `POST {server}/credential-requests` with `{ "request": SmartCheckinRequest }`.
+ * The server:
+ *
+ * - decides what to ask for. It may build its own request and ignore the
+ *   page's, so a compromised page can't widen what is asked;
+ * - builds the wire request with a fresh key, using
+ *   `buildOrgIsoMdocRequest(request, { origin })` from `/wire` or the same
+ *   steps in its own language, with the page's origin taken from its own
+ *   configuration, never from the request body;
+ * - stores the key, the request, the origin, the user's session, and an
+ *   expiry under a handle of at least 128 random bits;
+ * - replies `{ "handle": string, "navigatorArgument": {...} }`.
+ *
+ * Rate-limit this call: each one makes a key and a record.
+ *
+ * **Complete:** `POST {server}/credential-requests/{handle}/complete` with
+ * `{ "credential": <what the wallet returned> }`. The server:
+ *
+ * - rejects a handle that is unknown, expired, already used, or from another
+ *   session;
+ * - opens and checks the credential with `openWalletCredential` and then
+ *   `checkDeviceResponse` from `/wire`, keeping their `warnings`;
+ * - checks the SMART response against the request it stored, with
+ *   `validateResponseAgainstRequest` from `/model`, never against anything
+ *   the page sent;
+ * - deletes the key;
+ * - replies with a `CredentialCompletion`: `{ smartResponse, presentation, warnings }`
+ *   to hand the data to the page, or `{ "handledByServer": true, "reference"?: string }`
+ *   to keep it, in which case `runCheckin` resolves with status `"kept-on-server"`.
+ *
+ * Any HTTP error from either call ends the check-in as failed with code
+ * `server`. For a server in another language, the spec's conformance
+ * fixtures include a real capture with a published test key.
  */
 export type KeyCustody = {
   kind: string;
@@ -176,9 +213,8 @@ export function createBrowserKeyCustody(options: { origin?: string } = {}): KeyC
  *       or { "handledByServer": true, "reference"?: string }
  *
  * Requests carry the page's credentials (`credentials: "include"`), so the
- * server can bind a check-in to the authenticated session. The full contract,
- * including what the server must store and verify, is in
- * docs/server-authority.md.
+ * server can bind a check-in to the authenticated session. `KeyCustody`
+ * describes what the server must store and check.
  */
 export function createServerKeyCustody(baseUrl: string): KeyCustody {
   const base = baseUrl.replace(/\/$/, "");
