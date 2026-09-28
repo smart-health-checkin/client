@@ -10,7 +10,7 @@ The library isn't on the npm registry. Each [GitHub release](https://github.com/
 npm install https://github.com/smart-health-checkin/client/releases/download/v0.4.4/smart-health-checkin-client-0.4.4.tgz
 ```
 
-A release's URL always serves the same package, so the line pins one version. Each release's notes start with its own install line; watch the repository's releases to hear about new ones. Installing straight from git (`npm install github:smart-health-checkin/client#v0.4.4`) also works, but builds the package on your machine.
+A release's URL always serves the same package, so the line pins one version. Each release's notes start with its own install line; watch the repository's releases to hear about new ones.
 
 The package has no runtime dependencies. React is an optional peer dependency, needed only for `/react`. Every entry point ships as an ES module with `.d.ts` types, plus the TypeScript sources and source maps, so "go to definition" in your editor lands in the library's real code.
 

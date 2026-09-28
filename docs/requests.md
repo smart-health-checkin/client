@@ -44,7 +44,7 @@ Use [`selection.fhir`](api/checkin.md#smartcheckincontentselector) for data that
 | `resourceTypes` | Records of these types; also narrows the two above | `["Immunization"]` |
 | none | Anything the app will share | Occasionally useful, usually too broad |
 
-`profiles` and `profilesFrom` add up; `resourceTypes` narrows them.
+`profiles` and `profilesFrom` add up: a record that matches either one counts.
 
 ```ts
 // Your allergy list

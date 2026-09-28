@@ -50,7 +50,7 @@ Add [`alsoFulfills: ["otherItem"]`](api/testing.md#mockitemspec) to a `fhir` or 
 | --- | --- |
 | [`fallback`](api/testing.md#fallback) | What items not named in `items` get: `"fabricate"` (the default) or a spec applied to all of them. |
 | [`respond`](api/testing.md#respond) | `(request) => response`: build the whole response yourself. |
-| [`origin`](api/testing.md#origin) | The EHR origin the response is bound to. Defaults to `location.origin`. |
+| [`origin`](api/testing.md#origin) | The origin the response is bound to. Defaults to `location.origin`. |
 
 ### Without the wire layer
 
@@ -116,22 +116,16 @@ Add the [`mock`](api/ui.md#attributes) attribute to the picker. It offers a "Sim
 
 ## Health cards when testing
 
-By default only cards from trusted issuers reach [`resources()`](api/checkin.md#resources). Test issuers usually aren't trusted, so loosen it for testing:
+By default only cards from trusted issuers reach [`resources()`](api/checkin.md#resources), and test issuers usually aren't trusted. While testing, loosen [`accept`](api/checkin.md#accept) to include cards from any issuer whose signature verifies, or every card, including ones whose signature fails:
 
 ```ts
 import { configureHealthCardTrust } from "@smart-health-checkin/client";
 
-configureHealthCardTrust({ accept: "any-valid" });  // any issuer, valid signature
-configureHealthCardTrust({ accept: "everything" }); // invalid cards too, marked
+configureHealthCardTrust({ accept: "any-valid" });
+configureHealthCardTrust({ accept: "everything" });
 ```
 
-| [`accept`](api/checkin.md#accept) | Cards in `resources()` |
-| --- | --- |
-| `"trusted"` (default) | Valid cards from trusted issuers |
-| `"any-valid"` | Valid cards from any issuer |
-| `"everything"` | Every card, including ones whose signature fails |
-
-Whatever `accept` says, [`healthCards(item)`](api/checkin.md#healthcards) lists every card with [`valid`](api/checkin.md#valid), [`trusted`](api/checkin.md#trusted), [`accepted`](api/checkin.md#accepted), and [`reason`](api/checkin.md#reason). To trust a test issuer without fetching its keys, pass them: [`configureHealthCardTrust({ keys: { [issuer]: jwks } })`](api/checkin.md#keys-1).
+To trust one test issuer without fetching its keys, pass them instead: [`configureHealthCardTrust({ keys: { [issuer]: jwks } })`](api/checkin.md#keys-1). [SMART Health Cards](responses.md#smart-health-cards) explains each setting and how to see every card's result.
 
 ## The connectathon tools
 
@@ -150,7 +144,7 @@ Two hosted tools let you test against a known-good counterpart.
 
 <https://smart-health-checkin.org/connectathon/testing-wallet/>
 
-A web wallet with synthetic patients. It can send a deliberately broken or very large response, so you can check your EHR's error handling.
+A web wallet with synthetic patients. It can send a deliberately broken or very large response, so you can check your page's error handling.
 
 To test your own page: open the wallet, set faults or a response size in its testing panel, choose "Copy wallet URL for these settings", and add that URL to your page's wallet list as a web wallet, for example with [`webWallet()`](api/checkin.md#webwallet). Then run check-ins from your page as usual; each one gets those options, and the wallet's approval screen shows them. For example, [bad signature](https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsiYmFkLXNpZ25hdHVyZSJdfQ/) and [5 MB response](https://smart-health-checkin.org/connectathon/testing-wallet/eyJzaXplIjoiNW0ifQ/). These [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls) are the Testing Wallet's own format, not part of SMART Health Check-in: your page opens them like any wallet URL. The [Testing EHR](#testing-ehr) can build them too, under "Testing Wallet options".
 
@@ -167,7 +161,7 @@ To test your own page: open the wallet, set faults or a response size in its tes
 | `bad-shc-signature` | A SMART Health Card with a broken signature |
 | `combine-allergies-meds` | Allergies and medications in one shared Bundle. A valid response, for scenario [shared-artifact](https://smart-health-checkin.org/connectathon/advanced.html#shared-artifact). |
 
-What this library does with each, and what your EHR should do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) and [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
+What this library does with each, and what your page should do (spec [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) and [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
 
 - **`combine-allergies-meds`:** accept the response intact.
 - **`bad-shc-signature`:** accept the response. The card arrives with `valid: false` and is left out of `resources()`.
@@ -176,7 +170,7 @@ What this library does with each, and what your EHR should do (spec [§6.4](http
 - **`missing-status` and `duplicate-status`:** complete it; that item has no status ([`response.status(id)`](api/checkin.md#status) is `undefined`).
 - **`wrong-request-id`, `bad-encryption`, and `wrong-origin`:** fail with `invalid-response`.
 
-The response size setting makes a valid response of about 512 KB, 1 MB, 2 MB, or 5 MB, so you can check that your EHR takes large responses the way it takes small ones. The wallet adds earlier records of one kind, such as past lab results or prescriptions, to one shared item's Bundle, and shows the size before you share. Set it in the wallet's testing panel and copy its config URL, as above.
+The wallet's response size setting makes a valid response of about 512 KB, 1 MB, 2 MB, or 5 MB, by adding earlier records such as past lab results to one item's Bundle. Use it to check that your page handles a large response the way it handles a small one.
 
 ## Reading a failed result
 

@@ -1,8 +1,6 @@
 # Clinic check-in demo options
 
-The sample pages for `@smart-health-checkin/client`, served at `/client/demo/`. Each page shows one way to use the library, running the real flow. Responses stay in the page unless you say where to post them.
-
-What each page shows is in [Testing: the demos](../docs/testing.md#the-demos). The requests the demos send are plain objects in `src/requests.ts`.
+The clinic check-in demo, at `/client/demo/`, is a clinic website's check-in page running the real flow with a made-up patient. This page lists the options it takes in its URL. Responses stay in the page unless you tell it where to post them. [The demos](../docs/testing.md#the-demos) in the Testing guide lists the other demo pages, and the requests the demos send are plain objects in `src/requests.ts`.
 
 ## URL options for the clinic check-in demo
 
@@ -19,8 +17,8 @@ Every option goes in the URL fragment, after `#`. Fragments aren't sent to serve
 | `request` | A full `SmartCheckinRequest`, base64url-encoded, sent as is. Wins over `scenario`. |
 | `wallet` | Offer only this wallet: a registry id (`demo` or `evergreen`), `platform` for the device's own wallet, or `mock` for the simulated response. Without it, the page offers all of them. |
 | `wallets` | A wallet registry URL to use instead of `./wallets.json`. |
-| `patient` | A FHIR Patient reference on the target server, such as `Patient/123`. |
-| `appointment` | A FHIR Appointment reference. |
+| `patient` | A FHIR Patient reference on the target server, such as `Patient/123`. Defaults to `Patient/example`. |
+| `appointment` | A FHIR Appointment reference. Defaults to `Appointment/demo-visit`. |
 | `fhir` | A FHIR base URL to post to. No default. |
 | `post` | `none` (the default), `transaction`, or `individual`. |
 | `returnUrl` | Where the patient goes after a completed check-in. |
@@ -39,12 +37,6 @@ Nothing is posted unless both `post` and `fhir` are set. The public HAPI R4 test
 …/demo/#wallet=platform                   only the device's own wallet
 …/demo/#wallet=mock                       only the simulated response: an instant made-up answer, no consent screen
 …/demo/#wallet=mock&post=transaction&fhir=<base>   then post it there
-…/demo/tutorial.html                      the tutorial's finished page
-…/demo/autofill.html                      prefill a form from the app
-…/demo/kiosk.html                         a kiosk: QR code, then the phone answers
-…/demo/handoff.html#session=<id>          what the phone opens from that QR code
-…/demo/react.html                         React
-…/demo/angular.html                       Angular
 ```
 
 Everything in the URL can also be changed on the page under **Demo controls**. Your choices are written back into the URL, so the result is a link you can share.
