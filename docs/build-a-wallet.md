@@ -24,7 +24,13 @@ A native wallet registers with Android's Credential Manager and answers requests
 
 ## Native wallets on iOS
 
-On iOS 26, a wallet answers Safari through an Identity Document Provider extension. Apple has to approve the `org.smarthealthit.checkin.1` document type for the app's entitlement. The extension can read the SMART request (`requestInfo`) only once the patient interacts, inside `sendResponse`; it can hold that callback open while it shows its own item-by-item screens, then answer. The [Swift package](https://github.com/smart-health-checkin/swift) implements both sides, and [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#ios) has the details, including stripping the trailing slash from the origin Safari reports.
+On iOS 26, a wallet answers Safari through an Identity Document Provider extension. Apple has to approve the `org.smarthealthit.checkin.1` document type for the app's entitlement.
+
+- **Wallet kit:** [`ios-wallet-kit`](https://github.com/smart-health-checkin/ios-wallet-kit) repository, a Swift framework for the extension. It validates the request, hands you the SMART request to show, and signs and encrypts the answer. Its README walks through the extension code. It has no UI and no data store, and its CBOR is a minimal stand-in to replace with a full CBOR library for production.
+- **Reading the request:** the extension can read the SMART request (`requestInfo`) only once the patient interacts, inside `sendResponse`. It can hold that callback open while it shows its own item-by-item screens, then answer.
+- **The origin to bind:** the origin Safari reports, without its trailing slash ([TR-2](https://smart-health-checkin.org/spec/#TR-2)). [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#ios) has the details.
+
+The [Swift package](https://github.com/smart-health-checkin/swift) implements both the Verifier and Wallet roles, for apps that compose their own flows.
 
 The rest of this page applies to both kinds: the matching rules, forms, statuses, and health cards are the same.
 
